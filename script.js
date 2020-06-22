@@ -45,7 +45,7 @@ function prepareInputDatas(data, time_steps, b_test) {
 
 
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
-                return Object.values(d).slice(0, 6);/**/
+                return Object.values(d);/*.slice(0, 6);*/
 
                 /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
@@ -83,26 +83,16 @@ function prepareOutputDatas(data, time_steps) {
     }
 }
 
+let prices_min=0;
+let prices_max =0;
+
 function normalizza_dati(data) {
 
-
-    let macd_macd_max = 0;
-    let macd_signal_max = 0;
-    let macd_histogram_max = 0;
-    let macd_macd_min = 0;
-    let macd_signal_min = 0;
-    let macd_histogram_min = 0;
-
-    let stochastic_k_max = 0;
-    let stochastic_d_max = 0;
-    let stochastic_k_min = 0;
-    let stochastic_d_min = 0;
-
     //prima deve calcolare massimi e minimi
-    let prices_min = Math.min.apply(null, data.map(function (d) {
+    prices_min = Math.min.apply(null, data.map(function (d) {
         return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
     }));
-    let prices_max = Math.max.apply(null, data.map(function (d) {
+    prices_max = Math.max.apply(null, data.map(function (d) {
         return Math.max.apply(null, [d.open, d.high, d.low, d.close]);
     }));
 
@@ -123,9 +113,42 @@ function normalizza_dati(data) {
         return d.rsi;
     }));
 
+    let stochastic_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.stochastic_k, d.stochastic_d]);
+    }));
+
+    let stochastic_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.stochastic_k, d.stochastic_d]);
+    }));
+
+    let macd_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
+    }));
+
+    let macd_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
+    }));
+
+    /*let macd_macd_max = 0;
+     let macd_macd_min = 0;
+     
+     let macd_signal_max = 0;        
+     let macd_signal_min = 0;
+     
+     let macd_histogram_max = 0;
+     let macd_histogram_min = 0;*/
+
+
 
     let finale = data.map(function (d) {
-        return {open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min), low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min), sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min)};
+        return {open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
+            low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
+            sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
+            stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
+            macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
+            macd_signal: (d.macd_signal - macd_min) / (macd_max - macd_min),
+            macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min)
+        };
     });
 
     return finale;
@@ -206,7 +229,7 @@ async function train_data(data) {
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     const time_steps = 14;
-    const epochs_number = 25;
+    const epochs_number = 20;
 
     const predict_size = data.length - size;
 
@@ -263,12 +286,12 @@ async function train_data(data) {
 
     model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
 
-    model.add(tf.layers.dropout({rate: 0.5}));
+    model.add(tf.layers.dropout({rate: 0.1}));
 
     //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
     model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
 
-    model.add(tf.layers.dropout({rate: 0.5}));
+    model.add(tf.layers.dropout({rate: 0.1}));
 
     model.add(tf.layers.dense({units: 1}));
 
@@ -318,18 +341,18 @@ async function train_data(data) {
      .add(outputDataMin).dataSync();*/
 
     const unNormValidation = validation.dataSync();
-
+    
     const trainingResults = output.map((d, i) => {
         if (d) {
             return {
-                x: i, y: d
+                x: i, y: d*(prices_max-prices_min)+prices_min
             };
         }
     });
     const trainingValidation = Array.from(unNormValidation).map((d, i) => {
         if (d) {
             return {
-                x: i, y: d
+                x: i, y: d*(prices_max-prices_min)+prices_min
             };
         }
     });
@@ -364,14 +387,14 @@ async function train_data(data) {
     const realResults = testingResults.map((d, i) => {
         if (d) {
             return {
-                x: i, y: d.toFixed(4)
+                x: i, y: d*(prices_max-prices_min)+prices_min
             };
         }
     });
     const predictions = Array.from(unNormPredictions).map((d, i) => {
         if (d) {
             return {
-                x: i, y: d.toFixed(4)
+                x: i, y: d*(prices_max-prices_min)+prices_min
             };
         }
     });
