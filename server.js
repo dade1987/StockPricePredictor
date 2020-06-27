@@ -1,7 +1,7 @@
 const http = require('http');
 const https = require('https');
 const socketio = require('socket.io');
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node');
 
 const SMA = require('technicalindicators').SMA;
 const MACD = require('technicalindicators').MACD;
