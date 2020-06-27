@@ -13,7 +13,6 @@ const RSI = require('technicalindicators').RSI;
 
 /* global tf, tfvis, process */
 
-const server = http.createServer();
 const io = socketio(server);
 
 const PORT = process.env.PORT || 8080;
