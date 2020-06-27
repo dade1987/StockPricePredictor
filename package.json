@@ -8,14 +8,17 @@
         "concurrently": "^5.2.0",        
         "python": "0.0.4",
         "socket.io": "^2.3.0",
-        "technicalindicators": "^3.1.0",
-        "express": "latest"   
+        "technicalindicators": "^3.1.0"        
     },
     "devDependencies": {
-        
+        "clang-format": "~1.2.3",
+        "mkdirp": "~0.5.1",
+        "webpack": "~4.28.4",
+        "webpack-cli": "^3.3.2",
+        "webpack-dev-server": "^3.11.0"
     },
     "scripts": {
-        "start": "node server.js"
+        "start": "concurrently \"webpack\" \"node server.js\""
     },
     "author": "",
     "license": "MIT"

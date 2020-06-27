@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 const PORT = process.env.PORT || 8001;
 
 const socket =
-        io('http://localhost:'+PORT,
+        io('http://0.0.0.0:'+PORT,
                 {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
 const predictButton = document.getElementById('predict-button');
