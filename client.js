@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 
 const socket =
-        io('http://localhost:1',
+        io('http://price-predictor-eu.herokuapp.com:9157',
                 {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
 const predictButton = document.getElementById('predict-button');
