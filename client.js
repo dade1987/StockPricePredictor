@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 
 const socket =
-        io('http://localhost:8001',
+        io('http://localhost:9157',
                 {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
 const predictButton = document.getElementById('predict-button');
