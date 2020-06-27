@@ -14,7 +14,7 @@ const server = http.createServer();
 const io = socketio(server);
 
 //porta 3000
-const port = 9157;
+const port = 1;
 server.listen(port, () => {
     console.log(`Running socket on port: ${port}`);
 });
