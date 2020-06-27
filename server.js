@@ -8,15 +8,14 @@ const MACD = require('technicalindicators').MACD;
 const RSI = require('technicalindicators').RSI;
 
 
-/* global tf, tfvis */
+/* global tf, tfvis, process */
 
 const server = http.createServer();
 const io = socketio(server);
 
-//porta 3000
-const port = 8001;
-server.listen(port, () => {
-    console.log(`Running socket on port: ${port}`);
+const PORT = process.env.PORT || 8001;
+server.listen(PORT, () => {
+    console.log(`Running socket on port: ${PORT}`);
 });
 
 io.on('connection', (socket) => {

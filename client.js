@@ -1,7 +1,11 @@
+/* global process */
+
 import io from 'socket.io-client';
 
+const PORT = process.env.PORT || 8001;
+
 const socket =
-        io('http://price-predictor-eu.herokuapp.com:8001',
+        io('https://0.0.0.0:'+PORT,
                 {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
 const predictButton = document.getElementById('predict-button');
