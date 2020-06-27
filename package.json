@@ -1,8 +1,7 @@
 {
-    "name": "tensorflownodejs",
+    "name": "price-predictor-eu",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
     "dependencies": {
         "@tensorflow/tfjs-node": "^2.0.1",
         "@tensorflow/tfjs-node-gpu": "^2.0.1",
@@ -27,5 +26,5 @@
         "start": "concurrently \"webpack & webpack-dev-server\" \"node server.js\""
     },
     "author": "",
-    "license": "ISC"
+    "license": "MIT"
 }
