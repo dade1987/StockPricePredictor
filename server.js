@@ -1,7 +1,10 @@
+var express = require("express");
+var app = express();
+
 const http = require('http');
 const https = require('https');
 const socketio = require('socket.io');
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs');
 
 const SMA = require('technicalindicators').SMA;
 const MACD = require('technicalindicators').MACD;
@@ -13,21 +16,23 @@ const RSI = require('technicalindicators').RSI;
 const server = http.createServer();
 const io = socketio(server);
 
-const PORT = process.env.PORT || 8001;
-server.listen(PORT, () => {
-    console.log(`Running socket on port: ${PORT}`);
+const PORT = process.env.PORT || 8080;
+
+var options = {
+    index: "index.html"
+};
+
+//app.use('/', express.static('app', options));
+
+var server = app.listen(PORT, function () {
+    var host = server.address().address;
+    var port = server.address().port;
+
+    console.log('my app is listening at http://%s:%s', host, port);
+
+    main();
 });
 
-io.on('connection', (socket) => {
-    socket.on('test_data', (value) => {
-        console.log("connection");
-    });
-
-    socket.on('predict', async () => {
-        console.log('received predict request');
-        io.emit('predictResult', await main());
-    });
-});
 
 async function getData() {
 
