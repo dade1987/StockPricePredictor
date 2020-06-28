@@ -10,7 +10,7 @@ const tf = require('@tensorflow/tfjs-node');
 const SMA = require('technicalindicators').SMA;
 const MACD = require('technicalindicators').MACD;
 const RSI = require('technicalindicators').RSI;
-
+const Stochastic = require('technicalindicators').Stochastic;
 
 /* global tf, tfvis, process */
 
