@@ -281,7 +281,7 @@ async function train_data(data) {
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     const time_steps = 14;
-    const epochs_number = 1;
+    const epochs_number = 5;
 
     const predict_size = data.length - size;
 
@@ -338,7 +338,7 @@ async function train_data(data) {
 
     model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
 
-    /* 4% dropout */
+    /* 4% di dropout */
     model.add(tf.layers.dropout({rate: 0.04}));
 
     //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
@@ -409,8 +409,6 @@ async function train_data(data) {
             };
         }
     });
-    
-    //io.emit('trainingResult', JSON.stringify([trainingResults, trainingValidation]));
 
     /* creating training chart */
 
@@ -462,7 +460,7 @@ async function train_data(data) {
     console.log("PREDICTIONS", predictions);
     
     
-    io.emit('testingResult', JSON.stringify([realResults, predictions]));
+    io.emit('predictions', JSON.stringify([realResults, predictions]));
 
     let crescita = 0;
 
@@ -488,8 +486,6 @@ async function train_data(data) {
     }
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
-    
-    //io.emit('finalResult', [crescita, giusti, errori, pari]);
 
 
     /* creating prediction chart */

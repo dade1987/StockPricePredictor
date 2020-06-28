@@ -41,17 +41,17 @@
                 socket.emit('predict');
             };
 
-            socket.on('trainingResult', (result) => {
+            /*socket.on('trainingResult', (result) => {
                 grafico(result, "Training");
-            });
+            });*/
 
-            socket.on('testingResult', (result) => {
+            socket.on('predictions', (result) => {
                 grafico(result, "Testing");
             });
 
-            socket.on('finalResult', (result) => {
+            /*socket.on('finalResult', (result) => {
                 $("#finalResult").html("Crescita: " + result[0] + " Giusti: " + result[1] + " Errori: " + result[2] + " Pari: " + result[3]);
-            });
+            });*/
 
             function grafico(bi_array_json, titolo)
             {
