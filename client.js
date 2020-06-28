@@ -2,7 +2,7 @@
 
 import io from 'socket.io-client';
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 3000;
 
 const socket =
         io('http://0.0.0.0:'+PORT,

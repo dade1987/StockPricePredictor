@@ -3,7 +3,7 @@
 const http = require('http');
 const https = require('https');
 const socketio = require('socket.io');
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node');
 
 const SMA = require('technicalindicators').SMA;
 const MACD = require('technicalindicators').MACD;
@@ -15,7 +15,7 @@ const RSI = require('technicalindicators').RSI;
 const server = http.createServer();
 const io = socketio(server);
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 3000;
 
 
 server.listen(PORT, () => {
