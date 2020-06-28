@@ -77,32 +77,35 @@ async function getData() {
     });
 }
 
+function prepareInputDatas(data, time_steps, b_test) {
 
-
-
-
-function prepareInputDatas(data, time_steps) {
+    let test = 0;
+    if (b_test === true) {
+        test = 1;
+    }
 
     /* if the date is major then time steps */
     if (data.length > time_steps) {
 
-
         let arr = new Array();
 
-        for (let i = 0; i < data.length - time_steps; i++) {
+        for (let i = 0; i < data.length - time_steps + test; i++) {
 
 
             /* create the training or testing array, with x values (features) and batch size (batch size is the samples' first dimension of array) */
             arr.push(data.slice(i, i + time_steps).map(d => {
 
-                return [d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram];
 
+                /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
+                return Object.values(d);/*.slice(0, 6);*/
+
+                /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
             }));
 
         }
 
-        return arr.slice(time_steps);
+        return arr;
     } else
     {
         return false;
@@ -124,7 +127,7 @@ function prepareOutputDatas(data, time_steps) {
 
         }
 
-        return arr.slice(time_steps);
+        return arr;
 
     } else
     {
@@ -132,66 +135,81 @@ function prepareOutputDatas(data, time_steps) {
     }
 }
 
-function prepareInputTestingDatas(data, time_steps) {
+let prices_min = 0;
+let prices_max = 0;
 
-    /* if the date is major then time steps */
-    if (data.length > time_steps) {
+function normalizza_dati(data) {
 
-        /* indicator examples */
+    //prima deve calcolare massimi e minimi
+    prices_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
+    }));
+    prices_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.open, d.high, d.low, d.close]);
+    }));
 
+    let sma_min = Math.min.apply(null, data.map(function (d) {
+        return d.sma;
+    }));
 
-
-        let arr = new Array();
-
-        for (let i = 0; i <= data.length - time_steps; i++) {
-
-            /*let sma = SMA.calculate({period: time_steps, values: data.slice(i, i + time_steps).map(d => d.close)})[0];*/
-
-            /* create the training or testing array, with x values (features) and batch size (batch size is the samples' first dimension of array) */
-            arr.push(data.slice(i, i + time_steps).map(d => {
-
-                return [d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram];
-
-
-            }));
-
-        }
-
-        return arr;
-    } else
-    {
-        return false;
-    }
-
-}
-
-function prepareOutputTestingDatas(data, time_steps) {
-
-    if (data.length > time_steps) {
-
-        let arr = new Array();
-
-        /* create output training set (or testing values) (y values) */
-        for (let i = time_steps; i <= data.length; i++) {
-            if (data[i]) {
-                arr.push(data[i].close);
-            }
+    let sma_max = Math.max.apply(null, data.map(function (d) {
+        return d.sma;
+    }));
 
 
-        }
+    let rsi_min = Math.min.apply(null, data.map(function (d) {
+        return d.rsi;
+    }));
 
-        return arr;
+    let rsi_max = Math.max.apply(null, data.map(function (d) {
+        return d.rsi;
+    }));
 
-    } else
-    {
-        return false;
-    }
+    let stochastic_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.stochastic_k, d.stochastic_d]);
+    }));
+
+    let stochastic_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.stochastic_k, d.stochastic_d]);
+    }));
+
+    let macd_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
+    }));
+
+    let macd_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
+    }));
+
+    /*let macd_macd_max = 0;
+     let macd_macd_min = 0;
+     
+     let macd_signal_max = 0;        
+     let macd_signal_min = 0;
+     
+     let macd_histogram_max = 0;
+     let macd_histogram_min = 0;*/
+
+
+
+    let finale = data.map(function (d) {
+        return {open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
+            low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
+            sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
+            stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
+            macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
+            macd_signal: (d.macd_signal - macd_min) / (macd_max - macd_min),
+            macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min)
+        };
+    });
+
+    return finale;
+
 }
 
 
 
 async function train_data(data) {
-
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -205,14 +223,14 @@ async function train_data(data) {
         SimpleMASignal: false
     });
 
-    /*let rsi_min = Math.min.apply(null, rsi);
-     let rsi_max = Math.max.apply(null, rsi);
-     let normRSI = rsi.map(d => (d - rsi_min) / (rsi_max - rsi_min));
-     
-     
-     let sma_min = Math.min.apply(null, sma);
-     let sma_max = Math.max.apply(null, sma);
-     let normSMA = sma.map(d => (d - sma_min) / (sma_max - sma_min));*/
+
+    let stochastic = Stochastic.calculate({
+        high: data.map(d => d.high),
+        low: data.map(d => d.low),
+        close: data.map(d => d.close),
+        period: 14,
+        signalPeriod: 3
+    });
 
     for (let i = 0; i < data.length; i++) {
         data[i].sma = 0;
@@ -220,26 +238,42 @@ async function train_data(data) {
         data[i].macd_macd = 0;
         data[i].macd_signal = 0;
         data[i].macd_histogram = 0;
-        /*data[i].stochastic = 0;*/
-
+        data[i].stochastic_k = 0;
+        data[i].stochastic_d = 0;
     }
 
     let d = 0;
     for (let i = 7; i < data.length; i++) {
-        data[i].sma = /*normSMA*/sma[d + 1];
-        data[i].rsi = /*normRSI*/rsi[d];
+        data[i].rsi = rsi[d];
         d++;
     }
 
     d = 0;
-    for (let i = 12 + 26; i < data.length; i++) {
+    for (let i = 6; i < data.length; i++) {
+        data[i].sma = sma[d];
+        d++;
+    }
+
+    d = 0;
+    for (let i = 13; i < data.length; i++) {
+        data[i].stochastic_k = stochastic[d].k;
+        data[i].stochastic_d = stochastic[d].d;
+        d++;
+    }
+
+    d = 0;
+    for (let i = 25; i < data.length; i++) {
         data[i].macd_macd = macd[d].MACD;
         data[i].macd_signal = macd[d].signal;
         data[i].macd_histogram = macd[d].histogram;
         d++;
     }
 
-    data = data.slice(12 + 26);
+    /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
+    data = data.slice(33);
+
+    data = normalizza_dati(data);
+
 
     /* sometimes Chrome crashes and you need to open a new window */
 
@@ -247,7 +281,7 @@ async function train_data(data) {
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     const time_steps = 14;
-    const epochs_number = 25;
+    const epochs_number = 20;
 
     const predict_size = data.length - size;
 
@@ -257,17 +291,19 @@ async function train_data(data) {
     const output = prepareOutputDatas(data.slice(start, start + size), time_steps);
 
 
-    const testing = prepareInputTestingDatas(data.slice(start + size, start + size + predict_size), time_steps);
-    const testingResults = prepareOutputTestingDatas(data.slice(start + size, start + size + predict_size), time_steps);
+    const testing = prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true);
+    const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
     /* Creating tensors (input 3d tensor, and output 1d tensor) */
 
+    const input_size_3 = input.length;
     const input_size_2 = input[0].length;
     const input_size = input[0][0].length;
 
     const trainingData = tf.tensor3d(input, [input.length, input_size_2, input_size]);
     const outputData = tf.tensor1d(output);
 
+    const testing_size_3 = testing.length;
     const testing_size_2 = testing[0].length;
     const testing_size = testing[0][0].length;
 
@@ -276,36 +312,39 @@ async function train_data(data) {
 
 
     /* normalizing datas */
-    const trainingDataMax = trainingData.max();
-    const trainingDataMin = trainingData.min();
-
-    const testingDataMax = testingData.max();
-    const testingDataMin = testingData.min();
-
-    const outputDataMax = outputData.max();
-    const outputDataMin = outputData.min();
-
-    const outputTestingDataMax = outputTestingData.max();
-    const outputTestingDataMin = outputTestingData.min();
-
-    const normalizedTrainingData = trainingData.sub(trainingDataMin).div(trainingDataMax.sub(trainingDataMin));
-    const normalizedTestingData = testingData.sub(testingDataMin).div(testingDataMax.sub(testingDataMin));
-
-    const normalizedOutputData = outputData.sub(outputDataMin).div(outputDataMax.sub(outputDataMin));
-    const normalizedTestingOutputData = outputTestingData.sub(outputTestingDataMin).div(outputTestingDataMax.sub(outputTestingDataMin));
+    /*const trainingDataMax = trainingData.max();
+     const trainingDataMin = trainingData.min();
+     
+     const testingDataMax = testingData.max();
+     const testingDataMin = testingData.min();
+     
+     const outputDataMax = outputData.max();
+     const outputDataMin = outputData.min();
+     
+     const outputTestingDataMax = outputTestingData.max();
+     const outputTestingDataMin = outputTestingData.min();
+     
+     const normalizedTrainingData = trainingData.sub(trainingDataMin).div(trainingDataMax.sub(trainingDataMin));
+     const normalizedTestingData = testingData.sub(testingDataMin).div(testingDataMax.sub(testingDataMin));
+     
+     const normalizedOutputData = outputData.sub(outputDataMin).div(outputDataMax.sub(outputDataMin));
+     const normalizedTestingOutputData = outputTestingData.sub(outputTestingDataMin).div(outputTestingDataMax.sub(outputTestingDataMin));*/
 
 
     /* creating model */
     const model = tf.sequential();
 
     /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
-    model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: input_size_2, returnSequences: true}));
 
-    model.add(tf.layers.dropout({rate: 0.01}));
+    model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
 
-    model.add(tf.layers.lstm({units: input_size_2 * 2, returnSequences: false}));
+    /* 5% di dropout */
+    model.add(tf.layers.dropout({rate: 0.05}));
 
-    model.add(tf.layers.dropout({rate: 0.01}));
+    //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
+    model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
+
+    model.add(tf.layers.dropout({rate: 0.05}));
 
     model.add(tf.layers.dense({units: 1}));
 
@@ -315,13 +354,17 @@ async function train_data(data) {
 
 
     /* setting training */
-    let learningRate = 0.01;
+    /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
+     * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
+     * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
+    let learningRate = 0.001;
 
     /* selecting the best training optimizer */
     const optimizer = tf.train.adam(learningRate);
     //const optimizer = tf.train.rmsprop(learningRate, 0.95);
 
     /* compiling model with optimizer, loss and metrics */
+    /* meglio con queste 2 loss assieme, oppure con meanabsolute */
     model.compile({
 
         optimizer: optimizer,
@@ -335,30 +378,34 @@ async function train_data(data) {
     console.log('Loss Log');
 
     for (let i = 0; i < epochs_number; i++) {
-        let res = await model.fit(normalizedTrainingData, normalizedOutputData, {epochs: 1});
+        let res = await model.fit(trainingData, outputData, {epochs: 1});
         console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
 
     }
 
+
+
     /* training prediction (validation) */
 
-    const validation = model.predict(normalizedTrainingData);
+    const validation = model.predict(trainingData);
 
-    const unNormValidation = validation
-            .mul(outputDataMax.sub(outputDataMin))
-            .add(outputDataMin).dataSync();
+    /*const unNormValidation = validation
+     .mul(outputDataMax.sub(outputDataMin))
+     .add(outputDataMin).dataSync();*/
+
+    const unNormValidation = validation.dataSync();
 
     const trainingResults = output.map((d, i) => {
         if (d) {
             return {
-                x: i, y: d
+                x: i, y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
     const trainingValidation = Array.from(unNormValidation).map((d, i) => {
         if (d) {
             return {
-                x: i, y: d
+                x: i, y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
@@ -366,42 +413,44 @@ async function train_data(data) {
     /* creating training chart */
 
     /*tfvis.render.linechart(
-     {name: 'Validation Results'},
-     {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
-     {
-     xLabel: 'contatore',
-     yLabel: 'prezzo',
-     height: 300,
-     zoomToFit: true
-     }
-     );*/
+            {name: 'Validation Results'},
+            {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
+            {
+                xLabel: 'contatore',
+                yLabel: 'prezzo',
+                height: 300,
+                zoomToFit: true
+            }
+    );*/
 
     /* predicting */
 
     console.log('Real prediction');
 
-    const preds = model.predict(normalizedTestingData);
 
-    const unNormPredictions = preds
-            .mul(outputTestingDataMax.sub(outputTestingDataMin))
-            .add(outputTestingDataMin).dataSync();
+
+    const preds = model.predict(testingData);
+
+    /*const unNormPredictions = preds
+     .mul(outputTestingDataMax.sub(outputTestingDataMin))
+     .add(outputTestingDataMin).dataSync();*/
+
+    const unNormPredictions = preds.dataSync();
 
     const realResults = testingResults.map((d, i) => {
         if (d) {
             return {
-                x: i, y: d.toFixed(4)
+                x: i, y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
     const predictions = Array.from(unNormPredictions).map((d, i) => {
         if (d) {
             return {
-                x: i, y: d.toFixed(4)
+                x: i, y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
-
-    io.emit('predictions', [realResults, predictions]);
 
     console.log("INPUT", testing);
 
@@ -409,6 +458,9 @@ async function train_data(data) {
     console.log("OUTPUT", realResults);
 
     console.log("PREDICTIONS", predictions);
+    
+    
+    io.emit('predictions', [realResults, predictions]);
 
     let crescita = 0;
 
@@ -438,15 +490,15 @@ async function train_data(data) {
 
     /* creating prediction chart */
     /*tfvis.render.linechart(
-     {name: 'Real Predictions'},
-     {values: [realResults, predictions], series: ['original', 'predicted']},
-     {
-     xLabel: 'contatore',
-     yLabel: 'prezzo',
-     height: 300,
-     zoomToFit: true
-     }
-     );*/
+            {name: 'Real Predictions'},
+            {values: [realResults, predictions], series: ['original', 'predicted']},
+            {
+                xLabel: 'contatore',
+                yLabel: 'prezzo',
+                height: 300,
+                zoomToFit: true
+            }
+    );*/
 
 
 
@@ -459,3 +511,4 @@ async function main() {
     await train_data(data);
 
 }
+
