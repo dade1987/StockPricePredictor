@@ -460,7 +460,7 @@ async function train_data(data) {
     console.log("PREDICTIONS", predictions);
     
     
-    io.emit('predictions', [realResults, predictions]);
+    io.emit('predictions', JSON.stringify([realResults, predictions]));
 
     let crescita = 0;
 

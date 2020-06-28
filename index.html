@@ -39,15 +39,17 @@
                 socket.emit('predict');
             };
 
-            socket.on('predictResult', ([result]) => {
-                grafico(result[0], result[1]);
+            socket.on('predictResult', (result) => {
+                grafico(result);
             });
 
-            function grafico(realResults, predictions)
+            function grafico(bi_array_json)
             {
+                let result=JSON.parse(bi_array_json);
+                
                 tfvis.render.linechart(
                         {name: 'Real Predictions'},
-                        {values: [realResults, predictions], series: ['original', 'predicted']},
+                        {values: [result[0], result[1]], series: ['original', 'predicted']},
                         {
                             xLabel: 'contatore',
                             yLabel: 'prezzo',
