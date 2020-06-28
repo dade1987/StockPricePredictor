@@ -281,7 +281,7 @@ async function train_data(data) {
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     const time_steps = 14;
-    const epochs_number = 5;
+    const epochs_number = 1;
 
     const predict_size = data.length - size;
 
@@ -410,7 +410,7 @@ async function train_data(data) {
         }
     });
     
-    io.emit('trainingResult', JSON.stringify([trainingResults, trainingValidation]));
+    //io.emit('trainingResult', JSON.stringify([trainingResults, trainingValidation]));
 
     /* creating training chart */
 
@@ -489,7 +489,7 @@ async function train_data(data) {
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
     
-    io.emit('finalResult', [crescita, giusti, errori, pari]);
+    //io.emit('finalResult', [crescita, giusti, errori, pari]);
 
 
     /* creating prediction chart */
