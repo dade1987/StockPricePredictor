@@ -3,22 +3,18 @@
     "version": "1.0.0",
     "description": "",
     "dependencies": {
-        "@tensorflow/tfjs-node": "^2.0.1",
-        "@tensorflow/tfjs-node-gpu": "^2.0.1",        
-        "concurrently": "^5.2.0",        
-        "python": "0.0.4",
+        "@tensorflow/tfjs": "^2.0.1",
+        "concurrently": "^5.2.0",
         "socket.io": "^2.3.0",
-        "technicalindicators": "^3.1.0"        
+        "technicalindicators": "^3.1.0"
     },
     "devDependencies": {
-        "clang-format": "~1.2.3",
-        "mkdirp": "~0.5.1",
         "webpack": "~4.28.4",
         "webpack-cli": "^3.3.2",
         "webpack-dev-server": "^3.11.0"
     },
     "scripts": {
-        "start": "concurrently \"webpack\" \"node server.js\""
+        "start": "concurrently \"webpack&webpack-dev-server --port $PORT --host 0.0.0.0 \" \"node server.js\""
     },
     "author": "",
     "license": "MIT"
