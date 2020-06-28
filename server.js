@@ -409,6 +409,8 @@ async function train_data(data) {
             };
         }
     });
+    
+    io.emit('trainingResult', JSON.stringify([trainingResults, trainingValidation]));
 
     /* creating training chart */
 
@@ -460,7 +462,7 @@ async function train_data(data) {
     console.log("PREDICTIONS", predictions);
     
     
-    io.emit('predictions', JSON.stringify([realResults, predictions]));
+    io.emit('testingResult', JSON.stringify([realResults, predictions]));
 
     let crescita = 0;
 
@@ -486,6 +488,8 @@ async function train_data(data) {
     }
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
+    
+    io.emit('finalResult', [crescita, giusti, errori, pari]);
 
 
     /* creating prediction chart */
