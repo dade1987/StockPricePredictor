@@ -2,6 +2,8 @@
 
 const http = require('http');
 const https = require('https');
+
+const express = require('express');
 const socketio = require('socket.io');
 const tf = require('@tensorflow/tfjs-node');
 
@@ -12,15 +14,17 @@ const RSI = require('technicalindicators').RSI;
 
 /* global tf, tfvis, process */
 
-const server = http.createServer();
+
 const io = socketio(server);
 
 const PORT = process.env.PORT || 3000;
 
+const INDEX = '/index.html';
 
-server.listen(PORT, () => {
-    console.log(`Running socket on port: ${PORT}`);
-});
+const server = express()
+        .use((req, res) => res.sendFile(INDEX, {root: __dirname}))
+        .listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 io.on('connection', (socket) => {
     socket.on('test_data', (value) => {
@@ -32,6 +36,9 @@ io.on('connection', (socket) => {
         io.emit('predictResult', await main());
     });
 });
+
+setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+
 
 async function getData() {
 

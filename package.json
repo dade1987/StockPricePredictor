@@ -5,19 +5,15 @@
     "dependencies": {
         "@tensorflow/tfjs-node": "^2.0.1",
         "concurrently": "^5.2.0",
+        "express": "^4.17.1",
         "socket.io": "^2.3.0",
-        "technicalindicators": "^3.1.0",
-         "webpack": "~4.28.4",
-        "webpack-cli": "^3.3.2",
-        "webpack-dev-server": "^3.11.0"
+        "technicalindicators": "^3.1.0"       
     },
     "devDependencies": {
-        "webpack": "~4.28.4",
-        "webpack-cli": "^3.3.2",
-        "webpack-dev-server": "^3.11.0"
+       
     },
     "scripts": {
-        "start": "concurrently \"webpack&webpack-dev-server --port $PORT --host 0.0.0.0 \" \"node server.js\""
+        "start": "node server.js"
     },
     "author": "",
     "license": "MIT"

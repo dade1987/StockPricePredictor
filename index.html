@@ -3,7 +3,7 @@
     <head>
         <title>Demo</title>
 
-        <script            src="https://code.jquery.com/jquery-3.5.1.min.js"               crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
 
         <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
 
@@ -13,8 +13,12 @@
         <!-- Import tfjs-vis -->
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
 
+            <script src="/socket.io/socket.io.js"></script>
+
         <!-- Import the main script file -->
         <!--<script src="script.js"></script>-->
+
+        
 
     </head>
 
@@ -24,7 +28,35 @@
         <h2>(F12 o Dev Tools)</h2>
 
         <button id="predict-button">CLICCA</button>
-        <script src="dist/bundle.js"></script>
+        
+        <script>
+            var socket = io();
+
+            const predictButton = document.getElementById('predict-button');
+
+            predictButton.onclick = () => {
+                predictButton.disabled = true;
+                socket.emit('predict');
+            };
+
+            socket.on('predictResult', ([result]) => {
+                grafico(result[0], result[1]);
+            });
+
+            function grafico(realResults, predictions)
+            {
+                tfvis.render.linechart(
+                        {name: 'Real Predictions'},
+                        {values: [realResults, predictions], series: ['original', 'predicted']},
+                        {
+                            xLabel: 'contatore',
+                            yLabel: 'prezzo',
+                            height: 300,
+                            zoomToFit: true
+                        }
+                );
+            }
+        </script>
 
     </body>
 </html>
