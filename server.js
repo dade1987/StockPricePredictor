@@ -281,7 +281,7 @@ async function train_data(data) {
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     const time_steps = 14;
-    const epochs_number = 1;
+    const epochs_number = 10;
 
     const predict_size = data.length - size;
 
