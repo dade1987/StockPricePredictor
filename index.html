@@ -39,7 +39,7 @@
                 socket.emit('predict');
             };
 
-            socket.on('predictResult', (result) => {
+            socket.on('predictions', (result) => {
                 grafico(result);
             });
 

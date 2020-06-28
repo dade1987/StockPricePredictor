@@ -34,11 +34,11 @@ io.on('connection', (socket) => {
 
     socket.on('predict', async () => {
         console.log('received predict request');
-        io.emit('predictResult', await main());
+        await main();
     });
 });
 
-setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+//setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 
 async function getData() {
