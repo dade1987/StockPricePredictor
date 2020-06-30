@@ -36,6 +36,8 @@ io.on('connection', (socket) => {
         console.log('received predict request');
 
         let parameters = JSON.parse(arg);
+        
+        console.log(parameters);
 
         await main(parameters.time_steps, parameters.epochs_number);
     });
