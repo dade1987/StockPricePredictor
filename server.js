@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
         console.log('received predict request');
 
         let parameters = JSON.parse(arg);
-        
+
         console.log(parameters);
 
         await main(parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
@@ -467,7 +467,7 @@ async function train_data(data, time_steps, epochs_number) {
     console.log("PREDICTIONS", predictions);
 
 
-    io.emit('testing', JSON.stringify([realResults, predictions]));
+    setInterval(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
 
     let crescita = 0;
 
@@ -494,20 +494,18 @@ async function train_data(data, time_steps, epochs_number) {
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    io.emit('final', JSON.stringify([crescita, giusti, errori, pari]));
-
-
-    /* creating prediction chart */
-    /*tfvis.render.linechart(
-     {name: 'Real Predictions'},
-     {values: [realResults, predictions], series: ['original', 'predicted']},
-     {
-     xLabel: 'contatore',
-     yLabel: 'prezzo',
-     height: 300,
-     zoomToFit: true
-     }
-     );*/
+    setInterval(() => io.emit('testing', io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
+            /* creating prediction chart */
+            /*tfvis.render.linechart(
+             {name: 'Real Predictions'},
+             {values: [realResults, predictions], series: ['original', 'predicted']},
+             {
+             xLabel: 'contatore',
+             yLabel: 'prezzo',
+             height: 300,
+             zoomToFit: true
+             }
+             );*/
 
 
 
