@@ -467,7 +467,7 @@ async function train_data(data, time_steps, epochs_number) {
     console.log("PREDICTIONS", predictions);
 
 
-    setInterval(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
+    setTimeout(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
 
     let crescita = 0;
 
@@ -494,7 +494,7 @@ async function train_data(data, time_steps, epochs_number) {
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setInterval(() => io.emit('testing', io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
             /* creating prediction chart */
             /*tfvis.render.linechart(
              {name: 'Real Predictions'},
