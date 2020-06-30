@@ -32,9 +32,12 @@ io.on('connection', (socket) => {
         console.log("connection");
     });
 
-    socket.on('predict', async () => {
+    socket.on('predict', async (arg) => {
         console.log('received predict request');
-        await main();
+
+        let parameters = JSON.parse(arg);
+
+        await main(parameters.time_steps, parameters.epochs_number);
     });
 });
 
@@ -209,7 +212,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data) {
+async function train_data(data, time_steps, epochs_number) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -280,8 +283,8 @@ async function train_data(data) {
     const size = Math.floor(data.length / 100 * 98);
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
-    const time_steps = 14;
-    const epochs_number = 10;
+    /* const time_steps = 14;
+     const epochs_number = 10;*/
 
     const predict_size = data.length - size;
 
@@ -409,21 +412,21 @@ async function train_data(data) {
             };
         }
     });
-    
+
     io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
 
     /* creating training chart */
 
     /*tfvis.render.linechart(
-            {name: 'Validation Results'},
-            {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
-            {
-                xLabel: 'contatore',
-                yLabel: 'prezzo',
-                height: 300,
-                zoomToFit: true
-            }
-    );*/
+     {name: 'Validation Results'},
+     {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
+     {
+     xLabel: 'contatore',
+     yLabel: 'prezzo',
+     height: 300,
+     zoomToFit: true
+     }
+     );*/
 
     /* predicting */
 
@@ -460,8 +463,8 @@ async function train_data(data) {
     console.log("OUTPUT", realResults);
 
     console.log("PREDICTIONS", predictions);
-    
-    
+
+
     io.emit('testing', JSON.stringify([realResults, predictions]));
 
     let crescita = 0;
@@ -494,15 +497,15 @@ async function train_data(data) {
 
     /* creating prediction chart */
     /*tfvis.render.linechart(
-            {name: 'Real Predictions'},
-            {values: [realResults, predictions], series: ['original', 'predicted']},
-            {
-                xLabel: 'contatore',
-                yLabel: 'prezzo',
-                height: 300,
-                zoomToFit: true
-            }
-    );*/
+     {name: 'Real Predictions'},
+     {values: [realResults, predictions], series: ['original', 'predicted']},
+     {
+     xLabel: 'contatore',
+     yLabel: 'prezzo',
+     height: 300,
+     zoomToFit: true
+     }
+     );*/
 
 
 
@@ -510,9 +513,9 @@ async function train_data(data) {
 
 }
 
-async function main() {
+async function main(time_steps, epochs_number) {
     const data = await getData();
-    await train_data(data);
+    await train_data(data, time_steps, epochs_number);
 
 }
 
