@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
         
         console.log(parameters);
 
-        await main(parameters.time_steps, parameters.epochs_number);
+        await main(parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
     });
 });
 
