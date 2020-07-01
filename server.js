@@ -459,12 +459,12 @@ async function train_data(data, time_steps, epochs_number) {
         }
     });
 
-    console.log("INPUT", testing);
+    /*console.log("INPUT", testing);
 
 
     console.log("OUTPUT", realResults);
 
-    console.log("PREDICTIONS", predictions);
+    console.log("PREDICTIONS", predictions);*/
 
 
     setTimeout(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
