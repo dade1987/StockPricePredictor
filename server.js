@@ -460,11 +460,11 @@ async function train_data(data, time_steps, epochs_number) {
     });
 
     /*console.log("INPUT", testing);
-
-
-    console.log("OUTPUT", realResults);
-
-    console.log("PREDICTIONS", predictions);*/
+     
+     
+     console.log("OUTPUT", realResults);
+     
+     console.log("PREDICTIONS", predictions);*/
 
 
     setTimeout(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
@@ -491,27 +491,29 @@ async function train_data(data, time_steps, epochs_number) {
         }
 
     }
-    
-    const testingAccuracy = model.evaluate(testingData, outputTestingData, {
-   
-});
 
+    const testingAccuracy = model.evaluate(testingData, outputTestingData, {
+
+    });
+
+    console.log("TESTING ACCURACY");
+    testingAccuracy.print();
 
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari,testingAccuracy.print()])), 3000);
-            /* creating prediction chart */
-            /*tfvis.render.linechart(
-             {name: 'Real Predictions'},
-             {values: [realResults, predictions], series: ['original', 'predicted']},
-             {
-             xLabel: 'contatore',
-             yLabel: 'prezzo',
-             height: 300,
-             zoomToFit: true
-             }
-             );*/
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
+    /* creating prediction chart */
+    /*tfvis.render.linechart(
+     {name: 'Real Predictions'},
+     {values: [realResults, predictions], series: ['original', 'predicted']},
+     {
+     xLabel: 'contatore',
+     yLabel: 'prezzo',
+     height: 300,
+     zoomToFit: true
+     }
+     );*/
 
 
 
