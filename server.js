@@ -376,7 +376,7 @@ async function train_data(data, time_steps, epochs_number) {
 
         optimizer: optimizer,
         loss: tf.losses.meanSquaredError,
-        metrics: ["accuracy"] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+        metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
 
     });
 
