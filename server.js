@@ -198,8 +198,10 @@ function normalizza_dati(data) {
 
 
     let finale = data.map(function (d) {
-        return {open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
+        return {
+            open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
             low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
+
             sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
             stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
             macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
@@ -374,7 +376,7 @@ async function train_data(data, time_steps, epochs_number) {
 
         optimizer: optimizer,
         loss: tf.losses.meanSquaredError,
-        metrics: [tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]
+        metrics: ["accuracy"] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
 
     });
 
@@ -496,15 +498,17 @@ async function train_data(data, time_steps, epochs_number) {
 
     temp_testingData.pop();
 
+    //Attenzione: evaluate torna un tensore di accuratezza PER OGNI loss e metrica impostate nel modello
+    //Quindi la funzione Print() va solo su un tensore alla volta, altrimenti da undefined
     const testingAccuracy = model.evaluate(tf.tensor3d(temp_testingData, [temp_testingData.length, testing_size_2, testing_size]), outputTestingData);
-    
-    console.log("TESTING ACCURACY",testingAccuracy[1].print());
-    
+
+    console.log("TESTING ACCURACY", testingAccuracy[1].print());
+
 
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari,parseInt(testingAccuracy[1].print())*100])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracy[1].print()])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
