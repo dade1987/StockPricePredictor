@@ -498,13 +498,13 @@ async function train_data(data, time_steps, epochs_number) {
 
     const testingAccuracy = model.evaluate(tf.tensor3d(temp_testingData, [temp_testingData.length, testing_size_2, testing_size]), outputTestingData);
     
-    console.log("TESTING ACCURACY",testingAccuracy[0].print(),testingAccuracy[1].print(),testingAccuracy[2].print());
+    console.log("TESTING ACCURACY",testingAccuracy[1].print());
     
 
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari,parseInt(testingAccuracy[1].print())*100])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
