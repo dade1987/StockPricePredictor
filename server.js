@@ -503,7 +503,7 @@ async function train_data(data, time_steps, epochs_number) {
     const testingAccuracy = model.evaluate(tf.tensor3d(temp_testingData, [temp_testingData.length, testing_size_2, testing_size]), outputTestingData);
 
 
-    const testingAccuracyDataSync = testingAccuracy.dataSync();
+    const testingAccuracyDataSync = testingAccuracy[1].dataSync();
     const testingAccuracyArray = Array.from(testingAccuracyDataSync);
 
     console.log("TESTING ACCURACY", testingAccuracyArray);
