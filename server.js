@@ -502,13 +502,13 @@ async function train_data(data, time_steps, epochs_number) {
     //Quindi la funzione Print() va solo su un tensore alla volta, altrimenti da undefined
     const testingAccuracy = model.evaluate(tf.tensor3d(temp_testingData, [temp_testingData.length, testing_size_2, testing_size]), outputTestingData);
 
-    console.log("TESTING ACCURACY", testingAccuracy);
+    console.log("TESTING ACCURACY", testingAccuracy[0].print(),testingAccuracy[1].print());
 
 
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracy[0].print()])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracy[0].print(),testingAccuracy[1].print()])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
