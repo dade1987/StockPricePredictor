@@ -41,13 +41,16 @@
             <h3>(F12 o Dev Tools)</h3>
 
 
-            <input class="form-control" id="time_steps" placeholder="time_steps">
+            <input class="form-control" id="time_steps" placeholder="Time Steps">
             <br>
-            <input class="form-control" id="epochs_number" placeholder="epochs_number">
-            <br>
-            <textarea class="form-control" id="finalResult"></textarea>
-            <br>
+            <input class="form-control" id="epochs_number" placeholder="Epochs Number">
+            <br>           
             <button class="btn btn-success"  id="predict-button">CLICCA</button>
+            <br>
+            <br>
+            <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>
+            <br>
+            <textarea class="form-control" id="finalResult" placeholder="Testing Accuracy"></textarea>
 
         </div>
 
@@ -75,7 +78,7 @@
 
             socket.on('final', (result) => {
                 let result2 = JSON.parse(result);
-                $("#finalResult").html("Crescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3]);
+                $("#finalResult").html("Crescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3]+"\n\n"+result2[4]);
             });
 
             function grafico(bi_array_json, titolo)

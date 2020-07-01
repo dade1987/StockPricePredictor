@@ -491,10 +491,16 @@ async function train_data(data, time_steps, epochs_number) {
         }
 
     }
+    
+    const testingAccuracy = model.evaluate(testingData, outputTestingData, {
+   
+});
+
+
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari,testingAccuracy.print()])), 3000);
             /* creating prediction chart */
             /*tfvis.render.linechart(
              {name: 'Real Predictions'},
