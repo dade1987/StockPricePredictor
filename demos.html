@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>Prova</title>
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+        crossorigin="anonymous"></script>
+
+        <script>
+
+            async function a1() {
+
+                return new Promise((resolve, reject) => {
+                    //1 anno di news sul forex
+                    $.ajax({
+                        beforeSend: function (request) {
+                            request.setRequestHeader("Authorization", "Bearer 96cdabba1a53e026a188ea916c09cb3f-750b68f4104c3347bddc5f97ae76f487");
+                        },
+                        dataType: "json",
+                        url: "https://api-fxpractice.oanda.com/labs/v1/calendar?instrument=EUR_USD&period=31536000",
+                        success: function (data) {
+                            resolve(data);
+                        }
+                    });
+                });
+            }
+
+            async function a2(from_datetime) {
+
+                return new Promise((resolve, reject) => {
+
+                    //dati forex
+                    $.ajax({
+                        beforeSend: function (request) {
+                            request.setRequestHeader("Authorization", "Bearer 96cdabba1a53e026a188ea916c09cb3f-750b68f4104c3347bddc5f97ae76f487");
+                        },
+                        dataType: "json",
+                        url: "https://api-fxpractice.oanda.com/v3/instruments/EUR_USD/candles?count=5000&from=" + from_datetime + "&price=M&granularity=M30",
+                        success: function (data) {
+                            resolve(data);
+                        }
+                    });
+                });
+
+
+            }
+
+            async function main() {
+                let a = await a1();
+
+                let a_step1 = a.map(v => {
+                    return {                        
+                        time: v.timestamp * 1000, currency: v.currency, previous:v.previous,market: v.market
+                    };
+                }).filter(v=>{
+                    if(v.previous&&v.market){
+                        return v;
+                    }
+                });
+
+
+                let b = await a2(a[0].timestamp);
+
+                let b_step1 = b.candles.map(v => {
+                    return {
+                        time: new Date(v.time).getTime(), open: v.mid.o, high: v.mid.h, low: v.mid.l, close: v.mid.c, volume: v.volume
+                    };
+                });
+
+                console.log(a_step1, b_step1);
+            }
+
+            main();
+
+        </script>
+    </head>
+    <body>
+
+    </body>
+</html>
