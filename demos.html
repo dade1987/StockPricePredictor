@@ -49,11 +49,11 @@
                 let a = await a1();
 
                 let a_step1 = a.map(v => {
-                    return {                        
-                        time: v.timestamp * 1000, currency: v.currency, previous:v.previous,market: v.market
+                    return {
+                        time: v.timestamp * 1000, currency: v.currency, previous: v.previous, market: v.market
                     };
-                }).filter(v=>{
-                    if(v.previous&&v.market){
+                }).filter(v => {
+                    if (v.previous && v.market) {
                         return v;
                     }
                 });
@@ -67,7 +67,49 @@
                     };
                 });
 
-                console.log(a_step1, b_step1);
+                //console.log(a_step1, b_step1);
+
+
+                let c = new Array();
+                let forecast = 0.5;
+
+                for (let vb of b_step1) {
+
+                    let eq = false;
+                    for (let va of a_step1) {
+                        if (vb.time >= va.time) {
+                            if (va.market > va.previous) {
+                                if (va.currency === "EUR") {
+                                    forecast = 1; 
+                                } else {
+                                    forecast = 0;
+                                }
+                            } else if (va.market < va.previous) {
+                               if (va.currency === "EUR") {
+                                    forecast = 0; 
+                                } else {
+                                    forecast = 1;
+                                }
+                            } else {
+                                forecast = 0.5;
+                            }
+                            eq = true;
+                            a_step1.shift();
+                            break;
+                        }
+                    }
+
+                    if (eq === false) {
+
+                        forecast = Math.round(((forecast + 0.5) / 2) * 100) / 100;
+
+                    }
+
+                    c.push({time: vb.time, open: vb.open, high: vb.high, low: vb.low, close: vb.close, volume: vb.volume, forecast});
+
+                }
+
+                console.log(c);
             }
 
             main();
