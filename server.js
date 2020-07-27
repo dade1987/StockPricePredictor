@@ -56,7 +56,7 @@ async function getData() {
         let url = 'https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
         /* S&P 500 */
-        url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SP&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+        url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SP&interval=5min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
         let req = https.get(url, function (res) {
             let data = '',
@@ -107,7 +107,7 @@ function prepareInputDatas(data, time_steps, b_test) {
 
 
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
-                return Object.values(d);/*.slice(0, 6);*/
+                return Object.values(d).slice(0,6);/*.slice(0, 6);*/
 
                 /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
@@ -215,7 +215,6 @@ function normalizza_dati(data) {
         return {
             open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
             low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
-
             volume: (d.volume - volume_min) / (volume_max - volume_min),
             sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
             stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
