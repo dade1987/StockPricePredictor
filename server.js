@@ -52,7 +52,11 @@ async function getData() {
 
     return new Promise((resolve, reject) => {
 
-        const url = 'https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+        /* EUR USD */
+        let url = 'https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+
+        /* S&P 500 */
+        url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SP&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
         let req = https.get(url, function (res) {
             let data = '',
@@ -67,7 +71,8 @@ async function getData() {
 // will output a Javascript object
                 console.log("data received");
 
-                let rawData = Object.values(json_data["Time Series FX (Daily)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
+                /*Time Series FX (Daily)*/
+                let rawData = Object.values(json_data["Time Series (Daily)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                 resolve(rawData.reverse());
 
 
@@ -153,6 +158,15 @@ function normalizza_dati(data) {
         return Math.max.apply(null, [d.open, d.high, d.low, d.close]);
     }));
 
+    let volume_min = Math.min.apply(null, data.map(function (d) {
+        return d.volume;
+    }));
+
+    let volume_max = Math.max.apply(null, data.map(function (d) {
+        return d.volume;
+    }));
+
+
     let sma_min = Math.min.apply(null, data.map(function (d) {
         return d.sma;
     }));
@@ -202,6 +216,7 @@ function normalizza_dati(data) {
             open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
             low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
 
+            volume: (d.volume - volume_min) / (volume_max - volume_min),
             sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
             stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
             macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
