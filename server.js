@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 
         console.log(parameters);
 
-        await main(parameters.crypto_name,parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
+        await main(parameters.crypto_name, parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
     });
 });
 
@@ -240,7 +240,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number) {
+async function train_data(data, time_steps, epochs_number, training_enabled) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -415,46 +415,49 @@ async function train_data(data, time_steps, epochs_number) {
     }
 
 
+    if (training_enabled === true) {
+        /* training prediction (validation) */
 
-    /* training prediction (validation) */
+        const validation = model.predict(trainingData);
 
-    const validation = model.predict(trainingData);
+        /*const unNormValidation = validation
+         .mul(outputDataMax.sub(outputDataMin))
+         .add(outputDataMin).dataSync();*/
 
-    /*const unNormValidation = validation
-     .mul(outputDataMax.sub(outputDataMin))
-     .add(outputDataMin).dataSync();*/
+        const unNormValidation = validation.dataSync();
 
-    const unNormValidation = validation.dataSync();
+        const trainingResults = output.map((d, i) => {
+            if (d) {
+                return {
+                    x: i, y: d * (prices_max - prices_min) + prices_min
+                };
+            }
+        });
+        const trainingValidation = Array.from(unNormValidation).map((d, i) => {
+            if (d) {
+                return {
+                    x: i, y: d * (prices_max - prices_min) + prices_min
+                };
+            }
+        });
 
-    const trainingResults = output.map((d, i) => {
-        if (d) {
-            return {
-                x: i, y: d * (prices_max - prices_min) + prices_min
-            };
-        }
-    });
-    const trainingValidation = Array.from(unNormValidation).map((d, i) => {
-        if (d) {
-            return {
-                x: i, y: d * (prices_max - prices_min) + prices_min
-            };
-        }
-    });
+        io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
 
-    io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
+        /* creating training chart */
 
-    /* creating training chart */
+        /*tfvis.render.linechart(
+         {name: 'Validation Results'},
+         {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
+         {
+         xLabel: 'contatore',
+         yLabel: 'prezzo',
+         height: 300,
+         zoomToFit: true
+         }
+         );*/
 
-    /*tfvis.render.linechart(
-     {name: 'Validation Results'},
-     {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
-     {
-     xLabel: 'contatore',
-     yLabel: 'prezzo',
-     height: 300,
-     zoomToFit: true
-     }
-     );*/
+    }
+
 
     /* predicting */
 
@@ -555,9 +558,9 @@ async function train_data(data, time_steps, epochs_number) {
 
 }
 
-async function main(crypto_name, time_steps, epochs_number) {
+async function main(crypto_name, time_steps, epochs_number,training_enabled) {
     const data = await getData(crypto_name);
-    await train_data(data, time_steps, epochs_number);
+    await train_data(data, time_steps, epochs_number,training_enabled);
 
 }
 

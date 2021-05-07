@@ -49,7 +49,8 @@
             <br>
             <input class="form-control" id="epochs_number" placeholder="Epochs Number default 20">
             <br>           
-            <button class="btn btn-success"  id="predict-button">CLICCA</button>
+            <button class="btn btn-success"  id="train-button">TRAIN AND TEST</button>
+            <button class="btn btn-success"  id="predict-button" disabled>ONLY PREDICT (AFTER TRAINING)</button>
             <br>
             <!--<br>
             <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
@@ -61,11 +62,27 @@
         <script>
             var socket = io();
 
+            const trainButton = document.getElementById('train-button');
             const predictButton = document.getElementById('predict-button');
             let startingTime = null;
             let startingTimeString = "";
             let time_steps = "";
 
+            trainButton.onclick = () => {
+
+                startingTime = new Date();
+                startingTimeString = startingTime.toString();
+
+                trainButton.disabled = true;
+                trainButton.textContent = "WAIT PLEASE...";
+
+                let crypto_name = $("#crypto_name").val();
+                time_steps = $("#time_steps").val();
+                let epochs_number = $("#epochs_number").val();
+
+                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:false}));
+            };
+            
             predictButton.onclick = () => {
 
                 startingTime = new Date();
@@ -78,7 +95,7 @@
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number}));
+                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:true}));
             };
 
             socket.on('training', (result) => {
@@ -96,8 +113,11 @@
                 let result2 = JSON.parse(result);
                 $("#finalResult").html("Previsioni delle " + startingTimeString + " per " + endingTimeString + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0]);
 
-                predictButton.disabled = false;
-                predictButton.textContent = "CLICCA";
+                trainButton.disabled = false;
+                trainButton.textContent = "TRAIN AND TEST";
+                
+                predictButton.disabled = true;
+                predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
             });
 
             function grafico(bi_array_json, titolo)
