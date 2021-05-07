@@ -362,60 +362,65 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
      const normalizedTestingOutputData = outputTestingData.sub(outputTestingDataMin).div(outputTestingDataMax.sub(outputTestingDataMin));*/
 
 
-    /* creating model */
-    const model = tf.sequential();
 
-    /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
-
-    model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
-
-    /* 4% di dropout */
-    model.add(tf.layers.dropout({rate: 0.04}));
-
-    //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
-    model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
-
-    model.add(tf.layers.dropout({rate: 0.04}));
-
-    model.add(tf.layers.dense({units: 1}));
-
-
-
-    model.summary();
-
-
-    /* setting training */
-    /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
-     * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
-     * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
-    let learningRate = 0.001;
-
-    /* selecting the best training optimizer */
-    const optimizer = tf.train.adam(learningRate);
-    //const optimizer = tf.train.rmsprop(learningRate, 0.95);
-
-    /* compiling model with optimizer, loss and metrics */
-    /* meglio con queste 2 loss assieme, oppure con meanabsolute */
-    model.compile({
-
-        optimizer: optimizer,
-        loss: tf.losses.meanSquaredError,
-        metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
-
-    });
-
-
-    /* training ... */
-    console.log('Loss Log');
-
-    for (let i = 0; i < epochs_number; i++) {
-        let res = await model.fit(trainingData, outputData, {epochs: 1});
-        console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
-
-    }
-
+    let model = null;
 
     if (training_enabled === true) {
+
+        /* creating model */
+        model = tf.sequential();
+
+        /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
+
+        model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
+
+        /* 4% di dropout */
+        model.add(tf.layers.dropout({rate: 0.04}));
+
+        //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
+        model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
+
+        model.add(tf.layers.dropout({rate: 0.04}));
+
+        model.add(tf.layers.dense({units: 1}));
+
+
+
+        model.summary();
+
+
+        /* setting training */
+        /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
+         * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
+         * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
+        let learningRate = 0.001;
+
+        /* selecting the best training optimizer */
+        const optimizer = tf.train.adam(learningRate);
+        //const optimizer = tf.train.rmsprop(learningRate, 0.95);
+
+        /* compiling model with optimizer, loss and metrics */
+        /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+        model.compile({
+
+            optimizer: optimizer,
+            loss: tf.losses.meanSquaredError,
+            metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+
+        });
+
+
+        /* training ... */
+        console.log('Loss Log');
+
+        for (let i = 0; i < epochs_number; i++) {
+            let res = await model.fit(trainingData, outputData, {epochs: 1});
+            console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
+
+        }
+
+        /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
+
         /* training prediction (validation) */
 
         const validation = model.predict(trainingData);
@@ -455,6 +460,11 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
          zoomToFit: true
          }
          );*/
+
+    } else {
+
+        /* da sostituire con model.load ad esempio */
+        model = tf.sequential();
 
     }
 
@@ -558,9 +568,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 
 }
 
-async function main(crypto_name, time_steps, epochs_number,training_enabled) {
+async function main(crypto_name, time_steps, epochs_number, training_enabled) {
     const data = await getData(crypto_name);
-    await train_data(data, time_steps, epochs_number,training_enabled);
+    await train_data(data, time_steps, epochs_number, training_enabled);
 
 }
 
