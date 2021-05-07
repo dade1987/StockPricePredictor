@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        
-        
+
+
         <title>Stock Price Prediction</title>
 
         <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
@@ -42,10 +42,11 @@
             <h2>Look at the console to see progresses</h2>
             <h3>(F12 o Dev Tools)</h3>
 
-
-            <input class="form-control" id="time_steps" placeholder="Time Steps">
+            <input class="form-control" id="crypto_name" placeholder="Crypto Name (to USD) default BTC">
             <br>
-            <input class="form-control" id="epochs_number" placeholder="Epochs Number">
+            <input class="form-control" id="time_steps" placeholder="Time Steps default 5 minutes">
+            <br>
+            <input class="form-control" id="epochs_number" placeholder="Epochs Number default 20">
             <br>           
             <button class="btn btn-success"  id="predict-button">CLICCA</button>
             <br>
@@ -60,14 +61,22 @@
             var socket = io();
 
             const predictButton = document.getElementById('predict-button');
+            let startingTime = null;
+            let startingTimeString = "";
 
             predictButton.onclick = () => {
-                predictButton.disabled = true;
 
+                startingTime = new Date();
+                startingTimeString = startingTime.toString();
+
+                predictButton.disabled = true;
+                predictButton.textContent = "WAIT PLEASE...";
+
+                let crypto_name = $("#crypto_name").val();
                 let time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({time_steps: time_steps, epochs_number: epochs_number}));
+                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number}));
             };
 
             socket.on('training', (result) => {
@@ -79,8 +88,13 @@
             });
 
             socket.on('final', (result) => {
+                let endingTime = new Date(startingTime.getTime() + time_steps * 60000);
+                let endingTimeString = endingTime.toString();
+
                 let result2 = JSON.parse(result);
-                $("#finalResult").html("Crescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3]+"\n\nMedia Aritmetica dei Quadrati degli Errori: "+result2[4][0]);
+                $("#finalResult").html("Previsioni delle " + startingTimeString + " per " + endingTimeString + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0]);
+
+                predictButton.disabled = false;
             });
 
             function grafico(bi_array_json, titolo)

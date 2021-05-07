@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 
-async function getData() {
+async function getData(crypto_name) {
 
 //QOUA4VUTZJXS3M01
 
@@ -63,7 +63,7 @@ async function getData() {
 
 
         /*prova con 5 timeseries (minuti in questo caso), 20 epochs . err 0.0005. previsione tra 5 minuti */
-        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=BTC&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=' + crypto_name + '&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
 
 
@@ -555,8 +555,8 @@ async function train_data(data, time_steps, epochs_number) {
 
 }
 
-async function main(time_steps, epochs_number) {
-    const data = await getData();
+async function main(crypto_name, time_steps, epochs_number) {
+    const data = await getData(crypto_name);
     await train_data(data, time_steps, epochs_number);
 
 }
