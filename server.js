@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 
         console.log(parameters);
 
-        await main(parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
+        await main(parameters.crypto_name,parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
     });
 });
 
