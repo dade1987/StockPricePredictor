@@ -420,6 +420,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
         }
 
         /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
+        await model.save('file:///app/DadeModel');
 
         /* training prediction (validation) */
 
@@ -464,7 +465,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = tf.sequential();
+        model = await tf.loadLayersModel('file:///app/DadeModel.json');
 
     }
 
