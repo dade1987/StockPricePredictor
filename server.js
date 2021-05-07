@@ -78,8 +78,9 @@ async function getData() {
 // will output a Javascript object
                 console.log("data received");
 
-                /*Time Series FX (Daily)*/
-                let rawData = Object.values(json_data["Time Series (Daily)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
+                /*Time Series FX (Daily) per il forex*/
+                
+                let rawData = Object.values(json_data["Time Series Crypto (1min)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                 resolve(rawData.reverse());
 
 
