@@ -61,7 +61,9 @@ async function getData() {
         /* sentimento sull'attrattività della valuta o la fragilità del momento */
         /* https://www.alphavantage.co/query?function=CRYPTO_RATING&symbol=BTC&apikey=QOUA4VUTZJXS3M01 */
 
-        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=BTC&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+
+        /*prova con 5 timeseries (minuti in questo caso), 20 epochs . err 0.0005. previsione tra 5 minuti */
+        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=DOGE&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
 
 
@@ -79,7 +81,7 @@ async function getData() {
                 console.log("data received");
 
                 /*Time Series FX (Daily) per il forex*/
-                
+
                 let rawData = Object.values(json_data["Time Series Crypto (1min)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                 resolve(rawData.reverse());
 
