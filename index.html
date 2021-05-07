@@ -80,7 +80,7 @@
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:false}));
+                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:true}));
             };
             
             predictButton.onclick = () => {
@@ -95,7 +95,7 @@
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:true}));
+                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:false}));
             };
 
             socket.on('training', (result) => {
