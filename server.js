@@ -362,11 +362,11 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
      const normalizedTestingOutputData = outputTestingData.sub(outputTestingDataMin).div(outputTestingDataMax.sub(outputTestingDataMin));*/
 
 
-    console.log("Training enabled: " + training_enabled);
-
+    console.log("Training enabled: " + training_enabled + "" + (training_enabled === true) + (training_enabled == true));
+    
     let model = null;
 
-    if (training_enabled === true) {
+    if (training_enabled == true) {
 
         /* creating model */
         model = tf.sequential();
