@@ -63,7 +63,7 @@ async function getData() {
 
 
         /*prova con 5 timeseries (minuti in questo caso), 20 epochs . err 0.0005. previsione tra 5 minuti */
-        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=DOGE&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=BTC&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
 
 
