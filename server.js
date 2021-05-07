@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 
         console.log(parameters);
 
-        await main(parameters.crypto_name, parseInt(parameters.time_steps), parseInt(parameters.epochs_number));
+        await main(parameters.crypto_name, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled);
     });
 });
 
@@ -363,7 +363,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 
 
     console.log("Training enabled: " + training_enabled + "" + (training_enabled === true) + (training_enabled == true));
-    
+
     let model = null;
 
     if (training_enabled == true) {
