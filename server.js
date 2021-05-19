@@ -539,10 +539,10 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
     console.log("DATA", data);
-    console.log("INPUT", input);
+    /*console.log("INPUT", input);
     console.log("OUTPUT", output);
     console.log("TESTING", testing);
-    console.log("TESTINGRESULTS", testingResults);
+    console.log("TESTINGRESULTS", testingResults);*/
 
 
     /* Creating tensors (input 3d tensor, and output 1d tensor) */
