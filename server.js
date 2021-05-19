@@ -280,7 +280,18 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
                 /*Time Series FX (Daily) per il forex*/
 
-                let rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
+                let rawData = null;
+
+                switch (market_name) {
+                    case "CRYPTO":
+                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
+                        break;
+                    case "FOREX":
+                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
+                        break;
+                }
+
+
                 resolve(rawData.reverse());
 
 
@@ -324,7 +335,8 @@ function prepareInputDatas(data, time_steps, b_test) {
 
         }
 
-        console.log(arr);
+        //input elements (high,low,close,sma,ecc...)
+        //console.log(arr);
 
         return arr;
     } else
@@ -772,7 +784,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 }
 
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
-    
+
     const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
     await train_data(data, time_steps, epochs_number, training_enabled);
 
