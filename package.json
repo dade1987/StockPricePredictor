@@ -10,10 +10,14 @@
         "technicalindicators": "^3.1.0"       
     },
     "devDependencies": {
-       
+
     },
     "scripts": {
         "start": "node server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radi-cho/tfjs-node-save.git"
     },
     "author": "",
     "license": "MIT"
