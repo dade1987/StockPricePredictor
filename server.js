@@ -626,101 +626,125 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     if (training_enabled == true) {
 
-        /* creating model */
-        model = tf.sequential();
+        try {
+            model = await tf.loadLayersModel('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
 
-        /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
+            console.log("LOAD MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
-        model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
+            model.summary();
 
-        /* 4% di dropout */
-        model.add(tf.layers.dropout({rate: 0.04}));
+            /* compiling model with optimizer, loss and metrics */
+            /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+            model.compile({
 
-        //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
-        model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
+                optimizer: optimizer,
+                loss: tf.losses.meanSquaredError,
+                metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
 
-        model.add(tf.layers.dropout({rate: 0.04}));
+            });
 
-        model.add(tf.layers.dense({units: 1}));
-
-
-
-        model.summary();
-
+            /* in caso di errore */
+        } catch (e) {
 
 
+            /* creating model */
+            model = tf.sequential();
 
-        /* compiling model with optimizer, loss and metrics */
-        /* meglio con queste 2 loss assieme, oppure con meanabsolute */
-        model.compile({
+            /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
 
-            optimizer: optimizer,
-            loss: tf.losses.meanSquaredError,
-            metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+            model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
 
-        });
+            /* 4% di dropout */
+            model.add(tf.layers.dropout({rate: 0.04}));
+
+            //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
+            model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
+
+            model.add(tf.layers.dropout({rate: 0.04}));
+
+            model.add(tf.layers.dense({units: 1}));
 
 
-        /* training ... */
-        console.log('Loss Log');
 
-        for (let i = 0; i < epochs_number; i++) {
-            let res = await model.fit(trainingData, outputData, {epochs: 1});
-            console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
+            model.summary();
 
+
+
+
+            /* compiling model with optimizer, loss and metrics */
+            /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+            model.compile({
+
+                optimizer: optimizer,
+                loss: tf.losses.meanSquaredError,
+                metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+
+            });
+
+
+            /* training ... */
+            console.log('Loss Log');
+
+            for (let i = 0; i < epochs_number; i++) {
+                let res = await model.fit(trainingData, outputData, {epochs: 1});
+                console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
+
+            }
+
+            /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
+            await model.save('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+
+            console.log("SAVE MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+
+            /* training prediction (validation) */
+
+            const validation = model.predict(trainingData);
+
+            /*const unNormValidation = validation
+             .mul(outputDataMax.sub(outputDataMin))
+             .add(outputDataMin).dataSync();*/
+
+            const unNormValidation = validation.dataSync();
+
+            const trainingResults = output.map((d, i) => {
+                if (d) {
+                    return {
+                        x: i, y: d * (prices_max - prices_min) + prices_min
+                    };
+                }
+            });
+            const trainingValidation = Array.from(unNormValidation).map((d, i) => {
+                if (d) {
+                    return {
+                        x: i, y: d * (prices_max - prices_min) + prices_min
+                    };
+                }
+            });
+
+            io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
+
+            /* creating training chart */
+
+            /*tfvis.render.linechart(
+             {name: 'Validation Results'},
+             {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
+             {
+             xLabel: 'contatore',
+             yLabel: 'prezzo',
+             height: 300,
+             zoomToFit: true
+             }
+             );*/
         }
 
-        /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
-        await model.save('file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
-        console.log("SAVE MODEL", 'file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
-
-        /* training prediction (validation) */
-
-        const validation = model.predict(trainingData);
-
-        /*const unNormValidation = validation
-         .mul(outputDataMax.sub(outputDataMin))
-         .add(outputDataMin).dataSync();*/
-
-        const unNormValidation = validation.dataSync();
-
-        const trainingResults = output.map((d, i) => {
-            if (d) {
-                return {
-                    x: i, y: d * (prices_max - prices_min) + prices_min
-                };
-            }
-        });
-        const trainingValidation = Array.from(unNormValidation).map((d, i) => {
-            if (d) {
-                return {
-                    x: i, y: d * (prices_max - prices_min) + prices_min
-                };
-            }
-        });
-
-        io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
-
-        /* creating training chart */
-
-        /*tfvis.render.linechart(
-         {name: 'Validation Results'},
-         {values: [trainingResults, trainingValidation], series: ['original', 'predicted']},
-         {
-         xLabel: 'contatore',
-         yLabel: 'prezzo',
-         height: 300,
-         zoomToFit: true
-         }
-         );*/
 
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        model = await tf.loadLayersModel('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
-        console.log("LOAD MODEL", 'file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        console.log("LOAD MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         model.summary();
 
