@@ -371,6 +371,8 @@ let prices_max = 0;
 
 function normalizza_dati(data) {
 
+    console.log("DATA", data[0]);
+
     //prima deve calcolare massimi e minimi
     prices_min = Math.min.apply(null, data.map(function (d) {
         return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
@@ -445,6 +447,8 @@ function normalizza_dati(data) {
         };
     });
 
+    console.log("FINALE", finale[0]);
+
     return finale;
 
 }
@@ -511,12 +515,12 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
         d++;
     }
 
-console.log("DATA", data);
+
 
     /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
     data = data.slice(33);
-    
-    
+
+
 
     data = normalizza_dati(data);
 
@@ -542,11 +546,11 @@ console.log("DATA", data);
     const testing = prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true);
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
-    
+
     /*console.log("INPUT", input);
-    console.log("OUTPUT", output);
-    console.log("TESTING", testing);
-    console.log("TESTINGRESULTS", testingResults);*/
+     console.log("OUTPUT", output);
+     console.log("TESTING", testing);
+     console.log("TESTINGRESULTS", testingResults);*/
 
 
     /* Creating tensors (input 3d tensor, and output 1d tensor) */
