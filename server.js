@@ -308,7 +308,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
     });
 }
 
-function prepareInputDatas(data, time_steps, b_test) {
+function prepareInputDatas(data, time_steps, b_test, market_name) {
 
     let test = 0;
     if (b_test === true) {
@@ -328,12 +328,20 @@ function prepareInputDatas(data, time_steps, b_test) {
 
 
                 /* ATTENZIONE. INDICATORI DISABILITATI NEL TRAINING */
-                
+
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
                 /*return Object.values(d);//.slice(0, 6);*/
-                return Object.values(d).slice(0, 5);
+                switch (market_name) {
+                    case "CRYPTO":
+                        return Object.values(d).slice(0, 5);
+                        break;
+                    case "FOREX":
+                        return Object.values(d).slice(0, 4);
+                        break;
+                }
 
-                /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
+
+                /*[d.open, d.high, d.low, d.close, d.volume, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
             }));
 
@@ -465,7 +473,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number, training_enabled) {
+async function train_data(data, time_steps, epochs_number, training_enabled, market_name) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -547,13 +555,13 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 
     const start = data.length - size - predict_size;
 
-    const input = prepareInputDatas(data.slice(start, start + size), time_steps);
+    const input = prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name);
     const output = prepareOutputDatas(data.slice(start, start + size), time_steps);
 
 
 
 
-    const testing = prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true);
+    const testing = prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name);
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
 
@@ -811,7 +819,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
 
     const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
-    await train_data(data, time_steps, epochs_number, training_enabled);
+    await train_data(data, time_steps, epochs_number, training_enabled, market_name);
 
 }
 
