@@ -614,6 +614,16 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     let model = null;
 
+    /* setting training */
+    /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
+     * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
+     * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
+    let learningRate = 0.001;
+
+    /* selecting the best training optimizer */
+    const optimizer = tf.train.adam(learningRate);
+    //const optimizer = tf.train.rmsprop(learningRate, 0.95);
+
     if (training_enabled == true) {
 
         /* creating model */
@@ -638,15 +648,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         model.summary();
 
 
-        /* setting training */
-        /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
-         * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
-         * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
-        let learningRate = 0.001;
 
-        /* selecting the best training optimizer */
-        const optimizer = tf.train.adam(learningRate);
-        //const optimizer = tf.train.rmsprop(learningRate, 0.95);
 
         /* compiling model with optimizer, loss and metrics */
         /* meglio con queste 2 loss assieme, oppure con meanabsolute */
@@ -719,6 +721,18 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         model = await tf.loadLayersModel('file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         console.log("LOAD MODEL", 'file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+
+        model.summary();
+
+        /* compiling model with optimizer, loss and metrics */
+        /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+        model.compile({
+
+            optimizer: optimizer,
+            loss: tf.losses.meanSquaredError,
+            metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+
+        });
 
     }
 
