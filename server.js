@@ -872,6 +872,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     console.log("RAW DATA", data[0]);
 
+
     await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number);
 
 }
