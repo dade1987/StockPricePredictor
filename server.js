@@ -341,7 +341,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                     case "FOREX":
                         return [].concat(Object.values(d).slice(3, 4), Object.values(d).slice(7, 9));
                         break;
-                }
+                } 
 
 
                 /*[d.open, d.high, d.low, d.close, d.volume, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
