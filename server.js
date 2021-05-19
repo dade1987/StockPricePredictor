@@ -287,8 +287,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                         if (time_interval.indexOf("INTRADAY") === 0) {
                             rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                         } else {
-                            /* il volume in sto caso diventa l'NVT (capitalizzazione / volume) */
-                            rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1b. open (USD)"]), high: parseFloat(d["2b. high (USD)"]), low: parseFloat(d["3b. low (USD)"]), close: parseFloat(d["4b. close (USD)"]), volume: parseFloat(d["6. market cap (USD)"]) / parseFloat(d["5. volume"])}));
+                            rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1b. open (USD)"]), high: parseFloat(d["2b. high (USD)"]), low: parseFloat(d["3b. low (USD)"]), close: parseFloat(d["4b. close (USD)"]), volume: parseFloat(d["5. volume"])}));
                         }
                         break;
                     case "FOREX":
@@ -330,7 +329,8 @@ function prepareInputDatas(data, time_steps, b_test) {
 
 
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
-                return Object.values(d);/*.slice(0, 6);*/
+                /*return Object.values(d);//.slice(0, 6);*/
+                 return Object.values(d).slice(0, 5);
 
                 /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
