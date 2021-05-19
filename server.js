@@ -436,7 +436,7 @@ function normalizza_dati(data) {
 
     let finale = data.map(function (d) {
         let volumeTemp = (d.volume - volume_min) / (volume_max - volume_min);
-        if (isNan(volumeTemp)) {
+        if (isNaN(volumeTemp)) {
             volumeTemp = 0;
         }
         return {
