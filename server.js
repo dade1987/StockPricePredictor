@@ -340,10 +340,10 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                         /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
                         /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
                         /*aggiunto indicatore RSI*/
-                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(5, 6), Object.values(d).slice(7, 9));
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
                         break;
                     case "FOREX":
-                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(5, 6), Object.values(d).slice(7, 9));
+                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
                         break;
                 }
 
