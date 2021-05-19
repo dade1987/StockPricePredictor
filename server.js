@@ -263,7 +263,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
         let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
-        console.log("URL",url);
+        console.log("URL", url);
 
         let req = https.get(url, function (res) {
             let data = '',
@@ -287,7 +287,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                         rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                         break;
                     case "FOREX":
-                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
+                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: 0.5}));
                         break;
                 }
 
