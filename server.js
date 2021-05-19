@@ -289,12 +289,14 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                             rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                         } else {
                             rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1b. open (USD)"]), high: parseFloat(d["2b. high (USD)"]), low: parseFloat(d["3b. low (USD)"]), close: parseFloat(d["4b. close (USD)"]), volume: parseFloat(d["5. volume"])}));
+                            
                         }
                         break;
                     case "FOREX":
                         rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
                         break;
                 }
+
 
                 resolve(rawData.reverse());
 
@@ -337,10 +339,11 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                         /* le crypto hanno anche il volume */
                         /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
                         /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
-                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(7, 9));
+                        /*aggiunto indicatore RSI*/
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(5, 6), Object.values(d).slice(7, 9));
                         break;
                     case "FOREX":
-                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(7, 9));
+                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(5, 6), Object.values(d).slice(7, 9));
                         break;
                 }
 
