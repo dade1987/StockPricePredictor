@@ -670,6 +670,8 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
         await model.save('file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
+        console.log("SAVE MODEL", 'file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+
         /* training prediction (validation) */
 
         const validation = model.predict(trainingData);
@@ -714,6 +716,8 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
         /* da sostituire con model.load ad esempio */
         model = await tf.loadLayersModel('file:///' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+
+        console.log("LOAD MODEL", 'file:///' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
     }
 
