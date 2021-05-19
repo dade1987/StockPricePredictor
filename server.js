@@ -335,10 +335,10 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                 switch (market_name) {
                     case "CRYPTO":
                         /* le crypto hanno anche il volume */
-                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 8));
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(7, 9));
                         break;
                     case "FOREX":
-                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(6, 8))
+                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(7, 9))
                         break;
                 }
 
