@@ -713,7 +713,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file:///' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '.json');
+        model = await tf.loadLayersModel('file:///' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
     }
 
