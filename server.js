@@ -543,6 +543,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("TRAIN DATA 0", data[0]);
 
+
     /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
     data = data.slice(33);
 
