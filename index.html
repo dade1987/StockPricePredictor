@@ -51,12 +51,15 @@
             <br>
             <label>Currency Pair 1</label>
             <select class="form-control" id="currency_pair_1">
-
+                <option>DOGE</option>
+                <option>DOT</option>
+                <option>XRP</option>
+                <option>BNB</option>
             </select>
             <br>
             <label>Currency Pair 2</label>
             <select class="form-control" id="currency_pair_2">
-
+                <option>USD</option>               
             </select>
             <br>
             <label>Time Interval (default 1 Day)</label>
@@ -107,11 +110,11 @@
                 let currency_pair_1 = $("#currency_pair_1").val();
                 let currency_pair_2 = $("#currency_pair_2").val();
                 let time_interval = $("#time_interval").val();
-                 let market_name= $("#market_name").val();
+                let market_name = $("#market_name").val();
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({market_name:market_name,time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: true}));
+                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: true}));
             };
 
             predictButton.onclick = () => {
@@ -125,11 +128,11 @@
                 let currency_pair_1 = $("#currency_pair_1").val();
                 let currency_pair_2 = $("#currency_pair_2").val();
                 let time_interval = $("#time_interval").val();
-                let market_name= $("#market_name").val();
+                let market_name = $("#market_name").val();
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({market_name:market_name,time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
+                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
             };
 
             socket.on('training', (result) => {
@@ -190,7 +193,7 @@
                                                     <option>DOT</option>\n\
                                                     <option>XRP</option>\n\
                                                     <option>BNB</option>");
-                        $("#currency_pair_:2").html("<option>USD</option>");
+                        $("#currency_pair_2").html("<option>USD</option>");
                         break;
                 }
             }
