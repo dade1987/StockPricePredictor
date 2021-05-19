@@ -333,6 +333,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                 /*return Object.values(d);//.slice(0, 6);*/
                 switch (market_name) {
                     case "CRYPTO":
+                        /* le crypto hanno anche il volume */
                         return Object.values(d).slice(0, 5);
                         break;
                     case "FOREX":
