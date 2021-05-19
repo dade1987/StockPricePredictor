@@ -474,7 +474,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number, training_enabled, market_name) {
+async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -668,7 +668,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         }
 
         /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
-        await model.save('file:///app/modelloNode1');
+        await model.save('file://' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
         /* training prediction (validation) */
 
@@ -713,7 +713,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file:///app/modelloNode1.json');
+        model = await tf.loadLayersModel('file:///' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '.json');
 
     }
 
@@ -820,7 +820,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
 
     const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
-    await train_data(data, time_steps, epochs_number, training_enabled, market_name);
+    await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number);
 
 }
 
