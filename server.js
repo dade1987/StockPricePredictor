@@ -541,15 +541,16 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     }
 
 
+    console.log("TRAIN DATA 0", data[0]);
 
     /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
     data = data.slice(33);
 
-
+    console.log("TRAIN DATA 1", data[0]);
 
     data = normalizza_dati(data);
 
-
+    console.log("TRAIN DATA 2", data[0]);
     /* sometimes Chrome crashes and you need to open a new window */
 
     const size = Math.floor(data.length / 100 * 98);
