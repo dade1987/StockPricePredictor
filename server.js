@@ -573,7 +573,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     console.log("TESTINGRESULTS", testingResults); * /
 
 
-    / * Creating tensors (input 3d tensor, and output 1d tensor) * /
+    /* Creating tensors (input 3d tensor, and output 1d tensor) */
 
     const input_size_3 = input.length;
     const input_size_2 = input[0].length;
@@ -591,7 +591,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
     /* normalizing datas */
-    /*const trainingDataMax = trainingData.max();
+    /* const trainingDataMax = trainingData.max();
      const trainingDataMin = trainingData.min();
      
      const testingDataMax = testingData.max();
