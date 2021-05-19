@@ -668,7 +668,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         }
 
         /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
-        await model.save('file://./model-1a');
+        await model.save('file:///app/modelloNode1');
 
         /* training prediction (validation) */
 
@@ -713,7 +713,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file://./model-1a.json');
+        model = await tf.loadLayersModel('file:///app/modelloNode1.json');
 
     }
 
