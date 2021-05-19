@@ -39,31 +39,229 @@ io.on('connection', (socket) => {
 
         console.log(parameters);
 
-        await main(parameters.crypto_name, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled);
+        await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled);
     });
 });
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 
-async function getData(crypto_name) {
+async function getData(market_name, time_interval, currency_pair_1, currency_pair_2) {
 
 //QOUA4VUTZJXS3M01
 
     return new Promise((resolve, reject) => {
 
         /* EUR USD */
-        /*let url = 'https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';*/
+        /*let url = 'https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=EUR&to_symbol=USD&interval=5min&outputsize=full&apikey=QOUA4VUTZJXS3M01';*/
 
         /* S&P 500 */
         /*url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SP&interval=5min&outputsize=full&apikey=QOUA4VUTZJXS3M01';*/
 
         /* sentimento sull'attrattività della valuta o la fragilità del momento */
-        /* https://www.alphavantage.co/query?function=CRYPTO_RATING&symbol=BTC&apikey=QOUA4VUTZJXS3M01 */
+        /*  
+         * https://www.alphavantage.co/query?function=CRYPTO_RATING&symbol=BTC&apikey=QOUA4VUTZJXS3M01
+         * 
+         * OPPURE 
+         * 
+         * https://app.flipsidecrypto.com/tracker/all-coins (se tutti comprano sale di valore, se tutti vendono scende perchè la capitalizzazione cambia)
+         * */
 
 
         /*prova con 5 timeseries (minuti in questo caso), 20 epochs . err 0.0005. previsione tra 5 minuti */
-        let url = 'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol=' + crypto_name + '&market=USD&interval=1min&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+
+        let market_name_url = "";
+        let symbol_name_1 = "";
+        let symbol_name_2 = "";
+
+
+
+        let interval = "";
+        let json_data_name = "";
+
+        switch (time_interval) {
+            /*<option value="INTRADAY_1_MIN">1 min</option>
+             <option value="INTRADAY_5_MIN">5 min</option>
+             <option value="INTRADAY_15_MIN">15 min</option>
+             <option value="INTRADAY_30_MIN">30 min</option>
+             <option value="INTRADAY_60_MIN">60 min</option>
+             <option value="DAILY" selected>1 DAY</option>
+             <option value="WEEKLY">1 WEEK</option>
+             <option value="MONTHLY">1 MONTH</option>*/
+            case "INTRADAY_1_MIN":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "CRYPTO_";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series Crypto (1min)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (1min)";
+                        break;
+
+                }
+
+                market_name_url += "INTRADAY";
+                interval = "&interval=1min";
+
+                break;
+
+            case "INTRADAY_5_MIN":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "CRYPTO_";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series Crypto (5min)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (5min)";
+                        break;
+
+                }
+
+                market_name_url += "INTRADAY";
+                interval = "&interval=5min";
+                break;
+
+            case "INTRADAY_15_MIN":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "CRYPTO_";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series Crypto (15min)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (15min)";
+                        break;
+
+                }
+
+                market_name_url += "INTRADAY";
+                interval = "&interval=15min";
+                break;
+
+            case "INTRADAY_30_MIN":
+
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "CRYPTO_";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series Crypto (30min)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (30min)";
+                        break;
+
+                }
+
+                market_name_url += "INTRADAY";
+                interval = "&interval=30min";
+                break;
+
+            case "INTRADAY_60_MIN":
+
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "CRYPTO_";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series Crypto (60min)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (60min)";
+                        break;
+
+                }
+                market_name_url += "INTRADAY";
+                interval = "&interval=60min";
+                break;
+
+            case "DAILY":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "DIGITAL_CURRENCY_DAILY";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series (Digital Currency Daily)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_DAILY";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (Daily)";
+                        break;
+
+                }
+
+                break;
+
+            case "WEEKLY":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "DIGITAL_CURRENCY_WEEKLY";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series (Digital Currency Weekly)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_WEEKLY";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (Weekly)";
+                        break;
+
+                }
+                break;
+
+            case "MONTHLY":
+                switch (market_name) {
+                    case "CRYPTO":
+                        market_name_url = "DIGITAL_CURRENCY_MONTHLY";
+                        symbol_name_1 = "symbol";
+                        symbol_name_2 = "market";
+                        json_data_name = "Time Series (Digital Currency Monthly)";
+                        break;
+
+                    case "FOREX":
+                        market_name_url = "FX_MONTHLY";
+                        symbol_name_1 = "from_symbol";
+                        symbol_name_2 = "to_symbol";
+                        json_data_name = "Time Series FX (Monthly)";
+                        break;
+
+                }
+                break;
+
+        }
+
+
+        let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
 
 
@@ -82,7 +280,7 @@ async function getData(crypto_name) {
 
                 /*Time Series FX (Daily) per il forex*/
 
-                let rawData = Object.values(json_data["Time Series Crypto (1min)"]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
+                let rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                 resolve(rawData.reverse());
 
 
@@ -116,6 +314,7 @@ function prepareInputDatas(data, time_steps, b_test) {
             arr.push(data.slice(i, i + time_steps).map(d => {
 
 
+
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
                 return Object.values(d);/*.slice(0, 6);*/
 
@@ -124,6 +323,8 @@ function prepareInputDatas(data, time_steps, b_test) {
             }));
 
         }
+
+        console.log(arr);
 
         return arr;
     } else
@@ -570,8 +771,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
 
 }
 
-async function main(crypto_name, time_steps, epochs_number, training_enabled) {
-    const data = await getData(crypto_name);
+async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
+    
+    const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
     await train_data(data, time_steps, epochs_number, training_enabled);
 
 }

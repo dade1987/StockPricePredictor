@@ -41,13 +41,41 @@
 
             <h2>Look at the console to see progresses</h2>
             <h3>(F12 o Dev Tools)</h3>
-            <h4>Be careful to Candles, Stochastic, Attractivity, Whales and Leverage</h4>
+            <h4>Be careful to NVT (and Fundamental Analysis), Candles, Stochastic, Attractivity, Whales and Leverage</h4>
 
-            <input class="form-control" id="crypto_name" placeholder="Crypto Name (to USD) default BTC">
+            <label>Market Name</label>
+            <select onchange="fillCurrencyPairs(this.value)" class="form-control" id="market_name">
+                <option value="CRYPTO">CRYPTO</option>
+                <option value="FOREX">FOREX</option>               
+            </select>
             <br>
-            <input class="form-control" id="time_steps" placeholder="Time Steps default 5 minutes">
+            <label>Currency Pair 1</label>
+            <select class="form-control" id="currency_pair_1">
+
+            </select>
             <br>
-            <input class="form-control" id="epochs_number" placeholder="Epochs Number default 20">
+            <label>Currency Pair 2</label>
+            <select class="form-control" id="currency_pair_2">
+
+            </select>
+            <br>
+            <label>Time Interval (default 1 Day)</label>
+            <select class="form-control" id="time_interval">
+                <option value="INTRADAY_1_MIN">1 min</option>
+                <option value="INTRADAY_5_MIN">5 min</option>
+                <option value="INTRADAY_15_MIN">15 min</option>
+                <option value="INTRADAY_30_MIN">30 min</option>
+                <option value="INTRADAY_60_MIN">60 min</option>
+                <option value="DAILY" selected>1 DAY</option>
+                <option value="WEEKLY">1 WEEK</option>
+                <option value="MONTHLY">1 MONTH</option>
+            </select>
+            <br>           
+            <label>Time Steps (default 14)</label>
+            <input class="form-control" id="time_steps" value="14" placeholder="Time Steps default 14">
+            <br>
+            <label>Epochs Number (default 10)</label>
+            <input class="form-control" id="epochs_number" value="10"  placeholder="Epochs Number default 10">
             <br>           
             <button class="btn btn-success"  id="train-button">TRAIN AND TEST</button>
             <button class="btn btn-success"  id="predict-button" disabled>ONLY PREDICT (AFTER TRAINING)</button>
@@ -76,13 +104,16 @@
                 trainButton.disabled = true;
                 trainButton.textContent = "WAIT PLEASE...";
 
-                let crypto_name = $("#crypto_name").val();
+                let currency_pair_1 = $("#currency_pair_1").val();
+                let currency_pair_2 = $("#currency_pair_2").val();
+                let time_interval = $("#time_interval").val();
+                 let market_name= $("#market_name").val();
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:true}));
+                socket.emit('predict', JSON.stringify({market_name:market_name,time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: true}));
             };
-            
+
             predictButton.onclick = () => {
 
                 startingTime = new Date();
@@ -91,11 +122,14 @@
                 predictButton.disabled = true;
                 predictButton.textContent = "WAIT PLEASE...";
 
-                let crypto_name = $("#crypto_name").val();
+                let currency_pair_1 = $("#currency_pair_1").val();
+                let currency_pair_2 = $("#currency_pair_2").val();
+                let time_interval = $("#time_interval").val();
+                let market_name= $("#market_name").val();
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({crypto_name: crypto_name, time_steps: time_steps, epochs_number: epochs_number,training_enabled:false}));
+                socket.emit('predict', JSON.stringify({market_name:market_name,time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
             };
 
             socket.on('training', (result) => {
@@ -107,15 +141,15 @@
             });
 
             socket.on('final', (result) => {
-                let endingTime = new Date(startingTime.getTime() + time_steps * 60000);
+                let endingTime = new Date(startingTime.getTime() + (5 * 60000));
                 let endingTimeString = endingTime.toString();
 
                 let result2 = JSON.parse(result);
-                $("#finalResult").html("Previsioni delle " + startingTimeString + " per " + endingTimeString + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] +" (dev'essere nell'ordine di 0.000X)");
+                $("#finalResult").html("Previsioni delle " + startingTimeString + " per " + endingTimeString + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
 
                 trainButton.disabled = false;
                 trainButton.textContent = "TRAIN AND TEST";
-                
+
                 predictButton.disabled = true;
                 predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
             });
@@ -134,6 +168,31 @@
                             zoomToFit: true
                         }
                 );
+            }
+
+            function fillCurrencyPairs(market_name) {
+                switch (market_name) {
+                    case "FOREX":
+                        $("#currency_pair_1").html("\
+                                                    <option>EUR</option>\n\
+                                                    <option>USD</option>\n\
+                                                    <option>GBP</option>\n\
+                                                    <option>BTC</option>");
+                        $("#currency_pair_2").html("\
+                                                    <option>EUR</option>\n\
+                                                    <option>USD</option>\n\
+                                                    <option>GBP</option>\n\
+                                                    <option>BTC</option>");
+                        break;
+                    case "CRYPTO":
+                        $("#currency_pair_1").html("\
+                                                    <option>DOGE</option>\n\
+                                                    <option>DOT</option>\n\
+                                                    <option>XRP</option>\n\
+                                                    <option>BNB</option>");
+                        $("#currency_pair_:2").html("<option>USD</option>");
+                        break;
+                }
             }
         </script>
 
