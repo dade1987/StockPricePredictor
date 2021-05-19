@@ -511,8 +511,12 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
         d++;
     }
 
+console.log("DATA", data);
+
     /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
     data = data.slice(33);
+    
+    
 
     data = normalizza_dati(data);
 
@@ -538,7 +542,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled) {
     const testing = prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true);
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
-    console.log("DATA", data);
+    
     /*console.log("INPUT", input);
     console.log("OUTPUT", output);
     console.log("TESTING", testing);
