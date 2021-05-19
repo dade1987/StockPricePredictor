@@ -287,7 +287,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                         rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                         break;
                     case "FOREX":
-                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: 0.5}));
+                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
                         break;
                 }
 
@@ -435,10 +435,14 @@ function normalizza_dati(data) {
 
 
     let finale = data.map(function (d) {
+        let volumeTemp = (d.volume - volume_min) / (volume_max - volume_min);
+        if (isNan(volumeTemp)) {
+            volumeTemp = 0;
+        }
         return {
             open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
             low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
-            volume: (d.volume - volume_min) / (volume_max - volume_min),
+            volume: volumeTemp,
             sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
             stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
             macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
