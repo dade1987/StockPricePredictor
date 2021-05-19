@@ -289,7 +289,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                             rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
                         } else {
                             rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1b. open (USD)"]), high: parseFloat(d["2b. high (USD)"]), low: parseFloat(d["3b. low (USD)"]), close: parseFloat(d["4b. close (USD)"]), volume: parseFloat(d["5. volume"])}));
-                            
+
                         }
                         break;
                     case "FOREX":
@@ -869,6 +869,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
 
     const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
+
+    console.log("RAW DATA", data[0]);
+
     await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number);
 
 }
