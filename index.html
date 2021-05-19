@@ -144,11 +144,10 @@
             });
 
             socket.on('final', (result) => {
-                let endingTime = new Date(startingTime.getTime() + (5 * 60000));
-                let endingTimeString = endingTime.toString();
+                let endingTime = $("#time_interval option:selected").text();
 
                 let result2 = JSON.parse(result);
-                $("#finalResult").html("Previsioni delle " + startingTimeString + " per " + endingTimeString + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
+                $("#finalResult").html("Previsioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
 
                 trainButton.disabled = false;
                 trainButton.textContent = "TRAIN, TEST AND PREDICT";

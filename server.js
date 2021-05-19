@@ -327,10 +327,11 @@ function prepareInputDatas(data, time_steps, b_test) {
             arr.push(data.slice(i, i + time_steps).map(d => {
 
 
-
+                /* ATTENZIONE. INDICATORI DISABILITATI NEL TRAINING */
+                
                 /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
                 /*return Object.values(d);//.slice(0, 6);*/
-                 return Object.values(d).slice(0, 5);
+                return Object.values(d).slice(0, 5);
 
                 /*[d.open, d.high, d.low, d.close, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
 
