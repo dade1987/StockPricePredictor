@@ -336,12 +336,13 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                     case "CRYPTO":
                         /* le crypto hanno anche il volume */
                         /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
-                        return [].concat(Object.values(d).slice(3, 5), Object.values(d).slice(7, 9));
+                        /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(7, 9));
                         break;
                     case "FOREX":
-                        return [].concat(Object.values(d).slice(3, 4), Object.values(d).slice(7, 9));
+                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(7, 9));
                         break;
-                } 
+                }
 
 
                 /*[d.open, d.high, d.low, d.close, d.volume, d.sma, d.rsi, d.macd_macd, d.macd_signal, d.macd_histogram,d.stochastic_k,d.stochastic_k];*/
@@ -570,11 +571,11 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("INPUT", input[0]);
     /*console.log("OUTPUT", output);
-    console.log("TESTING", testing);
-    console.log("TESTINGRESULTS", testingResults); * /
-
-
-    /* Creating tensors (input 3d tensor, and output 1d tensor) */
+     console.log("TESTING", testing);
+     console.log("TESTINGRESULTS", testingResults); * /
+     
+     
+     /* Creating tensors (input 3d tensor, and output 1d tensor) */
 
     const input_size_3 = input.length;
     const input_size_2 = input[0].length;
@@ -722,6 +723,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
                 }
             });
 
+            /* non serve saperlo per forza */
             io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
 
             /* creating training chart */
