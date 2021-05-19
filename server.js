@@ -335,10 +335,10 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                 switch (market_name) {
                     case "CRYPTO":
                         /* le crypto hanno anche il volume */
-                        return Object.values(d).slice(0, 5);
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 8));
                         break;
                     case "FOREX":
-                        return Object.values(d).slice(0, 4);
+                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(6, 8))
                         break;
                 }
 
@@ -567,13 +567,13 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
 
-    /*console.log("INPUT", input);
-     console.log("OUTPUT", output);
-     console.log("TESTING", testing);
-     console.log("TESTINGRESULTS", testingResults);*/
+    console.log("INPUT", input[0]);
+    /*console.log("OUTPUT", output);
+    console.log("TESTING", testing);
+    console.log("TESTINGRESULTS", testingResults); * /
 
 
-    /* Creating tensors (input 3d tensor, and output 1d tensor) */
+    / * Creating tensors (input 3d tensor, and output 1d tensor) * /
 
     const input_size_3 = input.length;
     const input_size_2 = input[0].length;
