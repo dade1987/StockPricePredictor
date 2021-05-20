@@ -7,7 +7,7 @@ const https = require('https');
 
 const express = require('express');
 const socketio = require('socket.io');
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs-node'); 
 
 
 const SMA = require('technicalindicators').SMA;
@@ -636,9 +636,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     if (training_enabled == true) {
 
         try {
-            model = await tf.loadLayersModel('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
+            model = await tf.loadLayersModel('file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
 
-            console.log("LOAD MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+            console.log("LOAD MODEL", 'file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
             model.summary();
 
@@ -701,9 +701,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
             }
 
             /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
-            await model.save('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+            await model.save('file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
-            console.log("SAVE MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+            console.log("SAVE MODEL", 'file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
             /* training prediction (validation) */
 
@@ -752,9 +752,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        model = await tf.loadLayersModel('file://'/* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
-        console.log("LOAD MODEL", 'file://' + new Date().toISOString().slice(0, 10) + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        console.log("LOAD MODEL", 'file://'/* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         model.summary();
 
