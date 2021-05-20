@@ -1,4 +1,6 @@
+console.log(process.cwd());
 
+console.log(__dirname);
 
 const http = require('http');
 const https = require('https');
@@ -13,7 +15,7 @@ const MACD = require('technicalindicators').MACD;
 const RSI = require('technicalindicators').RSI;
 const Stochastic = require('technicalindicators').Stochastic;
 
-/* global tf, tfvis, process */
+/* global tf, tfvis, process, __dirname */
 
 
 
@@ -339,7 +341,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                         /* le crypto hanno anche il volume */
                         /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
                         /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
-                        /*aggiunto indicatore RSI*/
+                        /*aggiunto indicatore RSI (molto meglio:Crescita: 9 Giusti: 47 Errori: 38 Pari: 0)*/
                         return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
                         break;
                     case "FOREX":
