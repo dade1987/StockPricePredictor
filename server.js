@@ -1,5 +1,5 @@
-console.log(process.cwd()); 
- 
+console.log(process.cwd());
+
 console.log(__dirname);
 
 const http = require('http');
@@ -7,7 +7,7 @@ const https = require('https');
 
 const express = require('express');
 const socketio = require('socket.io');
-const tf = require('@tensorflow/tfjs-node'); 
+const tf = require('@tensorflow/tfjs-node');
 
 
 const SMA = require('technicalindicators').SMA;
@@ -342,10 +342,58 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                         /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
                         /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
                         /*aggiunto indicatore RSI (molto meglio:Crescita: 9 Giusti: 47 Errori: 38 Pari: 0)*/
-                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
+                        //con RSI e Stoch solamente
+                        //return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
+                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6));
+                        //con tutto
                         break;
                     case "FOREX":
-                        return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
+                        /*
+                         * 
+                         TEST DAILY
+                         
+                         * sempre 14steps-10epochs LTSM mixed
+                         
+                         return [].concat(Object.values(d).slice(3, 4), Object.values(d).slice(7,10));
+                         crescita 8 121 113
+                         
+                         return [].concat(Object.values(d).slice(3, 4), Object.values(d).slice(7));
+                         crescita 8 121 113
+                         
+                         return [].concat(Object.values(d).slice(3, 4), Object.values(d).slice(6));
+                         6-8
+                         
+                         //open escluso e con tutti gli indicatori (risultato migliore)
+                         return [].concat(Object.values(d).slice(1, 4), Object.values(d).slice(6));
+                         10 Buono
+                         
+                         //l'open disturba la statistica
+                         return [].concat(Object.values(d).slice(0, 4), Object.values(d).slice(6));
+                         4
+                         */
+
+                        /*14 steps
+                         
+                         10 epochs
+                         10 crescita
+                         
+                         15 epochs
+                         16 crescita
+                         
+                         20 epochs
+                         6 crescita
+                         
+                         
+                         
+                         13 epochs
+                         8 crescita
+                         
+                         17 epochs
+                         0*/
+
+
+                        return [].concat(Object.values(d).slice(1, 4), Object.values(d).slice(6));
+
                         break;
                 }
 
@@ -556,7 +604,8 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     console.log("TRAIN DATA 2", data[0]);
     /* sometimes Chrome crashes and you need to open a new window */
 
-    const size = Math.floor(data.length / 100 * 98);
+    /* test sul 10% di dati */
+    const size = Math.floor(data.length / 100 * 95);
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     /* const time_steps = 14;
