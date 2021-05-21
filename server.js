@@ -871,7 +871,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
 
-    let {crescita, giusti, errori, pari, importo_take_profit,tipo_negoziazione,importo_attuale} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
+    let {crescita, giusti, errori, pari, importo_take_profit,tipo_negoziazione,importo_attuale,percentuale_take_profit} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
 
 
     let temp_testingData = [...testing];
@@ -892,7 +892,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione,importo_attuale])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione,importo_attuale,percentuale_take_profit])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
@@ -930,14 +930,14 @@ function simulazione_guadagni(realResults, predictions, data)
             importo_attuale = realResults[i - 1].y;
             percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "BUY";
-            importo_take_profit = (parseFloat(realResults[i - 1].y) + (percentuale_take_profit / 100 * percentuale_take_profit));
+            importo_take_profit = (parseFloat(realResults[i - 1].y) + (importo_take_profit / 100 * percentuale_take_profit));
         } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
             giusti++;
             crescita++;
             importo_attuale = realResults[i - 1].y;
             percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "SELL";
-            importo_take_profit = (parseFloat(realResults[i - 1].y) - (percentuale_take_profit / 100 * percentuale_take_profit));
+            importo_take_profit = (parseFloat(realResults[i - 1].y) - (importo_take_profit / 100 * percentuale_take_profit));
         } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
             pari++;
 
@@ -947,7 +947,7 @@ function simulazione_guadagni(realResults, predictions, data)
         }
     }
 
-    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione,importo_attuale};
+    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione,importo_attuale,percentuale_take_profit};
 
 }
 /*data are real data referred to testing results*/
