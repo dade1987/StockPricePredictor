@@ -350,7 +350,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                     case "FOREX":
                         /*
                          * 
-                         TEST DAILY
+                         TEST DAILY EURUSD
                          
                          * sempre 14steps-10epochs LTSM mixed
                          
@@ -392,6 +392,16 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                          0*/
 
 
+
+                        /*7 steps
+                         crescita 7
+                         
+                         28 steps
+                         crescita 8*/
+
+                        /* nell EURGBP il 14 15 non è molto predittivo */
+
+                        /*usando sma crescita 4 invece di 14*/
                         return [].concat(Object.values(d).slice(1, 4), Object.values(d).slice(6));
 
                         break;
@@ -522,7 +532,7 @@ function normalizza_dati(data) {
         };
     });
 
-    console.log("FINALE", finale[0]);
+    console.log("FINALE", finale);
 
     return finale;
 
@@ -859,28 +869,10 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     setTimeout(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
 
-    let crescita = 0;
 
-    let giusti = 0;
-    let errori = 0;
-    let pari = 0;
 
-    for (let i = 1; i < realResults.length; i++) {
+    let {crescita, giusti, errori, pari, importo_take_profit,tipo_negoziazione,importo_attuale} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
 
-        if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
-            giusti++;
-            crescita++;
-        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
-            giusti++;
-            crescita++;
-        } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
-            pari++;
-        } else {
-            errori++;
-            crescita--;
-        }
-
-    }
 
     let temp_testingData = [...testing];
 
@@ -900,7 +892,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione,importo_attuale])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
@@ -916,6 +908,154 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
 
+
+}
+
+function simulazione_guadagni(realResults, predictions, data)
+{
+    let crescita = 0;
+    let giusti = 0;
+    let errori = 0;
+    let pari = 0;
+    let percentuale_take_profit = 0;
+    let importo_take_profit = 0;
+    let  tipo_negoziazione = "";
+    let importo_attuale = 0;
+
+    for (let i = 1; i < realResults.length; i++) {
+
+        if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+            giusti++;
+            crescita++;
+            importo_attuale = realResults[i - 1].y;
+            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+            tipo_negoziazione = "BUY";
+            importo_take_profit = (parseFloat(realResults[i - 1].y) + (percentuale_take_profit / 100 * percentuale_take_profit));
+        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+            giusti++;
+            crescita++;
+            importo_attuale = realResults[i - 1].y;
+            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+            tipo_negoziazione = "SELL";
+            importo_take_profit = (parseFloat(realResults[i - 1].y) - (percentuale_take_profit / 100 * percentuale_take_profit));
+        } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
+            pari++;
+
+        } else {
+            errori++;
+            crescita--;
+        }
+    }
+
+    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione,importo_attuale};
+
+}
+/*data are real data referred to testing results*/
+function simulazione_guadagni_2(realResults, predictions, data) {
+    let crescita = 0;
+    let giusti = 0;
+    let errori = 0;
+    let pari = 0;
+
+    let guadagno_totale = 1000;
+    let leva = 1;
+    let perdita_max = 5.5;
+    /*strategia eurusd
+     * chiusi le transazioni aperte il giorno dopo alla stessa ora
+     * fermi lo stop loss a 16.5% di perdita massima, che è 1/3 della volatilità media giornaliera
+     * 
+     * attenzione: i pip di commissione non sono calcolati perchè dipendono dal broker
+     * ed è calcolato sul reinvestire ogni giorno che lo propone l'intera somma a disposizione + i guadagni fatti la volta prima
+     
+     *per vedere se è stata chiusa bisogna vedere i punti più bassi però
+     **/
+
+    for (let i = 1; i < realResults.length; i++) {
+
+
+        if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+
+            let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
+
+            if (percentuale_perdita >= perdita_max) {
+                console.log("STOP LOSS BUY", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+                if (percentuale_perdita !== 0) {
+                    guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
+                }
+                if (guadagno_totale <= 0) {
+                    guadagno_totale = 0;
+                }
+                console.log("SALDO", guadagno_totale.toFixed(2));
+
+                errori++;
+                crescita--;
+            } else {
+
+                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+
+                console.log("GUADAGNO IN BUY", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
+
+
+                guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
+                if (guadagno_totale <= 0) {
+                    guadagno_totale = 0;
+                }
+                console.log("SALDO", guadagno_totale.toFixed(2));
+                giusti++;
+                crescita++;
+            }
+        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+
+            let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
+
+            if (percentuale_perdita >= perdita_max) {
+                console.log("STOP LOSS SELL", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+                if (percentuale_perdita !== 0) {
+                    guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
+                }
+                if (guadagno_totale <= 0) {
+                    guadagno_totale = 0;
+                }
+                console.log("SALDO", guadagno_totale.toFixed(2));
+
+                errori++;
+                crescita--;
+            } else {
+                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+
+                console.log("GUADAGNO IN SELL", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
+
+                guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
+                if (guadagno_totale <= 0) {
+                    guadagno_totale = 0;
+                }
+                console.log("SALDO", guadagno_totale.toFixed(2));
+                giusti++;
+                crescita++;
+            }
+        } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
+            pari++;
+        } else {
+
+            let percentuale_perdita = Math.min(Math.abs((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)), perdita_max);
+
+            console.log("PERDITA", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+            if (percentuale_perdita !== 0) {
+                guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
+            }
+            if (guadagno_totale <= 0) {
+                guadagno_totale = 0;
+            }
+            console.log("SALDO", guadagno_totale.toFixed(2));
+
+            errori++;
+            crescita--;
+        }
+    }
+
+    console.log("GUADAGNO TOTALE CON 1000 EURO LEVA x" + leva, guadagno_totale - 1000);
+
+    return {crescita, giusti, errori, pari};
 
 }
 
