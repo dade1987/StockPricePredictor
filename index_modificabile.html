@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+
+        <title>Stock Price Prediction</title>
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+        <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
+
+
+        <!-- Import TensorFlow.js -->
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+        <!-- Import tfjs-vis -->
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+
+        <script src="/socket.io/socket.io.js"></script>
+
+        <!-- Import the main script file -->
+        <!--<script src="script.js"></script>-->
+
+
+
+    </head>
+
+    <body>
+
+        <div class="container">
+
+            <h2>Look at the console to see progresses</h2>
+            <h3>(F12 o Dev Tools)</h3>
+            <h4>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h4>
+
+            <label>Market Name</label>
+            <select onchange="fillCurrencyPairs(this.value)" class="form-control" id="market_name">
+                <option value="CRYPTO">CRYPTO</option>
+                <option value="FOREX">FOREX</option>               
+            </select>
+            <br>
+            <label>Currency Pair 1</label>
+            <select class="form-control" id="currency_pair_1">
+                <option>BTC</option>
+                <option>DOGE</option>
+                <option>DOT</option>
+                <option>ADA</option>
+                <option>XRP</option>
+                <option>BNB</option>
+            </select>
+            <br>
+            <label>Currency Pair 2</label>
+            <select class="form-control" id="currency_pair_2">
+                <option>USD</option>               
+            </select>
+            <br>
+            <label>Time Interval (default 1 Day)</label>
+            <select class="form-control" id="time_interval">
+                <option value="INTRADAY_1_MIN">1 min</option>
+                <option value="INTRADAY_5_MIN">5 min</option>
+                <option value="INTRADAY_15_MIN">15 min</option>
+                <option value="INTRADAY_30_MIN">30 min</option>
+                <option value="INTRADAY_60_MIN">60 min</option>
+                <option value="DAILY" selected>1 DAY</option>
+                <option value="WEEKLY">1 WEEK</option>
+                <option value="MONTHLY">1 MONTH</option>
+            </select>
+            <br>           
+            <label>Time Steps (default 14)</label>
+            <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14">
+            <br>
+            <label>Epochs Number (default 10)</label>
+            <input class="form-control" id="epochs_number" value="15"  placeholder="Daily Epochs Number default 15">
+            <br>           
+            <button class="btn btn-success"  id="train-button">TRAIN, TEST AND PREDICT</button>
+            <button class="btn btn-success"  id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
+            <br>
+            <!--<br>
+            <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
+            <br>
+            <textarea class="form-control" id="finalResult" rows="10" placeholder="Testing Accuracy"></textarea>
+
+        </div>
+
+        <script>
+            var socket = io();
+
+            const trainButton = document.getElementById('train-button');
+            const predictButton = document.getElementById('predict-button');
+            let startingTime = null;
+            let startingTimeString = "";
+            let time_steps = "";
+
+            trainButton.onclick = () => {
+
+                startingTime = new Date();
+                startingTimeString = startingTime.toString();
+
+                trainButton.disabled = true;
+                trainButton.textContent = "WAIT PLEASE...";
+
+                let currency_pair_1 = $("#currency_pair_1").val();
+                let currency_pair_2 = $("#currency_pair_2").val();
+                let time_interval = $("#time_interval").val();
+                let market_name = $("#market_name").val();
+                time_steps = $("#time_steps").val();
+                let epochs_number = $("#epochs_number").val();
+
+                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: true}));
+            };
+
+            predictButton.onclick = () => {
+
+                startingTime = new Date();
+                startingTimeString = startingTime.toString();
+
+                predictButton.disabled = true;
+                predictButton.textContent = "WAIT PLEASE...";
+
+                let currency_pair_1 = $("#currency_pair_1").val();
+                let currency_pair_2 = $("#currency_pair_2").val();
+                let time_interval = $("#time_interval").val();
+                let market_name = $("#market_name").val();
+                time_steps = $("#time_steps").val();
+                let epochs_number = $("#epochs_number").val();
+
+                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
+            };
+
+            /*socket.on('training', (result) => {
+             grafico(result, "Training");
+             });
+             
+             socket.on('testing', (result) => {
+             grafico(result, "Testing");
+             });*/
+
+            socket.on('final', (result) => {
+                let endingTime = $("#time_interval option:selected").text();
+
+                let result2 = JSON.parse(result);
+                //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
+                $("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + "\n\nPercentuale Take Profit: " + parseFloat(result2[8]).toFixed(2) + "% (x1) " + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) " + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) " + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");
+
+                trainButton.disabled = false;
+                trainButton.textContent = "TRAIN, TEST AND PREDICT";
+
+                predictButton.disabled = true;
+                predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
+            });
+
+            function grafico(bi_array_json, titolo)
+            {
+                let result = JSON.parse(bi_array_json);
+
+                tfvis.render.linechart(
+                        {name: titolo},
+                        {values: [result[0], result[1]], series: ['original', 'predicted']},
+                        {
+                            xLabel: 'contatore',
+                            yLabel: 'prezzo',
+                            height: 300,
+                            zoomToFit: true
+                        }
+                );
+            }
+
+            function fillCurrencyPairs(market_name) {
+                switch (market_name) {
+                    case "FOREX":
+                        $("#currency_pair_1").html("\
+                                                    <option>EUR</option>\n\
+                                                    <option>USD</option>\n\
+                                                    <option>GBP</option>");
+                        $("#currency_pair_2").html("\
+                                                    <option>EUR</option>\n\
+                                                    <option selected>USD</option>\n\
+                                                    <option>GBP</option>");
+                        break;
+                    case "CRYPTO":
+                        $("#currency_pair_1").html("\
+                                                    <option>BTC</option>\n\
+                                                    <option>DOGE</option>\n\
+                                                    <option>DOT</option>\n\
+                                                    <option>ADA</option>\n\
+                                                    <option>XRP</option>\n\
+                                                    <option>BNB</option>");
+                        $("#currency_pair_2").html("<option>USD</option>");
+                        break;
+                }
+            }
+        </script>
+
+    </body>
+</html>

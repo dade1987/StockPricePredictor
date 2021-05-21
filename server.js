@@ -6,6 +6,7 @@ const http = require('http');
 const https = require('https');
 
 const express = require('express');
+
 const socketio = require('socket.io');
 const tf = require('@tensorflow/tfjs-node');
 
@@ -14,6 +15,9 @@ const SMA = require('technicalindicators').SMA;
 const MACD = require('technicalindicators').MACD;
 const RSI = require('technicalindicators').RSI;
 const Stochastic = require('technicalindicators').Stochastic;
+
+const router = express.Router();
+const app = express();
 
 /* global tf, tfvis, process, __dirname */
 
@@ -24,8 +28,14 @@ const PORT = process.env.PORT || 3000;
 const INDEX = '/index.html';
 
 const server = express()
-        .use((req, res) => res.sendFile(INDEX, {root: __dirname}))
+        .get('/', function (req, res) {
+            res.sendfile("index.html");
+        })
+        .get('/admin', function (req, res) {
+            res.sendfile("index_modificabile.html");
+        })
         .listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 const io = socketio(server);
 
@@ -871,7 +881,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
 
-    let {crescita, giusti, errori, pari, importo_take_profit,tipo_negoziazione,importo_attuale,percentuale_take_profit} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
+    let {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
 
 
     let temp_testingData = [...testing];
@@ -892,7 +902,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione,importo_attuale,percentuale_take_profit])), 3000);
+    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
@@ -947,7 +957,7 @@ function simulazione_guadagni(realResults, predictions, data)
         }
     }
 
-    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione,importo_attuale,percentuale_take_profit};
+    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit};
 
 }
 /*data are real data referred to testing results*/
