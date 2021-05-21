@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
 
         console.log(parameters);
 
-        await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled);
+        await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled, socket);
     });
 });
 
@@ -550,7 +550,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number) {
+async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
@@ -800,7 +800,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
             });
 
             /* non serve saperlo per forza */
-            io.emit('training', JSON.stringify([trainingResults, trainingValidation]));
+            socket.emit('training', JSON.stringify([trainingResults, trainingValidation]));
 
             /* creating training chart */
 
@@ -877,7 +877,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
      console.log("PREDICTIONS", predictions);*/
 
 
-    setTimeout(() => io.emit('testing', JSON.stringify([realResults, predictions])), 1500);
+    setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions])), 1500);
 
 
 
@@ -902,7 +902,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => io.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit])), 3000);
+    setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
@@ -1069,14 +1069,14 @@ function simulazione_guadagni_2(realResults, predictions, data) {
 
 }
 
-async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled) {
+async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 
     const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
 
     console.log("RAW DATA", data[0]);
 
 
-    await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number);
+    await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket);
 
 }
 
