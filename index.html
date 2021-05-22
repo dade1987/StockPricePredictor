@@ -9,22 +9,22 @@
 
 
         <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
 
         <!-- Optional theme -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
         <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"  crossorigin="anonymous"></script>
 
 
         <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
 
 
         <!-- Import TensorFlow.js -->
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>-->
         <!-- Import tfjs-vis -->
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>-->
 
         <script src="/socket.io/socket.io.js"></script>
 
@@ -46,11 +46,12 @@
             
                 <div class="jumbotron">
                   <h1>ForexAIForecast</h1>
-                  <p>Forex Best Indicators: Trend, Momentum, Volatility, Volume</p>
+                  <p>Using Artificial Intelligence to Invest Better</p>
+                  <h5>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h5>
                 </div>
-                <p>Some predictions maybe wrong.</p>
-                <p>Use this software under your full responsability.</p>
-           
+               
+              
+
             <label>Market Name</label>
             
             <!--onchange="fillCurrencyPairs(this.value)" -->
@@ -91,19 +92,94 @@
             <br>           
             <label style="display:none;">Time Steps (default 14)</label>
             <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14" style="display:none;">
-            <br>
+            <!--<br>-->
             <label style="display:none;">Epochs Number (default 10)</label>
             <input class="form-control" id="epochs_number" value="15"  placeholder="Daily Epochs Number default 15" style="display:none;">
-            <br>           
-            <button class="btn btn-success"  id="train-button">TRAIN, TEST AND PREDICT</button>
+            <!--<br>-->           
+            <button class="btn btn-success"  id="train-button">PREDICT</button>
             <button class="btn btn-success"  id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
             <br>
             <!--<br>
             <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
             <br>
-            <textarea class="form-control" id="finalResult" rows="10" placeholder="Testing Accuracy"></textarea>
+            <!--<textarea class="form-control" id="finalResult" rows="10" placeholder="Results"></textarea>-->
+
+            <label for="basic-url">Results</label>
+
+
+
+
+            
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon3">Last Closed Price</span>
+                </div>
+                <input type="text" class="form-control" id="last_price" aria-describedby="basic-addon3" readonly>
+              </div>
+
+            
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon3">Negotiation Advice</span>
+  </div>
+  <input type="text" class="form-control" id="advice" aria-describedby="basic-addon3" readonly>
+</div>
+
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Reccom. Take Profit</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit" aria-describedby="basic-addon3" readonly>
+  </div>
+
+
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Percentual Gain (x1)</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit_percentual_x1" aria-describedby="basic-addon3" readonly>
+  </div>
+
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Percentual Gain (x5)</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit_percentual_x5" aria-describedby="basic-addon3" readonly> 
+  </div>
+
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Percentual Gain (x10)</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit_percentual_x10" aria-describedby="basic-addon3" readonly>
+  </div>
+
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Percentual Gain (x20)</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit_percentual_x20" aria-describedby="basic-addon3" readonly>
+  </div>
+
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="basic-addon3">Percentual Gain (x30)</span>
+    </div>
+    <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3" readonly>
+  </div>
+
+
+            
 
         </div>
+
+        <footer class="footer">
+            <div class="container">
+              <span class="text-muted">NB: Some predictions could be wrong. Use this software under your full responsability.</span>
+            </div>
+          </footer>
 
         <script>
             var socket = io();
@@ -163,10 +239,27 @@
 
                 let result2 = JSON.parse(result);
                 //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
-                $("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + "\n\nPercentuale Take Profit: " + parseFloat(result2[8]).toFixed(2) + "% (x1) " + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) " + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) " + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");
+                /*$("#finalResult").html("Last Closed Price: " + result2[7] + 
+                "\n\n" + result2[6] + 
+                " Predicted Take Profit: " + parseFloat(result2[5]) + 
+                "\n\nTake Profit Percentual Gain: " + parseFloat(result2[8]).toFixed(2) + "% (x1) "
+                 + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) "
+                  + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
+                  + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
+                   + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+
+                
+                $("#last_price").val(result2[7]);
+                $("#advice").val(result2[6]);
+                $("#take_profit").val(parseFloat(result2[5]) );
+                $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
+                $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
+                $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
+                $("#take_profit_percentual_x20").val((parseFloat(result2[8]) * 20).toFixed(2) );
+                $("#take_profit_percentual_x30").val( (parseFloat(result2[8]) * 30).toFixed(2) );
 
                 trainButton.disabled = false;
-                trainButton.textContent = "TRAIN, TEST AND PREDICT";
+                trainButton.textContent = "PREDICT";
 
                 predictButton.disabled = true;
                 predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
