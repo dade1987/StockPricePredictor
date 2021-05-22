@@ -71,13 +71,13 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
         /* S&P 500 */
         /*url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SP&interval=5min&outputsize=full&apikey=QOUA4VUTZJXS3M01';*/
 
-        /* sentimento sull'attrattività della valuta o la fragilità del momento */
+        /* sentimento sull'attrattivitï¿½ della valuta o la fragilitï¿½ del momento */
         /*  
          * https://www.alphavantage.co/query?function=CRYPTO_RATING&symbol=BTC&apikey=QOUA4VUTZJXS3M01
          * 
          * OPPURE 
          * 
-         * https://app.flipsidecrypto.com/tracker/all-coins (se tutti comprano sale di valore, se tutti vendono scende perchè la capitalizzazione cambia)
+         * https://app.flipsidecrypto.com/tracker/all-coins (se tutti comprano sale di valore, se tutti vendono scende perchï¿½ la capitalizzazione cambia)
          * */
 
 
@@ -409,7 +409,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                          28 steps
                          crescita 8*/
 
-                        /* nell EURGBP il 14 15 non è molto predittivo */
+                        /* nell EURGBP il 14 15 non ï¿½ molto predittivo */
 
                         /*usando sma crescita 4 invece di 14*/
                         return [].concat(Object.values(d).slice(1, 4), Object.values(d).slice(6));
@@ -932,28 +932,54 @@ function simulazione_guadagni(realResults, predictions, data)
     let  tipo_negoziazione = "";
     let importo_attuale = 0;
 
-    for (let i = 1; i < realResults.length; i++) {
+    for (let i = 1; i <= realResults.length; i++) {
 
-        if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
-            giusti++;
-            crescita++;
-            importo_attuale = realResults[i - 1].y;
+        if (realResults[i] === undefined && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+        
+            importo_attuale = realResults[i-1].y;
             percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "BUY";
-            importo_take_profit = (parseFloat(realResults[i - 1].y) + (importo_take_profit / 100 * percentuale_take_profit));
-        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
-            giusti++;
-            crescita++;
-            importo_attuale = realResults[i - 1].y;
+            importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
+        
+            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
+
+        }else if (realResults[i] === undefined && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+        
+            importo_attuale = realResults[i-1].y;
             percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "SELL";
-            importo_take_profit = (parseFloat(realResults[i - 1].y) - (importo_take_profit / 100 * percentuale_take_profit));
+            importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
+        
+            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
+        
+        }else if(realResults[i] === undefined && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)){
+
+            importo_attuale = realResults[i-1].y;
+            percentuale_take_profit = 0;
+            tipo_negoziazione = "NOTHING";
+            importo_take_profit = importo_attuale;
+        
+            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
+       
+
+        }else if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+
+            giusti++;
+            crescita++;
+
+        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+
+            giusti++;
+            crescita++;
+
         } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
             pari++;
 
         } else {
+
             errori++;
             crescita--;
+
         }
     }
 
@@ -972,16 +998,15 @@ function simulazione_guadagni_2(realResults, predictions, data) {
     let perdita_max = 5.5;
     /*strategia eurusd
      * chiusi le transazioni aperte il giorno dopo alla stessa ora
-     * fermi lo stop loss a 16.5% di perdita massima, che è 1/3 della volatilità media giornaliera
+     * fermi lo stop loss a 16.5% di perdita massima, che ï¿½ 1/3 della volatilitï¿½ media giornaliera
      * 
-     * attenzione: i pip di commissione non sono calcolati perchè dipendono dal broker
-     * ed è calcolato sul reinvestire ogni giorno che lo propone l'intera somma a disposizione + i guadagni fatti la volta prima
+     * attenzione: i pip di commissione non sono calcolati perchï¿½ dipendono dal broker
+     * ed ï¿½ calcolato sul reinvestire ogni giorno che lo propone l'intera somma a disposizione + i guadagni fatti la volta prima
      
-     *per vedere se è stata chiusa bisogna vedere i punti più bassi però
+     *per vedere se ï¿½ stata chiusa bisogna vedere i punti piï¿½ bassi perï¿½
      **/
 
-    for (let i = 1; i < realResults.length; i++) {
-
+    for (let i = 1; i <= realResults.length; i++) {
 
         if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
 

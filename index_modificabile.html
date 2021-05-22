@@ -137,13 +137,13 @@
                 socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
             };
 
-            /*socket.on('training', (result) => {
+            socket.on('training', (result) => {
              grafico(result, "Training");
              });
              
              socket.on('testing', (result) => {
              grafico(result, "Testing");
-             });*/
+             });
 
             socket.on('final', (result) => {
                 let endingTime = $("#time_interval option:selected").text();
