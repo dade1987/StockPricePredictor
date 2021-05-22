@@ -28,13 +28,13 @@ const PORT = process.env.PORT || 3000;
 const INDEX = '/index.html';
 
 const server = express()
-        .get('/', function (req, res) {
-            res.sendfile("index.html");
-        })
-        .get('/admin', function (req, res) {
-            res.sendfile("index_modificabile.html");
-        })
-        .listen(PORT, () => console.log(`Listening on ${PORT}`));
+    .get('/', function (req, res) {
+        res.sendfile("index.html");
+    })
+    .get('/admin', function (req, res) {
+        res.sendfile("index_modificabile.html");
+    })
+    .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 const io = socketio(server);
@@ -61,7 +61,7 @@ setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 async function getData(market_name, time_interval, currency_pair_1, currency_pair_2) {
 
-//QOUA4VUTZJXS3M01
+    //QOUA4VUTZJXS3M01
 
     return new Promise((resolve, reject) => {
 
@@ -280,7 +280,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
         let req = https.get(url, function (res) {
             let data = '',
-                    json_data;
+                json_data;
 
             res.on('data', function (stream) {
                 data += stream;
@@ -288,7 +288,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
             res.on('end', function () {
                 json_data = JSON.parse(data);
 
-// will output a Javascript object
+                // will output a Javascript object
                 console.log("data received");
 
                 /*Time Series FX (Daily) per il forex*/
@@ -298,14 +298,31 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                 switch (market_name) {
                     case "CRYPTO":
                         if (time_interval.indexOf("INTRADAY") === 0) {
-                            rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"]), volume: parseFloat(d["5. volume"])}));
+                            rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                open: parseFloat(d["1. open"]),
+                                high: parseFloat(d["2. high"]),
+                                low: parseFloat(d["3. low"]),
+                                close: parseFloat(d["4. close"]),
+                                volume: parseFloat(d["5. volume"])
+                            }));
                         } else {
-                            rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1b. open (USD)"]), high: parseFloat(d["2b. high (USD)"]), low: parseFloat(d["3b. low (USD)"]), close: parseFloat(d["4b. close (USD)"]), volume: parseFloat(d["5. volume"])}));
+                            rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                open: parseFloat(d["1b. open (USD)"]),
+                                high: parseFloat(d["2b. high (USD)"]),
+                                low: parseFloat(d["3b. low (USD)"]),
+                                close: parseFloat(d["4b. close (USD)"]),
+                                volume: parseFloat(d["5. volume"])
+                            }));
 
                         }
                         break;
                     case "FOREX":
-                        rawData = Object.values(json_data[json_data_name]).map(d => ({open: parseFloat(d["1. open"]), high: parseFloat(d["2. high"]), low: parseFloat(d["3. low"]), close: parseFloat(d["4. close"])}));
+                        rawData = Object.values(json_data[json_data_name]).map(d => ({
+                            open: parseFloat(d["1. open"]),
+                            high: parseFloat(d["2. high"]),
+                            low: parseFloat(d["3. low"]),
+                            close: parseFloat(d["4. close"])
+                        }));
                         break;
                 }
 
@@ -428,8 +445,7 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
         //console.log(arr);
 
         return arr;
-    } else
-    {
+    } else {
         return false;
     }
 
@@ -451,8 +467,7 @@ function prepareOutputDatas(data, time_steps) {
 
         return arr;
 
-    } else
-    {
+    } else {
         return false;
     }
 }
@@ -531,11 +546,15 @@ function normalizza_dati(data) {
             volumeTemp = 0;
         }
         return {
-            open: (d.open - prices_min) / (prices_max - prices_min), high: (d.high - prices_min) / (prices_max - prices_min),
-            low: (d.low - prices_min) / (prices_max - prices_min), close: (d.close - prices_min) / (prices_max - prices_min),
+            open: (d.open - prices_min) / (prices_max - prices_min),
+            high: (d.high - prices_min) / (prices_max - prices_min),
+            low: (d.low - prices_min) / (prices_max - prices_min),
+            close: (d.close - prices_min) / (prices_max - prices_min),
             volume: volumeTemp,
-            sma: (d.sma - sma_min) / (sma_max - sma_min), rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
-            stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min), stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
+            sma: (d.sma - sma_min) / (sma_max - sma_min),
+            rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
+            stochastic_k: (d.stochastic_k - stochastic_min) / (stochastic_max - stochastic_min),
+            stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
             macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
             macd_signal: (d.macd_signal - macd_min) / (macd_max - macd_min),
             macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min)
@@ -553,8 +572,14 @@ function normalizza_dati(data) {
 async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket) {
 
     /* applica indicatori */
-    let rsi = RSI.calculate({period: 7, values: data.map(d => d.close)});
-    let sma = SMA.calculate({period: 7, values: data.map(d => d.close)});
+    let rsi = RSI.calculate({
+        period: 7,
+        values: data.map(d => d.close)
+    });
+    let sma = SMA.calculate({
+        period: 7,
+        values: data.map(d => d.close)
+    });
     let macd = MACD.calculate({
         values: data.map(d => d.close),
         fastPeriod: 12,
@@ -730,17 +755,30 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
             /* il miglior modello finora ,sennò c'è lstm,lstm,dense,dense sempre con sto adam ecc*/
 
-            model.add(tf.layers.lstm({inputShape: [input_size_2, input_size], units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: true}));
+            model.add(tf.layers.lstm({
+                inputShape: [input_size_2, input_size],
+                units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))),
+                returnSequences: true
+            }));
 
             /* 4% di dropout */
-            model.add(tf.layers.dropout({rate: 0.04}));
+            model.add(tf.layers.dropout({
+                rate: 0.04
+            }));
 
             //questa è una formula per calcolare il numero giusto di neuroni da usare nel layer nascosto
-            model.add(tf.layers.lstm({units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))), returnSequences: false}));
+            model.add(tf.layers.lstm({
+                units: Math.floor(input_size_3 / (2 * ((input_size_2 * input_size) + 1))),
+                returnSequences: false
+            }));
 
-            model.add(tf.layers.dropout({rate: 0.04}));
+            model.add(tf.layers.dropout({
+                rate: 0.04
+            }));
 
-            model.add(tf.layers.dense({units: 1}));
+            model.add(tf.layers.dense({
+                units: 1
+            }));
 
 
 
@@ -764,7 +802,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
             console.log('Loss Log');
 
             for (let i = 0; i < epochs_number; i++) {
-                let res = await model.fit(trainingData, outputData, {epochs: 1});
+                let res = await model.fit(trainingData, outputData, {
+                    epochs: 1
+                });
                 console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
 
             }
@@ -787,14 +827,16 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
             const trainingResults = output.map((d, i) => {
                 if (d) {
                     return {
-                        x: i, y: d * (prices_max - prices_min) + prices_min
+                        x: i,
+                        y: d * (prices_max - prices_min) + prices_min
                     };
                 }
             });
             const trainingValidation = Array.from(unNormValidation).map((d, i) => {
                 if (d) {
                     return {
-                        x: i, y: d * (prices_max - prices_min) + prices_min
+                        x: i,
+                        y: d * (prices_max - prices_min) + prices_min
                     };
                 }
             });
@@ -821,9 +863,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     } else {
 
         /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file://'/* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        model = await tf.loadLayersModel('file://' /* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
-        console.log("LOAD MODEL", 'file://'/* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        console.log("LOAD MODEL", 'file://' /* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         model.summary();
 
@@ -857,14 +899,16 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     const realResults = testingResults.map((d, i) => {
         if (d) {
             return {
-                x: i, y: d * (prices_max - prices_min) + prices_min
+                x: i,
+                y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
     const predictions = Array.from(unNormPredictions).map((d, i) => {
         if (d) {
             return {
-                x: i, y: d * (prices_max - prices_min) + prices_min
+                x: i,
+                y: d * (prices_max - prices_min) + prices_min
             };
         }
     });
@@ -881,7 +925,16 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
 
-    let {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit} = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
+    let {
+        crescita,
+        giusti,
+        errori,
+        pari,
+        importo_take_profit,
+        tipo_negoziazione,
+        importo_attuale,
+        percentuale_take_profit
+    } = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
 
 
     let temp_testingData = [...testing];
@@ -921,48 +974,47 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 }
 
-function simulazione_guadagni(realResults, predictions, data)
-{
+function simulazione_guadagni(realResults, predictions, data) {
     let crescita = 0;
     let giusti = 0;
     let errori = 0;
     let pari = 0;
     let percentuale_take_profit = 0;
     let importo_take_profit = 0;
-    let  tipo_negoziazione = "";
+    let tipo_negoziazione = "";
     let importo_attuale = 0;
 
     for (let i = 1; i <= realResults.length; i++) {
 
         if (realResults[i] === undefined && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
-        
-            importo_attuale = realResults[i-1].y;
-            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+
+            importo_attuale = realResults[i - 1].y;
+            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "BUY";
             importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
-        
-            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
 
-        }else if (realResults[i] === undefined && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
-        
-            importo_attuale = realResults[i-1].y;
-            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i ].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+            console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+        } else if (realResults[i] === undefined && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+
+            importo_attuale = realResults[i - 1].y;
+            percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
             tipo_negoziazione = "SELL";
             importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
-        
-            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
-        
-        }else if(realResults[i] === undefined && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)){
 
-            importo_attuale = realResults[i-1].y;
+            console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+        } else if (realResults[i] === undefined && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
+
+            importo_attuale = realResults[i - 1].y;
             percentuale_take_profit = 0;
             tipo_negoziazione = "NOTHING";
             importo_take_profit = importo_attuale;
-        
-            console.log(tipo_negoziazione,importo_attuale,predictions[i-1].y,predictions[i].y,percentuale_take_profit,importo_take_profit);
-       
 
-        }else if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+            console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+
+        } else if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
 
             giusti++;
             crescita++;
@@ -983,7 +1035,16 @@ function simulazione_guadagni(realResults, predictions, data)
         }
     }
 
-    return {crescita, giusti, errori, pari, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit};
+    return {
+        crescita,
+        giusti,
+        errori,
+        pari,
+        importo_take_profit,
+        tipo_negoziazione,
+        importo_attuale,
+        percentuale_take_profit
+    };
 
 }
 /*data are real data referred to testing results*/
@@ -1026,7 +1087,7 @@ function simulazione_guadagni_2(realResults, predictions, data) {
                 crescita--;
             } else {
 
-                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
 
                 console.log("GUADAGNO IN BUY", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
 
@@ -1056,7 +1117,7 @@ function simulazione_guadagni_2(realResults, predictions, data) {
                 errori++;
                 crescita--;
             } else {
-                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
 
                 console.log("GUADAGNO IN SELL", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
 
@@ -1072,7 +1133,7 @@ function simulazione_guadagni_2(realResults, predictions, data) {
             pari++;
         } else {
 
-            let percentuale_perdita = Math.min(Math.abs((((parseFloat(realResults[i ].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)), perdita_max);
+            let percentuale_perdita = Math.min(Math.abs((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)), perdita_max);
 
             console.log("PERDITA", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
             if (percentuale_perdita !== 0) {
@@ -1090,7 +1151,12 @@ function simulazione_guadagni_2(realResults, predictions, data) {
 
     console.log("GUADAGNO TOTALE CON 1000 EURO LEVA x" + leva, guadagno_totale - 1000);
 
-    return {crescita, giusti, errori, pari};
+    return {
+        crescita,
+        giusti,
+        errori,
+        pari
+    };
 
 }
 
@@ -1104,4 +1170,3 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket);
 
 }
-
