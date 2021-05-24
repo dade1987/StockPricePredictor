@@ -34,8 +34,8 @@ const server = express()
         .get('/admin', function (req, res) {
             res.sendfile("index_modificabile.html");
         }).get('/banner', function (req, res) {
-            res.sendfile("banner.jpg");
-        }).listen(PORT, () => console.log(`Listening on ${PORT}`));
+    res.sendfile("banner.jpg");
+}).listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 const io = socketio(server);
