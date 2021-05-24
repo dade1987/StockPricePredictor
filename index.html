@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
     <head>
 
 
@@ -9,28 +10,35 @@
 
 
         <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+              crossorigin="anonymous">
 
         <!-- Optional theme -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
         <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous">
+        </script>
 
 
         <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
 
 
         <!-- Import TensorFlow.js -->
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>-->
         <!-- Import tfjs-vis -->
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>-->
 
         <script src="/socket.io/socket.io.js"></script>
 
         <!-- Import the main script file -->
         <!--<script src="script.js"></script>-->
 
+        <style>
+            label{
+                font-weight: bold;
+            }
+        </style>
 
 
     </head>
@@ -39,15 +47,78 @@
 
         <div class="container">
 
-            <h2>Look at the console to see progresses</h2>
+            <!--<h2>Look at the console to see progresses</h2>
             <h3>(F12 o Dev Tools)</h3>
-            <h4>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h4>
+            <h4>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h4>-->
+
+
+
+
+            <header>
+                <!-- Navbar -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-white">
+                    <div class="container-fluid">
+                        <button
+                            class="navbar-toggler"
+                            type="button"
+                            data-mdb-toggle="collapse"
+                            data-mdb-target="#navbarExample01"
+                            aria-controls="navbarExample01"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"
+                            >
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarExample01">
+                            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                                <li class="nav-item active">
+                                    <a class="nav-link" aria-current="page" href="#">Home</a>
+                                </li>
+                                <!--<li class="nav-item">
+                                    <a class="nav-link" href="#">Features</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Pricing</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">About</a>
+                                </li>-->
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                <!-- Navbar -->
+
+                <!-- Background image -->
+                <div
+                    class="p-5 text-center bg-image"
+                    style="
+                    background-image: url('banner');
+                    height: 25vh
+                    "
+                    >
+                    <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);height:100%;">
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="text-white">
+                                <h1 class="mb-3">ForexAIForecast</h1>
+                                <h4 class="mb-3">Artificial Intelligence to Invest Better</h4>
+                                <!--<a class="btn btn-outline-light btn-lg" href="#!" role="button"
+                                >Call to action</a
+                                >-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Background image -->
+            </header>
+
+
 
             <label>Market Name</label>
-            
+
             <!--onchange="fillCurrencyPairs(this.value)" -->
             <select class="form-control" id="market_name">
-                <option value="FOREX">FOREX</option>    
+                <option value="FOREX">FOREX</option>
                 <!--<option value="CRYPTO">CRYPTO</option>-->
             </select>
             <br>
@@ -80,22 +151,108 @@
                 <!--<option value="WEEKLY">1 WEEK</option>
                 <option value="MONTHLY">1 MONTH</option>-->
             </select>
-            <br>           
-            <label style="display:none;">Time Steps (default 14)</label>
-            <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14" style="display:none;">
             <br>
+            <label style="display:none;">Time Steps (default 14)</label>
+            <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14"
+                   style="display:none;">
+            <!--<br>-->
             <label style="display:none;">Epochs Number (default 10)</label>
-            <input class="form-control" id="epochs_number" value="15"  placeholder="Daily Epochs Number default 15" style="display:none;">
-            <br>           
-            <button class="btn btn-success"  id="train-button">TRAIN, TEST AND PREDICT</button>
-            <button class="btn btn-success"  id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
+            <input class="form-control" id="epochs_number" value="15" placeholder="Daily Epochs Number default 15"
+                   style="display:none;">
+            <!--<br>-->
+            <button class="btn btn-success" id="train-button">PREDICT</button>
+            <button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
             <br>
             <!--<br>
             <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
             <br>
-            <textarea class="form-control" id="finalResult" rows="10" placeholder="Testing Accuracy"></textarea>
+            <!--<textarea class="form-control" id="finalResult" rows="10" placeholder="Results"></textarea>-->
+
+            <label for="basic-url">RESULTS</label>
+
+
+
+
+
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Last Closed Price</span>
+                </div>
+                <input type="text" class="form-control" id="last_price" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Negotiation Advice</span>
+                </div>
+                <input type="text" class="form-control" id="advice" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Reccom. Take Profit</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x1)</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit_percentual_x1" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x5)</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit_percentual_x5" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x10)</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit_percentual_x10" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x20)</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit_percentual_x20" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x30)</span>
+                </div>
+                <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3"
+                       style="pointer-events: none;">
+            </div>
+
+
+
 
         </div>
+
+        <footer class="footer">
+            <div class="container">
+                <span class="text-muted">NB: Some predictions could be wrong. Use this software under your full
+                    responsability.</span>
+            </div>
+        </footer>
 
         <script>
             var socket = io();
@@ -121,7 +278,15 @@
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: true}));
+                socket.emit('predict', JSON.stringify({
+                    market_name: market_name,
+                    time_interval: time_interval,
+                    currency_pair_1: currency_pair_1,
+                    currency_pair_2: currency_pair_2,
+                    time_steps: time_steps,
+                    epochs_number: epochs_number,
+                    training_enabled: true
+                }));
             };
 
             predictButton.onclick = () => {
@@ -139,7 +304,15 @@
                 time_steps = $("#time_steps").val();
                 let epochs_number = $("#epochs_number").val();
 
-                socket.emit('predict', JSON.stringify({market_name: market_name, time_interval: time_interval, currency_pair_1: currency_pair_1, currency_pair_2: currency_pair_2, time_steps: time_steps, epochs_number: epochs_number, training_enabled: false}));
+                socket.emit('predict', JSON.stringify({
+                    market_name: market_name,
+                    time_interval: time_interval,
+                    currency_pair_1: currency_pair_1,
+                    currency_pair_2: currency_pair_2,
+                    time_steps: time_steps,
+                    epochs_number: epochs_number,
+                    training_enabled: false
+                }));
             };
 
             /*socket.on('training', (result) => {
@@ -155,51 +328,68 @@
 
                 let result2 = JSON.parse(result);
                 //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
-                $("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + "\n\nPercentuale Take Profit: " + parseFloat(result2[8]).toFixed(2) + "% (x1) " + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) " + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) " + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");
+                /*$("#finalResult").html("Last Closed Price: " + result2[7] + 
+                 "\n\n" + result2[6] + 
+                 " Predicted Take Profit: " + parseFloat(result2[5]) + 
+                 "\n\nTake Profit Percentual Gain: " + parseFloat(result2[8]).toFixed(2) + "% (x1) "
+                 + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) "
+                 + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
+                 + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
+                 + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+
+
+                $("#last_price").val(result2[7]);
+                $("#advice").val(result2[6]);
+                $("#take_profit").val(parseFloat(result2[5]));
+                $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
+                $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
+                $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
+                $("#take_profit_percentual_x20").val((parseFloat(result2[8]) * 20).toFixed(2));
+                $("#take_profit_percentual_x30").val((parseFloat(result2[8]) * 30).toFixed(2));
 
                 trainButton.disabled = false;
-                trainButton.textContent = "TRAIN, TEST AND PREDICT";
+                trainButton.textContent = "PREDICT";
 
                 predictButton.disabled = true;
                 predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
             });
 
-            function grafico(bi_array_json, titolo)
-            {
+            function grafico(bi_array_json, titolo) {
                 let result = JSON.parse(bi_array_json);
 
-                tfvis.render.linechart(
-                        {name: titolo},
-                        {values: [result[0], result[1]], series: ['original', 'predicted']},
-                        {
-                            xLabel: 'contatore',
-                            yLabel: 'prezzo',
-                            height: 300,
-                            zoomToFit: true
-                        }
-                );
+                tfvis.render.linechart({
+                    name: titolo
+                }, {
+                    values: [result[0], result[1]],
+                    series: ['original', 'predicted']
+                }, {
+                    xLabel: 'contatore',
+                    yLabel: 'prezzo',
+                    height: 300,
+                    zoomToFit: true
+                });
             }
 
             function fillCurrencyPairs(market_name) {
                 switch (market_name) {
                     case "FOREX":
                         $("#currency_pair_1").html("\
-                                                    <option>EUR</option>\n\
-                                                    <option>USD</option>\n\
-                                                    <option>GBP</option>");
+                    <option>EUR</option>\n\
+                    <option>USD</option>\n\
+                    <option>GBP</option>");
                         $("#currency_pair_2").html("\
-                                                    <option>EUR</option>\n\
-                                                    <option selected>USD</option>\n\
-                                                    <option>GBP</option>");
+                <option>EUR</option>\n\
+                <option selected>USD</option>\n\
+                <option>GBP</option>");
                         break;
                     case "CRYPTO":
                         $("#currency_pair_1").html("\
-                                                    <option>BTC</option>\n\
-                                                    <option>DOGE</option>\n\
-                                                    <option>DOT</option>\n\
-                                                    <option>ADA</option>\n\
-                                                    <option>XRP</option>\n\
-                                                    <option>BNB</option>");
+                    <option>BTC</option>\n\
+                    <option>DOGE</option>\n\
+                    <option>DOT</option>\n\
+                    <option>ADA</option>\n\
+                    <option>XRP</option>\n\
+                    <option>BNB</option>");
                         $("#currency_pair_2").html("<option>USD</option>");
                         break;
                 }
@@ -207,4 +397,5 @@
         </script>
 
     </body>
+
 </html>
