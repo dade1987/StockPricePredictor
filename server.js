@@ -932,6 +932,10 @@ function simulazione_guadagni(realResults, predictions, data)
     let  tipo_negoziazione = "";
     let importo_attuale = 0;
 
+    /*da capire se arriva all'ultimo risultato
+     * 
+     * @type Number
+     */
     for (let i = 1; i < realResults.length; i++) {
 
         if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
