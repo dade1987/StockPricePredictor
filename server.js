@@ -651,9 +651,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     /* sometimes Chrome crashes and you need to open a new window */
 
     /* test sul 10% di dati */
-    //const size = Math.floor(data.length / 100 * 95);
-
-    const  size = data.length - 180;
+    const size = Math.floor(data.length / 100 * 95);
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     /* const time_steps = 14;
