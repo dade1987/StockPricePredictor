@@ -651,7 +651,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     /* sometimes Chrome crashes and you need to open a new window */
 
     /* test sul 10% di dati */
-    const size = Math.floor(data.length / 100 * 95);
+    //const size = Math.floor(data.length / 100 * 95);
+
+    const  size = data.length - 180;
 
     /* lasciare così per fare daily FX, 14 giorni è il timestep piu usato dai trader */
     /* const time_steps = 14;
@@ -731,22 +733,8 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     if (training_enabled == true) {
 
         try {
-            model = await tf.loadLayersModel('file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
 
-            console.log("LOAD MODEL", 'file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
-
-            model.summary();
-
-            /* compiling model with optimizer, loss and metrics */
-            /* meglio con queste 2 loss assieme, oppure con meanabsolute */
-            model.compile({
-
-                optimizer: optimizer,
-                loss: tf.losses.meanSquaredError,
-                metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
-
-            });
-
+            model = await loadModel(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
             /* in caso di errore */
         } catch (e) {
 
@@ -863,22 +851,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     } else {
 
-        /* da sostituire con model.load ad esempio */
-        model = await tf.loadLayersModel('file://' /* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
-
-        console.log("LOAD MODEL", 'file://' /* + new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
-
-        model.summary();
-
-        /* compiling model with optimizer, loss and metrics */
-        /* meglio con queste 2 loss assieme, oppure con meanabsolute */
-        model.compile({
-
-            optimizer: optimizer,
-            loss: tf.losses.meanSquaredError,
-            metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
-
-        });
+        model = await loadModel(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
 
     }
 
@@ -969,11 +942,28 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
      }
      );*/
 
-
-
-
-
 }
+
+async function loadModel(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer) {
+    let model = await tf.loadLayersModel('file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
+
+    console.log("LOAD MODEL", 'file://' /*+ new Date().toISOString().slice(0, 10)*/ + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+
+    model.summary();
+
+    /* compiling model with optimizer, loss and metrics */
+    /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+    model.compile({
+
+        optimizer: optimizer,
+        loss: tf.losses.meanSquaredError,
+        metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+
+    });
+
+    return model;
+}
+
 
 function simulazione_guadagni(realResults, predictions, data) {
     let crescita = 0;
