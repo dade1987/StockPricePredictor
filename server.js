@@ -28,14 +28,14 @@ const PORT = process.env.PORT || 3000;
 const INDEX = '/index.html';
 
 const server = express()
-        .get('/', function (req, res) {
-            res.sendfile("index.html");
-        })
-        .get('/admin', function (req, res) {
-            res.sendfile("index_modificabile.html");
-        }).get('/banner', function (req, res) {
-    res.sendfile("banner.jpg");
-}).listen(PORT, () => console.log(`Listening on ${PORT}`));
+    .get('/', function (req, res) {
+        res.sendfile("index.html");
+    })
+    .get('/admin', function (req, res) {
+        res.sendfile("index_modificabile.html");
+    }).get('/banner', function (req, res) {
+        res.sendfile("banner.jpg");
+    }).listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 const io = socketio(server);
@@ -59,6 +59,180 @@ io.on('connection', (socket) => {
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
+const yesterday = () => {
+    let d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+};
+
+async function getNewsData(currency_pair_1) {
+
+    return new Promise((resolve, reject) => {
+
+        let currency_full_name = "";
+        switch (currency_pair_1) {
+            case "BTC":
+                currency_full_name = "BITCOIN";
+                break;
+            default:
+                currency_full_name = currency_pair_1;
+        }
+
+        /*options
+        apiKey
+REQUIRED
+Your API key. Alternatively you can provide this via the X-Api-Key HTTP header.
+
+q
+Keywords or phrases to search for in the article title and body.
+
+Advanced search is supported here:
+
+Surround phrases with quotes (") for exact match.
+Prepend words or phrases that must appear with a + symbol. Eg: +bitcoin
+Prepend words that must not appear with a - symbol. Eg: -bitcoin
+Alternatively you can use the AND / OR / NOT keywords, and optionally group these with parenthesis. Eg: crypto AND (ethereum OR litecoin) NOT bitcoin.
+The complete value for q must be URL-encoded. Max length: 500 chars.
+
+qInTitle
+Keywords or phrases to search for in the article title only.
+
+Advanced search is supported here:
+
+Surround phrases with quotes (") for exact match.
+Prepend words or phrases that must appear with a + symbol. Eg: +bitcoin
+Prepend words that must not appear with a - symbol. Eg: -bitcoin
+Alternatively you can use the AND / OR / NOT keywords, and optionally group these with parenthesis. Eg: crypto AND (ethereum OR litecoin) NOT bitcoin.
+The complete value for qInTitle must be URL-encoded. Max length: 500 chars.
+
+sources
+A comma-seperated string of identifiers (maximum 20) for the news sources or blogs you want headlines from. Use the /sources endpoint to locate these programmatically or look at the sources index.
+
+domains
+A comma-seperated string of domains (eg bbc.co.uk, techcrunch.com, engadget.com) to restrict the search to.
+
+excludeDomains
+A comma-seperated string of domains (eg bbc.co.uk, techcrunch.com, engadget.com) to remove from the results.
+
+from
+A date and optional time for the oldest article allowed. This should be in ISO 8601 format (e.g. 2021-11-17 or 2021-11-17T12:02:10)
+
+Default: the oldest according to your plan.
+to
+A date and optional time for the newest article allowed. This should be in ISO 8601 format (e.g. 2021-11-17 or 2021-11-17T12:02:10)
+
+Default: the newest according to your plan.
+language
+The 2-letter ISO-639-1 code of the language you want to get headlines for. Possible options: ardeenesfrheitnlnoptruseudzh.
+
+Default: all languages returned.
+sortBy
+The order to sort the articles in. Possible options: relevancy, popularity, publishedAt.
+relevancy = articles more closely related to q come first.
+popularity = articles from popular sources and publishers come first.
+publishedAt = newest articles come first.
+
+Default: publishedAt
+pageSize
+int
+The number of results to return per page.
+
+Default: 100. Maximum: 100.
+page
+int
+Use this to page through the results.
+
+Default: 1.
+
+*/
+
+        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&from=' + yesterday() + '&sortBy=publishedAt&pageSize=10&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
+
+        console.log(url_news);
+
+        let newsRequest = https.get(url_news, function (res) {
+            let data = '',
+                json_data;
+
+            res.on('data', function (stream) {
+                data += stream;
+            });
+            res.on('end', function () {
+                json_data = JSON.parse(data);
+
+                // will output a Javascript object
+                /*console.log("news data received");
+                console.log(json_data);
+
+                console.log(json_data.articles[0].title + ' ' + json_data.articles[0].description + ' ' + json_data.articles[0].content);*/
+
+                resolve(json_data.articles);
+            }
+            );
+        });
+    });
+
+}
+
+async function getSentimentAnalysis(newsJsonData) {
+
+
+    const deepai = require('deepai'); // OR include deepai.min.js as a script tag in your HTML
+
+    deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
+
+    var resp = await deepai.callStandardApi("sentiment-analysis", {
+        text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('.'),
+    });
+
+    /* console.log(newsJsonData);
+
+     console.log(newsJsonData.map((v)=>{return v.title+'. '+v.description+'. '+v.content}).join('.'));
+     
+    */
+
+    let verynegative = 0;
+    let negative = 0;
+    let neutral = 0;
+    let positive = 0;
+    let verypositive = 0;
+    let total = 0;
+
+    console.log(resp);
+
+    Object.values(resp.output).forEach((v) => {
+        switch (v) {
+            case "Verynegative":
+                verynegative++;
+                total++;
+                break;
+            case "Negative":
+                negative++;
+                total++;
+                break;
+            case "Neutral":
+                neutral++;
+                total++;
+                break;
+            case "Positive":
+                positive++;
+                total++;
+                break;
+            case "Verypositive":
+                verypositive++;
+                total++;
+                break;
+        }
+
+    });
+
+    let risultato = (neutral - verynegative - (negative / 2) + (positive / 2) + verypositive);
+
+    console.log("MEDIA DELLA SENTIMENTAL ANALYSIS E' " + risultato);
+
+    return risultato;
+
+}
 
 async function getData(market_name, time_interval, currency_pair_1, currency_pair_2) {
 
@@ -277,11 +451,13 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
         let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey=QOUA4VUTZJXS3M01';
 
+
+
         console.log("URL", url);
 
-        let req = https.get(url, function (res) {
+        let timeseriesRequest = https.get(url, function (res) {
             let data = '',
-                    json_data;
+                json_data;
 
             res.on('data', function (stream) {
                 data += stream;
@@ -300,30 +476,30 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                     case "CRYPTO":
                         if (time_interval.indexOf("INTRADAY") === 0) {
                             rawData = Object.values(json_data[json_data_name]).map(d => ({
-                                    open: parseFloat(d["1. open"]),
-                                    high: parseFloat(d["2. high"]),
-                                    low: parseFloat(d["3. low"]),
-                                    close: parseFloat(d["4. close"]),
-                                    volume: parseFloat(d["5. volume"])
-                                }));
+                                open: parseFloat(d["1. open"]),
+                                high: parseFloat(d["2. high"]),
+                                low: parseFloat(d["3. low"]),
+                                close: parseFloat(d["4. close"]),
+                                volume: parseFloat(d["5. volume"])
+                            }));
                         } else {
                             rawData = Object.values(json_data[json_data_name]).map(d => ({
-                                    open: parseFloat(d["1b. open (USD)"]),
-                                    high: parseFloat(d["2b. high (USD)"]),
-                                    low: parseFloat(d["3b. low (USD)"]),
-                                    close: parseFloat(d["4b. close (USD)"]),
-                                    volume: parseFloat(d["5. volume"])
-                                }));
+                                open: parseFloat(d["1b. open (USD)"]),
+                                high: parseFloat(d["2b. high (USD)"]),
+                                low: parseFloat(d["3b. low (USD)"]),
+                                close: parseFloat(d["4b. close (USD)"]),
+                                volume: parseFloat(d["5. volume"])
+                            }));
 
                         }
                         break;
                     case "FOREX":
                         rawData = Object.values(json_data[json_data_name]).map(d => ({
-                                open: parseFloat(d["1. open"]),
-                                high: parseFloat(d["2. high"]),
-                                low: parseFloat(d["3. low"]),
-                                close: parseFloat(d["4. close"])
-                            }));
+                            open: parseFloat(d["1. open"]),
+                            high: parseFloat(d["2. high"]),
+                            low: parseFloat(d["3. low"]),
+                            close: parseFloat(d["4. close"])
+                        }));
                         break;
                 }
 
@@ -333,7 +509,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
             });
         });
 
-        req.on('error', function (e) {
+        timeseriesRequest.on('error', function (e) {
             console.log(e.message);
         });
 
@@ -347,6 +523,9 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
     if (b_test === true) {
         test = 1;
     }
+
+    //console.log(data);
+    //return false;
 
     /* if the date is major then time steps */
     if (data.length > time_steps) {
@@ -570,7 +749,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket) {
+async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({
@@ -792,7 +971,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
                 let res = await model.fit(trainingData, outputData, {
                     epochs: 1
                 });
-                console.log(`Iteration ${i + 1}: ${res.history.loss[0] }`);
+                console.log(`Iteration ${i + 1}: ${res.history.loss[0]}`);
 
             }
 
@@ -852,6 +1031,8 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         model = await loadModel(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
 
     }
+
+
 
 
     /* predicting */
@@ -927,7 +1108,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     console.log("CRESCITA", crescita, giusti, errori, pari);
 
-    setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit])), 3000);
+    setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit, newsData])), 3000);
     /* creating prediction chart */
     /*tfvis.render.linechart(
      {name: 'Real Predictions'},
@@ -1153,11 +1334,12 @@ function simulazione_guadagni_2(realResults, predictions, data) {
 
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 
-    const data = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
+    const timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
 
-    console.log("RAW DATA", data[0]);
+    const newsData = await getNewsData(currency_pair_1);
 
+    const sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
-    await train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket);
+    await train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData);
 
 }
