@@ -1257,7 +1257,7 @@ function simulazione_guadagni(realResults, predictions, data, sentimentAnalysis,
         realResults.forEach((v) => { close_sum += v.y });
         let media = close_sum / data.length;*/
 
-        console.log("INDICATORS", indicators, "RSI", indicators);
+        //console.log("INDICATORS", indicators, "RSI", indicators);
 
         if (parseFloat(indicators.pick_incidence) < 0.3) {
             console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
@@ -1306,7 +1306,7 @@ function simulazione_guadagni(realResults, predictions, data, sentimentAnalysis,
         console.log("\r\n");
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
-        return probabilita > 70;
+        return probabilita > 65;
 
     }
 
@@ -1370,7 +1370,7 @@ function simulazione_guadagni(realResults, predictions, data, sentimentAnalysis,
         console.log("\r\n");
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
-        return probabilita > 70;
+        return probabilita > 65;
 
     }
 
