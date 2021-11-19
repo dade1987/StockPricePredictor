@@ -65,14 +65,76 @@ const yesterday = () => {
     return d.toISOString().split('T')[0];
 };
 
+async function getOrderBook(currency_pair_1) {
+
+    //leggi il primo 5% degli ordini più grossi
+    //attenzione. 5 vale solo come span per 5 bitcoins
+    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook?span=5";//
+    //let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook?limit=1";
+
+    return new Promise((resolve, reject) => {
+
+        let newsRequest = https.get(url.toLowerCase(), function (res) {
+            let data = '',
+                json_data;
+
+            res.on('data', function (stream) {
+                data += stream;
+            });
+            res.on('end', function () {
+                json_data = JSON.parse(data);
+
+                // will output a Javascript object
+                /*console.log("news data received");
+                console.log(json_data);
+    
+                console.log(json_data.articles[0].title + ' ' + json_data.articles[0].description + ' ' + json_data.articles[0].content);*/
+
+                //resolve(json_data.articles);
+
+                //console.log(json_data.result.asks[0][0]);
+
+                let asks = 0;
+                json_data.result.asks.forEach((v) => {
+                    asks += v[0] * v[1];
+                });
+
+                let bids = 0;
+                json_data.result.bids.forEach((v) => {
+                    bids += v[0] * v[1];
+                });
+
+                //quindi siccome bids sono gli ordini in acquisto, se i volumi dei grossi traders sono negativi si propende per la vendita
+                console.log("DIREZIONE DELLE BALENE... COMPRANO ?", bids > asks);
+
+                //SE E' false vendono, se è true comprano
+                resolve(bids > asks);
+
+            }
+            );
+        });
+
+    });
+}
+
 async function getNewsData(currency_pair_1) {
 
     return new Promise((resolve, reject) => {
 
         let currency_full_name = "";
         switch (currency_pair_1) {
+
+            case "ADA":
+                currency_full_name = "ADA CARDANO";
+                break;
             case "BTC":
                 currency_full_name = "BITCOIN";
+                break;
+            case "DOGE":
+                currency_full_name = "DOGECOIN";
+                break;
+            case "CRO":
+                currency_full_name = "Crypto Coin CRO";
                 break;
             default:
                 currency_full_name = currency_pair_1;
@@ -146,7 +208,7 @@ Default: 1.
 
 */
 
-        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&from=' + yesterday() + '&sortBy=publishedAt&pageSize=10&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
+        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=10&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
 
         console.log(url_news);
 
@@ -176,59 +238,57 @@ Default: 1.
 
 async function getSentimentAnalysis(newsJsonData) {
 
+    let risultato = 0.5;
 
-    const deepai = require('deepai'); // OR include deepai.min.js as a script tag in your HTML
+    try {
+        const deepai = require('deepai'); // OR include deepai.min.js as a script tag in your HTML
 
-    deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
+        deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
 
-    var resp = await deepai.callStandardApi("sentiment-analysis", {
-        text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('.'),
-    });
+        var resp = await deepai.callStandardApi("sentiment-analysis", {
+            text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('.'),
+        });
 
-    /* console.log(newsJsonData);
+        let sum = 0;
+        let total = 0;
 
-     console.log(newsJsonData.map((v)=>{return v.title+'. '+v.description+'. '+v.content}).join('.'));
-     
-    */
+        console.log(resp);
 
-    let verynegative = 0;
-    let negative = 0;
-    let neutral = 0;
-    let positive = 0;
-    let verypositive = 0;
-    let total = 0;
+        Object.values(resp.output).forEach((v) => {
+            switch (v) {
+                case "Verynegative":
+                    sum += 0;
+                    total++;
+                    break;
+                case "Negative":
+                    sum += 0.25;
+                    total++;
+                    break;
+                case "Neutral":
+                    sum += 0;
+                    total++;
+                    break;
+                case "Positive":
+                    sum += 0.75;
+                    total++;
+                    break;
+                case "Verypositive":
+                    sum += 1;
+                    total++;
+                    break;
+            }
 
-    console.log(resp);
+        });
 
-    Object.values(resp.output).forEach((v) => {
-        switch (v) {
-            case "Verynegative":
-                verynegative++;
-                total++;
-                break;
-            case "Negative":
-                negative++;
-                total++;
-                break;
-            case "Neutral":
-                neutral++;
-                total++;
-                break;
-            case "Positive":
-                positive++;
-                total++;
-                break;
-            case "Verypositive":
-                verypositive++;
-                total++;
-                break;
-        }
+        risultato = sum / total;
 
-    });
+        console.log("MEDIA DELLA SENTIMENTAL ANALYSIS E' " + risultato);
+    }
+    catch (e) {
 
-    let risultato = (neutral - verynegative - (negative / 2) + (positive / 2) + verypositive);
+        console.log(e);
 
-    console.log("MEDIA DELLA SENTIMENTAL ANALYSIS E' " + risultato);
+    }
 
     return risultato;
 
@@ -517,6 +577,24 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
     });
 }
 
+function pickIncidence(close, macd) {
+    let return_value = 0.5
+
+    /*if (close - macd >= macd / 100 * 10) {
+        return_value = 0;
+    } else if (close - macd >= macd / 100 * 5) {
+        return_value = 0.25;
+    } else if (close - macd <= (macd / 100 * 5) * -1) {
+        return_value = 0.75;
+    } else if (close - macd <= (macd / 100 * 10) * -1) {
+        return_value = 1;
+    }*/
+
+    return_value = close - macd;
+
+    return return_value;
+}
+
 function prepareInputDatas(data, time_steps, b_test, market_name) {
 
     let test = 0;
@@ -551,7 +629,8 @@ function prepareInputDatas(data, time_steps, b_test, market_name) {
                         /*aggiunto indicatore RSI (molto meglio:Crescita: 9 Giusti: 47 Errori: 38 Pari: 0)*/
                         //con RSI e Stoch solamente
                         //return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
-                        return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6));
+
+                        return [].concat(Object.values(d).slice(0, 5)/*, Object.values(d).slice(6, 7)*//*, Object.values(d).slice(12, 13)*/);
                         //con tutto
                         break;
                     case "FOREX":
@@ -657,7 +736,7 @@ let prices_max = 0;
 
 function normalizza_dati(data) {
 
-    console.log("DATA", data[0]);
+    //console.log("DATA", data[0]);
 
     //prima deve calcolare massimi e minimi
     prices_min = Math.min.apply(null, data.map(function (d) {
@@ -709,6 +788,14 @@ function normalizza_dati(data) {
         return Math.max.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
     }));
 
+    let pick_incidence_min = Math.min.apply(null, data.map(function (d) {
+        return Math.min.apply(null, [d.pick_incidence]);
+    }));
+
+    let pick_incidence_max = Math.max.apply(null, data.map(function (d) {
+        return Math.max.apply(null, [d.pick_incidence]);
+    }));
+
     /*let macd_macd_max = 0;
      let macd_macd_min = 0;
      
@@ -737,11 +824,12 @@ function normalizza_dati(data) {
             stochastic_d: (d.stochastic_d - stochastic_min) / (stochastic_max - stochastic_min),
             macd_macd: (d.macd_macd - macd_min) / (macd_max - macd_min),
             macd_signal: (d.macd_signal - macd_min) / (macd_max - macd_min),
-            macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min)
+            macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min),
+            pick_incidence: (d.pick_incidence - pick_incidence_min) / (pick_incidence_max - pick_incidence_min),
         };
     });
 
-    console.log("FINALE", finale);
+    //console.log("FINALE", finale);
 
     return finale;
 
@@ -749,7 +837,7 @@ function normalizza_dati(data) {
 
 
 
-async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData) {
+async function train_data(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook) {
 
     /* applica indicatori */
     let rsi = RSI.calculate({
@@ -815,18 +903,23 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         d++;
     }
 
+    d = 0;
+    for (let i = 25; i < data.length; i++) {
+        data[i].pick_incidence = pickIncidence(data[i].close, data[i].macd_macd);
+        d++;
+    }
 
-    console.log("TRAIN DATA 0", data[0]);
+    //console.log("TRAIN DATA 0", data[0]);
 
 
     /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
     data = data.slice(33);
 
-    console.log("TRAIN DATA 1", data[0]);
+    //console.log("TRAIN DATA 1", data[0]);
 
     data = normalizza_dati(data);
 
-    console.log("TRAIN DATA 2", data[0]);
+    //console.log("TRAIN DATA 2", data[0]);
     /* sometimes Chrome crashes and you need to open a new window */
 
     /* test sul 10% di dati */
@@ -850,17 +943,19 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     const testingResults = prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
 
-    console.log("INPUT", input[0]);
-    /*console.log("OUTPUT", output);
-     console.log("TESTING", testing);
-     console.log("TESTINGRESULTS", testingResults); * /
-     
-     
-     /* Creating tensors (input 3d tensor, and output 1d tensor) */
+    //console.log("INPUT", input[0]);
+    //console.log("OUTPUT", output);
+    //console.log("TESTING", testing);
+    //console.log("TESTINGRESULTS", testingResults);
+
+
+    //Creating tensors (input 3d tensor, and output 1d tensor)
 
     const input_size_3 = input.length;
     const input_size_2 = input[0].length;
     const input_size = input[0][0].length;
+
+    //console.log("INPUT", input_size_3, input_size_2, input_size);
 
     const trainingData = tf.tensor3d(input, [input.length, input_size_2, input_size]);
     const outputData = tf.tensor1d(output);
@@ -868,6 +963,9 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     const testing_size_3 = testing.length;
     const testing_size_2 = testing[0].length;
     const testing_size = testing[0][0].length;
+
+    //console.log("OUTPUT", input_size_3, input_size_2, input_size);
+
 
     const testingData = tf.tensor3d(testing, [testing.length, testing_size_2, testing_size]);
     const outputTestingData = tf.tensor1d(testingResults);
@@ -901,7 +999,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
     /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
      * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
      * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
-    let learningRate = 0.001;
+    let learningRate = 0.0001;
 
     /* selecting the best training optimizer */
     const optimizer = tf.train.adam(learningRate);
@@ -965,7 +1063,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
 
             /* training ... */
-            console.log('Loss Log');
+            //console.log('Loss Log');
 
             for (let i = 0; i < epochs_number; i++) {
                 let res = await model.fit(trainingData, outputData, {
@@ -1037,7 +1135,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
 
     /* predicting */
 
-    console.log('Real prediction');
+    //console.log('Real prediction');
 
 
 
@@ -1066,12 +1164,12 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         }
     });
 
-    /*console.log("INPUT", testing);
-     
-     
-     console.log("OUTPUT", realResults);
-     
-     console.log("PREDICTIONS", predictions);*/
+    //console.log("INPUT", testing);
+
+
+    //console.log("OUTPUT", realResults);
+
+    //console.log("PREDICTIONS", predictions);
 
 
     setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions])), 1500);
@@ -1087,7 +1185,7 @@ async function train_data(data, time_steps, epochs_number, training_enabled, mar
         tipo_negoziazione,
         importo_attuale,
         percentuale_take_profit
-    } = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size));
+    } = simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size), newsData, orderBook);
 
 
     let temp_testingData = [...testing];
@@ -1143,8 +1241,250 @@ async function loadModel(market_name, time_interval, currency_pair_1, currency_p
     return model;
 }
 
+function simulazione_guadagni(realResults, predictions, data, sentimentAnalysis, orderBook) {
 
-function simulazione_guadagni(realResults, predictions, data) {
+    //console.log(data);
+
+    function buy_condition(prediction, actual, last_data, indicators) {
+
+
+        let sum = 0;
+        let totale_per_media = 0;
+
+        //se ti discosti dalle previsioni del 5% sotto è indicatore che sei ipervenduto quindi può essere da comprare
+
+        /*let close_sum = 0;
+        realResults.forEach((v) => { close_sum += v.y });
+        let media = close_sum / data.length;*/
+
+        console.log("INDICATORS", indicators, "RSI", indicators);
+
+        if (parseFloat(indicators.pick_incidence) < 0.3) {
+            console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(indicators.rsi) < 0.3) {
+            console.log("BUY", "parseFloat(indicators.rsi) < 0.3", parseFloat(indicators.rsi) < 0.3);
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(last_data) < parseFloat(actual)) {
+            console.log("BUY", "parseFloat(last_data) < parseFloat(actual)", parseFloat(last_data) < parseFloat(actual));
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(prediction) > parseFloat(actual)) {
+            console.log("BUY", "parseFloat(prediction) > parseFloat(actual)", parseFloat(prediction) > parseFloat(actual));
+            sum++;
+        }
+        totale_per_media++;
+
+        if (sentimentAnalysis > 0.5) {
+            console.log("BUY", "sentimentAnalysis > 0.5", sentimentAnalysis > 0.5);
+            sum++;
+        }
+        totale_per_media++;
+
+        if (orderBook === true) {
+            console.log("BUY", "orderBook === true", orderBook === true);
+            sum++;
+        }
+        totale_per_media++;
+
+
+
+        //console.log("BUY CONDITION INFO", actual, prediction, last_data, media, (media / 100 * 95));
+
+        let probabilita = (sum / totale_per_media * 100).toFixed(2);
+
+        console.log("PROBABILITA DI SALITA DEL PREZZO:" + probabilita + "%");
+
+        console.log("\r\n");
+
+        //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
+        return probabilita > 70;
+
+    }
+
+    function sell_condition(prediction, actual, last_data, indicators) {
+
+
+        let sum = 0;
+        let totale_per_media = 0;
+
+        //se ti discosti dalle previsioni del 5% sotto è indicatore che sei ipervenduto quindi può essere da comprare
+
+        /*let close_sum = 0;
+        realResults.forEach((v) => { close_sum += v.y });
+        let media = close_sum / data.length;*/
+
+        if (parseFloat(indicators.pick_incidence) < 0.3) {
+            console.log("SELL", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(indicators.rsi) > 0.7) {
+            console.log("SELL", "parseFloat(indicators.rsi) > 0.7", parseFloat(indicators.rsi) > 0.7);
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(last_data) > parseFloat(actual)) {
+            console.log("SELL", "parseFloat(last_data) > parseFloat(actual)", parseFloat(last_data) > parseFloat(actual));
+            sum++;
+        };
+        totale_per_media++;
+
+        if (parseFloat(prediction) < parseFloat(actual)) {
+            console.log("SELL", "parseFloat(prediction) < parseFloat(actual)", parseFloat(prediction) < parseFloat(actual));
+            sum++;
+        }
+        totale_per_media++;
+
+        if (sentimentAnalysis < 0.5) {
+            console.log("SELL", "sentimentAnalysis < 0.5", sentimentAnalysis < 0.5);
+            sum++;
+        }
+        totale_per_media++;
+
+        if (orderBook === false) {
+            console.log("SELL", "orderBook === false", orderBook === false);
+            sum++;
+        }
+        totale_per_media++;
+
+
+
+        //console.log("SELL CONDITION INFO", actual, prediction, last_data, media, (media / 100 * 105));
+        //console.log("SELL CONDITION2?", last_data > (media / 100 * 105), parseFloat(last_data) > parseFloat(actual), parseFloat(prediction) < parseFloat(actual), sentimentAnalysis < 0.5);
+
+        let probabilita = (sum / totale_per_media * 100).toFixed(2);
+
+        console.log("PROBABILITA DI DISCESA DEL PREZZO:" + probabilita + "%");
+
+        console.log("\r\n");
+
+        //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
+        return probabilita > 70;
+
+    }
+
+    //intanto proviamo sui 5 minuti con alternative coins
+
+    //SE C'E' un picco, le notizie hanno un sentiment contrario, il volume cambia al contrario e le previsioni sono contrarie al trend
+    //se pick_incidence>0.75 indica da fare un sell
+    //se la pick_incidence<0.25 indica da fare un buy
+
+    //se le notizie sono negative sell, se positive buy
+
+    //se la previsione è in giù sell, altrimenti buy
+
+    //se il volume scende sell, se sale buy
+
+    //se è aperta in una posizione ma vorrebbe cambiarla chiudi e cambia
+
+    //sarebbe da aggiungere le whales ma per ora lascio stare, però posso usare il volume
+
+    //0 è sell, 1 è niente e 2 è buy
+    let status = 1;
+    let crescita = 0;
+    let giusti = 0;
+    let errori = 0;
+    let pari = 0;
+    let percentuale_take_profit = 0;
+    let importo_take_profit = 0;
+    let tipo_negoziazione = "";
+    let importo_attuale = 0;
+
+    //console.log(realResults);
+
+    for (let i = 1; i <= realResults.length; i++) {
+
+        //console.log("CICLO", i);
+
+        //solo per la previsione di oggi
+        if (true/*realResults[i] === undefined*/) {
+
+            //console.log("DATI", data[i - 1], realResults[i - 1].y);
+
+            if (buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1]) === true) {
+                /* if (status === 0) {
+                     console.log("CLOSE");
+                     status = 1;
+                 } else if (status === 2) {
+                     importo_attuale = realResults[i - 1].y;
+                     percentuale_take_profit = 0;
+                     tipo_negoziazione = "NOTHING";
+                     importo_take_profit = importo_attuale;
+ 
+                     //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+ 
+                 } else {*/
+                status = 2;
+                importo_attuale = realResults[i - 1].y;
+                percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                tipo_negoziazione = "BUY";
+                importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
+
+                console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                /*}*/
+            } else if (sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1]) === true) {
+                /*if (status === 2) {
+                    console.log("CLOSE");
+                    status = 1;
+                } else if (status === 0) {
+                    importo_attuale = realResults[i - 1].y;
+                    percentuale_take_profit = 0;
+                    tipo_negoziazione = "NOTHING";
+                    importo_take_profit = importo_attuale;
+
+                    //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+
+                } else {*/
+                status = 0;
+
+                importo_attuale = realResults[i - 1].y;
+                percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                tipo_negoziazione = "SELL";
+                importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
+
+                console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                /* }*/
+            } else {
+                importo_attuale = realResults[i - 1].y;
+                percentuale_take_profit = 0;
+                tipo_negoziazione = "NOTHING";
+                importo_take_profit = importo_attuale;
+
+                //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+            }
+
+        }
+
+    }
+
+    return {
+        crescita,
+        giusti,
+        errori,
+        pari,
+        importo_take_profit,
+        tipo_negoziazione,
+        importo_attuale,
+        percentuale_take_profit
+    };
+}
+
+
+
+function simulazione_guadagni_FINO_AL_18112021(realResults, predictions, data) {
     let crescita = 0;
     let giusti = 0;
     let errori = 0;
@@ -1241,12 +1581,74 @@ function simulazione_guadagni_2(realResults, predictions, data) {
 
     for (let i = 1; i <= realResults.length; i++) {
 
-        if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
+        try {
+            if (parseFloat(realResults[i].y) > parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) > parseFloat(predictions[i - 1].y)) {
 
-            let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
+                let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
 
-            if (percentuale_perdita >= perdita_max) {
-                console.log("STOP LOSS BUY", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+                if (percentuale_perdita >= perdita_max) {
+                    console.log("STOP LOSS BUY", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+                    if (percentuale_perdita !== 0) {
+                        guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
+                    }
+                    if (guadagno_totale <= 0) {
+                        guadagno_totale = 0;
+                    }
+                    console.log("SALDO", guadagno_totale.toFixed(2));
+
+                    errori++;
+                    crescita--;
+                } else {
+
+                    let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+
+                    console.log("GUADAGNO IN BUY", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
+
+
+                    guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
+                    if (guadagno_totale <= 0) {
+                        guadagno_totale = 0;
+                    }
+                    console.log("SALDO", guadagno_totale.toFixed(2));
+                    giusti++;
+                    crescita++;
+                }
+            } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
+
+                let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
+
+                if (percentuale_perdita >= perdita_max) {
+                    console.log("STOP LOSS SELL", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
+                    if (percentuale_perdita !== 0) {
+                        guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
+                    }
+                    if (guadagno_totale <= 0) {
+                        guadagno_totale = 0;
+                    }
+                    console.log("SALDO", guadagno_totale.toFixed(2));
+
+                    errori++;
+                    crescita--;
+                } else {
+                    let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
+
+                    console.log("GUADAGNO IN SELL", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
+
+                    guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
+                    if (guadagno_totale <= 0) {
+                        guadagno_totale = 0;
+                    }
+                    console.log("SALDO", guadagno_totale.toFixed(2));
+                    giusti++;
+                    crescita++;
+                }
+            } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
+                pari++;
+            } else {
+
+                let percentuale_perdita = Math.min(Math.abs((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)), perdita_max);
+
+                console.log("PERDITA", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
                 if (percentuale_perdita !== 0) {
                     guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
                 }
@@ -1257,67 +1659,9 @@ function simulazione_guadagni_2(realResults, predictions, data) {
 
                 errori++;
                 crescita--;
-            } else {
-
-                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
-
-                console.log("GUADAGNO IN BUY", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
-
-
-                guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
-                if (guadagno_totale <= 0) {
-                    guadagno_totale = 0;
-                }
-                console.log("SALDO", guadagno_totale.toFixed(2));
-                giusti++;
-                crescita++;
             }
-        } else if (parseFloat(realResults[i].y) < parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) < parseFloat(predictions[i - 1].y)) {
-
-            let percentuale_perdita = Math.min(Math.abs(((parseFloat(data[i].low) / parseFloat(data[i].open) - 1) * 100) * leva), perdita_max);
-
-            if (percentuale_perdita >= perdita_max) {
-                console.log("STOP LOSS SELL", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
-                if (percentuale_perdita !== 0) {
-                    guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
-                }
-                if (guadagno_totale <= 0) {
-                    guadagno_totale = 0;
-                }
-                console.log("SALDO", guadagno_totale.toFixed(2));
-
-                errori++;
-                crescita--;
-            } else {
-                let percentuale_aumento = Math.abs(((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)));
-
-                console.log("GUADAGNO IN SELL", guadagno_totale, "+", percentuale_aumento.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_aumento).toFixed(2));
-
-                guadagno_totale = guadagno_totale + (guadagno_totale / 100 * percentuale_aumento);
-                if (guadagno_totale <= 0) {
-                    guadagno_totale = 0;
-                }
-                console.log("SALDO", guadagno_totale.toFixed(2));
-                giusti++;
-                crescita++;
-            }
-        } else if (parseFloat(realResults[i].y) === parseFloat(realResults[i - 1].y) && parseFloat(predictions[i].y) === parseFloat(predictions[i - 1].y)) {
-            pari++;
-        } else {
-
-            let percentuale_perdita = Math.min(Math.abs((((parseFloat(realResults[i].y) / parseFloat(realResults[i - 1].y) - 1) * 100) * leva)), perdita_max);
-
-            console.log("PERDITA", guadagno_totale, "-", percentuale_perdita.toFixed(2), "%", "IMPORTO", (guadagno_totale / 100 * percentuale_perdita).toFixed(2));
-            if (percentuale_perdita !== 0) {
-                guadagno_totale = guadagno_totale - (guadagno_totale / 100 * percentuale_perdita);
-            }
-            if (guadagno_totale <= 0) {
-                guadagno_totale = 0;
-            }
-            console.log("SALDO", guadagno_totale.toFixed(2));
-
-            errori++;
-            crescita--;
+        } catch (error) {
+            console.log("INDICE " + i);
         }
     }
 
@@ -1336,10 +1680,16 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     const timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
 
+
+    const orderBook = await getOrderBook(currency_pair_1);
+
+
     const newsData = await getNewsData(currency_pair_1);
 
     const sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
-    await train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData);
+
+
+    await train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBook);
 
 }
