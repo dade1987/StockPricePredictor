@@ -117,25 +117,22 @@
 
             <!--onchange="fillCurrencyPairs(this.value)" -->
             <select class="form-control" id="market_name">
-                <option value="FOREX">FOREX</option>
-                <!--<option value="CRYPTO">CRYPTO</option>-->
+                <option value="CRYPTO">CRYPTO</option>
+                <!--<option value="FOREX">FOREX</option>-->
             </select> 
             <br>
             <label>Currency Pair 1</label>
             <select class="form-control" id="currency_pair_1">
-                <option>EUR</option>
-                <!--<option>BTC</option>
+                <!--<option>EUR</option>-->
+                <option>BTC</option>
+                <option>ETH</option>
                 <option>DOGE</option>
-                <option>DOT</option>
-                <option>ADA</option>
-                <option>XRP</option>
-                <option>BNB</option>-->
             </select>
             <br>
             <label>Currency Pair 2</label>
             <select class="form-control" id="currency_pair_2">
                 <option>USD</option>
-                <option>GBP</option>
+                <!--<option>GBP</option>-->
                 <!--<option>USD</option>-->
             </select>
             <br>
@@ -144,8 +141,8 @@
                 <!--<option value="INTRADAY_1_MIN">1 min</option>
                 <option value="INTRADAY_5_MIN">5 min</option>
                 <option value="INTRADAY_15_MIN">15 min</option>
-                <option value="INTRADAY_30_MIN">30 min</option>
-                <option value="INTRADAY_60_MIN">60 min</option>-->
+                <option value="INTRADAY_30_MIN">30 min</option>-->
+                <option value="INTRADAY_60_MIN">60 MIN</option>
                 <option value="DAILY" selected>1 DAY</option>
                 <!--<option value="WEEKLY">1 WEEK</option>
                 <option value="MONTHLY">1 MONTH</option>-->
@@ -155,8 +152,8 @@
             <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14"
                    style="display:none;">
             <!--<br>-->
-            <label style="display:none;">Epochs Number (default 10)</label>
-            <input class="form-control" id="epochs_number" value="15" placeholder="Daily Epochs Number default 15"
+            <!--<label style="display:none;">Epochs Number (default 10)</label>
+            <input class="form-control" id="epochs_number" value="50" placeholder="Daily Epochs Number default 15"
                    style="display:none;">
             <!--<br>-->
             <button class="btn btn-success" id="train-button">PREDICT</button>
@@ -275,7 +272,7 @@
                 let time_interval = $("#time_interval").val();
                 let market_name = $("#market_name").val();
                 time_steps = $("#time_steps").val();
-                let epochs_number = $("#epochs_number").val();
+                let epochs_number = 50;// $("#epochs_number").val();
 
                 socket.emit('predict', JSON.stringify({
                     market_name: market_name,
@@ -301,7 +298,7 @@
                 let time_interval = $("#time_interval").val();
                 let market_name = $("#market_name").val();
                 time_steps = $("#time_steps").val();
-                let epochs_number = $("#epochs_number").val();
+                let epochs_number = '50';//$("#epochs_number").val();
 
                 socket.emit('predict', JSON.stringify({
                     market_name: market_name,

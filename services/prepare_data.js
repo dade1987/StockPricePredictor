@@ -1,5 +1,5 @@
 module.exports = {
-    prepareInputDatas: function (data, time_steps, b_test, market_name) {
+    prepareInputDatas: function (data, time_steps, b_test, market_name,time_interval) {
 
         let test = 0;
         if (b_test === true) {
@@ -28,12 +28,16 @@ module.exports = {
                     switch (market_name) {
                         case "CRYPTO":
                             /* le crypto hanno anche il volume */
+                            /* le daily hanno anche il market cap */
                             /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
                             /* meglio tenerli cosi. facendo come prima mi da crescita a -3 e aderiscono peggio */
                             /*aggiunto indicatore RSI (molto meglio:Crescita: 9 Giusti: 47 Errori: 38 Pari: 0)*/
                             //con RSI e Stoch solamente
                             //return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
 
+                            if(time_interval==="DAILY"){
+                                return [].concat(Object.values(d).slice(0, 6));    
+                            }
                             return [].concat(Object.values(d).slice(0, 5)/*, Object.values(d).slice(6, 7)*//*, Object.values(d).slice(12, 13)*/);
                             //con tutto
                             break;

@@ -1,5 +1,4 @@
 module.exports={
-
     simulazione_guadagni:function (realResults, predictions, data, sentimentAnalysis, orderBook) {
 
         //console.log(data);
@@ -167,7 +166,7 @@ module.exports={
             //console.log("CICLO", i);
     
             //solo per la previsione di oggi
-            if (true/*realResults[i] === undefined*/) {
+            if (/*true*/realResults[i] === undefined) {
     
                 //console.log("DATI", data[i - 1], realResults[i - 1].y);
     
@@ -189,7 +188,9 @@ module.exports={
                     percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
                     tipo_negoziazione = "BUY";
                     importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
-    
+                    /*player.play('buy.mp3', function(err){
+                        if (err) throw err
+                      });*/
                     console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
                     /*}*/
                 } else if (sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1]) === true) {
@@ -212,7 +213,9 @@ module.exports={
                     percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
                     tipo_negoziazione = "SELL";
                     importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
-    
+                    /*player.play('sell.mp3', function(err){
+                        if (err) throw err
+                      });*/
                     console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
                     /* }*/
                 } else {

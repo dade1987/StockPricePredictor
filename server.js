@@ -25,6 +25,10 @@ global.prepare_data = require('./services/prepare_data');
 global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 
+
+//global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
+
+
 /*
 global.prices_min = 0;
 global.prices_max = 0;
@@ -36,12 +40,12 @@ const INDEX = '/index.html';
 
 const server = express()
     .get('/', function (req, res) {
-        res.sendfile("index.html");
+        res.sendFile(process.cwd() + "/index.html");
     })
     .get('/admin', function (req, res) {
-        res.sendfile("index_modificabile.html");
+        res.sendFile(process.cwd() + "/index_modificabile.html");
     }).get('/banner', function (req, res) {
-        res.sendfile("banner.jpg");
+        res.sendFile(process.cwd() + "/banner.jpg");
     }).listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
@@ -63,6 +67,19 @@ io.on('connection', (socket) => {
         await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled, socket);
     });
 });
+
+process.argv.forEach(function (val, index, array) {
+    console.log(val);
+
+    if (val === "--train") {
+
+        console.log("STARTING TRAINING");
+
+        train_models();
+
+    }
+});
+
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
@@ -245,9 +262,9 @@ Default: 1.
 
 async function getSentimentAnalysis(newsJsonData) {
 
-    
 
-        
+
+
     let risultato = 0.5;
 
     try {
@@ -256,7 +273,7 @@ async function getSentimentAnalysis(newsJsonData) {
         deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
 
 
-        
+
 
         var resp = await deepai.callStandardApi("sentiment-analysis", {
             text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('. '),
@@ -269,7 +286,7 @@ async function getSentimentAnalysis(newsJsonData) {
 
         Object.values(resp.output).forEach((v) => {
 
-            
+
 
             switch (v) {
                 case "Verynegative":
@@ -564,7 +581,8 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                                 high: parseFloat(d["2b. high (USD)"]),
                                 low: parseFloat(d["3b. low (USD)"]),
                                 close: parseFloat(d["4b. close (USD)"]),
-                                volume: parseFloat(d["5. volume"])
+                                volume: parseFloat(d["5. volume"]),
+                                market_cap: parseFloat(d["6. market cap (USD)"])
                             }));
 
                         }
@@ -608,7 +626,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     let learningRate = 0.0001;
     const optimizer = tf.train.adam(learningRate);
-    
+
     /*console.log(model = await ai_model_loader.load_model(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer));
     return false;*/
 
@@ -626,4 +644,14 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBook);
 
+}
+
+async function train_models() {
+    await main('CRYPTO', 'INTRADAY_60_MIN', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_60_MIN', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_60_MIN', "DOGE", "USD", 14, 50, true, null);
+
+    await main('CRYPTO', 'DAILY', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'DAILY', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'DAILY', "DOGE", "USD", 14, 50, true, null);
 }
