@@ -2,9 +2,9 @@ module.exports = {
 
     load_model: async function (market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer) {
 
-        let model = await tf.loadLayersModel('file://' + process.cwd() + '/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
+        let model = await tf.loadLayersModel('file://' + process.cwd() + '/ai_models/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
 
-        console.log("LOAD MODEL", 'file://' + process.cwd() + '/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        console.log("LOAD MODEL", 'file://' + process.cwd() + '/ai_models/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         model.summary();
 

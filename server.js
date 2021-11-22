@@ -25,9 +25,10 @@ global.prepare_data = require('./services/prepare_data');
 global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 
-
+/*
 global.prices_min = 0;
 global.prices_max = 0;
+*/
 
 const PORT = process.env.PORT || 3000;
 
@@ -214,7 +215,7 @@ Default: 1.
 
 */
 
-        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=10&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
+        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=5&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
 
         console.log(url_news);
 
@@ -244,6 +245,9 @@ Default: 1.
 
 async function getSentimentAnalysis(newsJsonData) {
 
+    
+
+        
     let risultato = 0.5;
 
     try {
@@ -251,8 +255,11 @@ async function getSentimentAnalysis(newsJsonData) {
 
         deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
 
+
+        
+
         var resp = await deepai.callStandardApi("sentiment-analysis", {
-            text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('.'),
+            text: newsJsonData.map((v) => { return v.title + '. ' + v.description + '. ' + v.content }).join('. '),
         });
 
         let sum = 0;
@@ -261,6 +268,9 @@ async function getSentimentAnalysis(newsJsonData) {
         console.log(resp);
 
         Object.values(resp.output).forEach((v) => {
+
+            
+
             switch (v) {
                 case "Verynegative":
                     sum += 0;

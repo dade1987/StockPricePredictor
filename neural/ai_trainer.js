@@ -237,9 +237,9 @@ module.exports = {
                 }
                
                 /* credo che qui convenga salvare un modello con nome fisso dall hard disk tipo con model.save o simili */
-                await model.save('file://'+process.cwd()+'/'+ market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+                await model.save('file://'+process.cwd()+'/ai_models/'+ market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
-                console.log("SAVE MODEL", 'file://'+process.cwd()+'/'+ market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
+                console.log("SAVE MODEL", 'file://'+process.cwd()+'/ai_models/'+ market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '');
 
                 /* training prediction (validation) */
 
