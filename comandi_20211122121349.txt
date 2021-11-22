@@ -1,0 +1,4 @@
+php C:/laragon/www/html5cli/magnetofono-html5-cli.php --lang=it --xmlpath=C:/laragon/www/html5cli/SOLE24_15074_26909_001_20201124.xml --mp3path=C:/laragon/www/html5cli/biggioggero.mp3 --destinpath=C:/laragon/html5cli
+
+
+-/htlang=magnetofono-html5-cli.php/CSN_75409_94416_001_20211028.xml/htlang=htlang/5mlwww/htlang=htlang/trascrizione_biggioggero.html/htlang/5mllang=htlang-htlang-htlang/5mlwww/htlang-htlang-htlang-htlang-htlang-htlang-htlang-htlang-CSN_75409_94416_001_20211028.mp3/CSN_75409_94416_001_20211028.html/5mllang-htlang-htlang-

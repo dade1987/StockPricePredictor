@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+
+
 console.log(process.cwd());
 
 console.log(__dirname);
@@ -37,6 +40,8 @@ global.prices_max = 0;
 const PORT = process.env.PORT || 3000;
 
 const INDEX = '/index.html';
+
+dotenv.config();
 
 const server = express()
     .get('/', function (req, res) {
@@ -232,7 +237,7 @@ Default: 1.
 
 */
 
-        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=5&page=1&apiKey=e88cf2f35e934b87ae1954c1f49a4430'
+        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=5&page=1&apiKey='+process.env.NEWS_API_KEY;
 
         console.log(url_news);
 
@@ -270,7 +275,7 @@ async function getSentimentAnalysis(newsJsonData) {
     try {
         const deepai = require('deepai'); // OR include deepai.min.js as a script tag in your HTML
 
-        deepai.setApiKey('934f7bdd-356f-46d7-bb0e-e7dd21b69988');
+        deepai.setApiKey(process.env.DEEPAI_API_KEY);
 
 
 
@@ -542,7 +547,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
         }
 
 
-        let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey=QOUA4VUTZJXS3M01';
+        let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey='+process.env.ALPHADVANTAGE_API_KEY;
 
 
 
