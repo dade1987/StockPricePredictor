@@ -95,13 +95,13 @@ module.exports = {
 
         const start = data.length - size - predict_size;
 
-        const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name,time_interval);
+        const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
 
 
 
-        const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name,time_interval);
+        const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name, time_interval);
         const testingResults = prepare_data.prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
 
 
@@ -122,6 +122,9 @@ module.exports = {
         const trainingData = tf.tensor3d(input, [input.length, input_size_2, input_size]);
         const outputData = tf.tensor1d(output);
 
+        if (testing === false) {
+            return false;
+        }
         const testing_size_3 = testing.length;
         const testing_size_2 = testing[0].length;
         const testing_size = testing[0][0].length;
@@ -349,7 +352,9 @@ module.exports = {
             importo_take_profit,
             tipo_negoziazione,
             importo_attuale,
-            percentuale_take_profit
+            percentuale_take_profit,
+            price_rise_probability,
+            price_drop_probability
         } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size), newsData, orderBook);
 
 
@@ -371,8 +376,15 @@ module.exports = {
 
         console.log("CRESCITA", crescita, giusti, errori, pari);
 
+
+        let market_depth_status = "POSITIVE";
+        if (orderBook === false) {
+            market_depth_status === "NEGATIVE";
+        }
+
         if (socket !== null) {
-            setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, importo_take_profit, tipo_negoziazione, importo_attuale, percentuale_take_profit, newsData])), 3000);
+            // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
+            socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status]));
         }
 
         /* creating prediction chart */

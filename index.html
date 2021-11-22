@@ -1,62 +1,63 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
+<head>
 
 
-        <title>Stock Price Prediction</title>
+    <title>Stock Price Prediction</title>
 
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
-
-
-        <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-              crossorigin="anonymous">
-
-        <!-- Optional theme -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-        <!-- Latest compiled and minified JavaScript -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous">
-        </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
 
 
-        <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+        integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous">
+    </script>
 
 
-        <!-- Import TensorFlow.js -->
-        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>-->
-        <!-- Import tfjs-vis -->
-        <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>-->
-
-        <script src="/socket.io/socket.io.js"></script>
-
-        <!-- Import the main script file -->
-        <!--<script src="script.js"></script>-->
-
-        <style>
-            label{
-                font-weight: bold;
-            }
-        </style>
+    <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
 
 
-    </head>
+    <!-- Import TensorFlow.js -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>-->
+    <!-- Import tfjs-vis -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>-->
 
-    <body>
+    <script src="/socket.io/socket.io.js"></script>
 
-        <div class="container-lg">
+    <!-- Import the main script file -->
+    <!--<script src="script.js"></script>-->
 
-            <!--<h2>Look at the console to see progresses</h2>
+    <style>
+        label {
+            font-weight: bold;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <div class="container-lg">
+
+        <!--<h2>Look at the console to see progresses</h2>
             <h3>(F12 o Dev Tools)</h3>
             <h4>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h4>-->
 
 
 
 
-            <header>
-                <!-- Navbar -->
-                <!--<nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <header>
+            <!-- Navbar -->
+            <!--<nav class="navbar navbar-expand-lg navbar-light bg-white">
                     <div class="container-fluid">
                         <button
                             class="navbar-toggler"
@@ -87,311 +88,350 @@
                         </div>
                     </div>
                 </nav>-->
-                <!-- Navbar -->
-                <br>
-                <!-- Background image -->
-                <div class="p-0 text-center bg-image" style="
+            <!-- Navbar -->
+            <br>
+            <!-- Background image -->
+            <div class="p-0 text-center bg-image" style="
                      background-size: cover;
                      background-image: url('banner');
                      height: 20vh;
                      background-repeat: round;
                      ">
-                    <div class="mask" style="background-color: rgb(0 0 0 / 35%);height:100%;">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <div class="text-white">
-                                <h1 class="mb-3">ForexAIForecast</h1>
-                                <h4 class="mb-3">Artificial Intelligence<br>to Invest Better</h4>
-                                <!--<a class="btn btn-outline-light btn-lg" href="#!" role="button"
+                <div class="mask" style="background-color: rgb(0 0 0 / 35%);height:100%;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="text-white">
+                            <h1 class="mb-3">ForexAIForecast</h1>
+                            <h4 class="mb-3">Artificial Intelligence<br>to Invest Better</h4>
+                            <!--<a class="btn btn-outline-light btn-lg" href="#!" role="button"
                                 >Call to action</a
                                 >-->
-                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Background image -->
-            </header>
-            <br>
+            </div>
+            <!-- Background image -->
+        </header>
+        <br>
 
 
-            <label>Market Name</label>
+        <label>Market Name</label>
 
-            <!--onchange="fillCurrencyPairs(this.value)" -->
-            <select class="form-control" id="market_name">
-                <option value="CRYPTO">CRYPTO</option>
-                <!--<option value="FOREX">FOREX</option>-->
-            </select> 
-            <br>
-            <label>Currency Pair 1</label>
-            <select class="form-control" id="currency_pair_1">
-                <!--<option>EUR</option>-->
-                <option>BTC</option>
-                <option>ETH</option>
-                <option>DOGE</option>
-            </select>
-            <br>
-            <label>Currency Pair 2</label>
-            <select class="form-control" id="currency_pair_2">
-                <option>USD</option>
-                <!--<option>GBP</option>-->
-                <!--<option>USD</option>-->
-            </select>
-            <br>
-            <label>Time Interval (default 1 Day)</label>
-            <select class="form-control" id="time_interval">
-                <!--<option value="INTRADAY_1_MIN">1 min</option>
+        <!--onchange="fillCurrencyPairs(this.value)" -->
+        <select class="form-control" id="market_name">
+            <option value="CRYPTO">CRYPTO</option>
+            <!--<option value="FOREX">FOREX</option>-->
+        </select>
+        <br>
+        <label>Currency Pair 1</label>
+        <select class="form-control" id="currency_pair_1">
+            <!--<option>EUR</option>-->
+            <option>BTC</option>
+            <option>ETH</option>
+            <option>DOGE</option>
+            <!--<option>SOL</option> TROPPO POCHI DATI
+                <option>SHIB</option>TROPPO POCHI DATI-->
+        </select>
+        <br>
+        <label>Currency Pair 2</label>
+        <select class="form-control" id="currency_pair_2">
+            <option>USD</option>
+            <!--<option>GBP</option>-->
+            <!--<option>USD</option>-->
+        </select>
+        <br>
+        <label>Time Interval (default 1 Day)</label>
+        <select class="form-control" id="time_interval">
+            <!--<option value="INTRADAY_1_MIN">1 min</option>
                 <option value="INTRADAY_5_MIN">5 min</option>
                 <option value="INTRADAY_15_MIN">15 min</option>
                 <option value="INTRADAY_30_MIN">30 min</option>-->
-                <option value="INTRADAY_60_MIN">60 MIN</option>
-                <option value="DAILY" selected>1 DAY</option>
-                <!--<option value="WEEKLY">1 WEEK</option>
+            <option value="INTRADAY_60_MIN">60 MIN</option>
+            <option value="DAILY" selected>1 DAY</option>
+            <!--<option value="WEEKLY">1 WEEK</option>
                 <option value="MONTHLY">1 MONTH</option>-->
-            </select>
-            <br>
-            <label style="display:none;">Time Steps (default 14)</label>
-            <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14"
-                   style="display:none;">
-            <!--<br>-->
-            <!--<label style="display:none;">Epochs Number (default 10)</label>
+        </select>
+        <br>
+        <label style="display:none;">Time Steps (default 14)</label>
+        <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14"
+            style="display:none;">
+        <!--<br>-->
+        <!--<label style="display:none;">Epochs Number (default 10)</label>
             <input class="form-control" id="epochs_number" value="50" placeholder="Daily Epochs Number default 15"
                    style="display:none;">
             <!--<br>-->
-            <button class="btn btn-success" id="train-button">PREDICT</button>
-            <button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
-            <br>
-            <!--<br>
+        <button class="btn btn-success" id="train-button">PREDICT</button>
+        <button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
+        <br>
+        <!--<br>
             <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
-            <br>
-            <!--<textarea class="form-control" id="finalResult" rows="10" placeholder="Results"></textarea>-->
+        <br>
+        <!--<textarea class="form-control" id="finalResult" rows="10" placeholder="Results"></textarea>-->
 
-            <label for="basic-url">RESULTS</label>
-
-
+        <label for="basic-url">RESULTS</label>
 
 
 
 
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Last Closed Price</span>
-                </div>
-                <input type="text" class="form-control" id="last_price" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Last Closed Price</span>
             </div>
-
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Negotiation Advice</span>
-                </div>
-                <input type="text" class="form-control" id="advice" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Reccom. Take Profit</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x1)</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit_percentual_x1" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x5)</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit_percentual_x5" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x10)</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit_percentual_x10" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x20)</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit_percentual_x20" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon3">Percentual Gain (x30)</span>
-                </div>
-                <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3"
-                       style="pointer-events: none;">
-            </div>
-
-
-
-
+            <input type="text" class="form-control" id="last_price" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
         </div>
 
-        <footer class="footer">
-            <div class="container">
-                <span class="text-muted">NB: Some predictions could be wrong. Use this software under your full
-                    responsability.</span>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Negotiation Advice</span>
             </div>
-        </footer>
-
-        <script>
-            var socket = io();
-
-            const trainButton = document.getElementById('train-button');
-            const predictButton = document.getElementById('predict-button');
-            let startingTime = null;
-            let startingTimeString = "";
-            let time_steps = "";
-
-            trainButton.onclick = () => {
-
-                startingTime = new Date();
-                startingTimeString = startingTime.toString();
-
-                trainButton.disabled = true;
-                trainButton.textContent = "WAIT PLEASE...";
-
-                let currency_pair_1 = $("#currency_pair_1").val();
-                let currency_pair_2 = $("#currency_pair_2").val();
-                let time_interval = $("#time_interval").val();
-                let market_name = $("#market_name").val();
-                time_steps = $("#time_steps").val();
-                let epochs_number = 50;// $("#epochs_number").val();
-
-                socket.emit('predict', JSON.stringify({
-                    market_name: market_name,
-                    time_interval: time_interval,
-                    currency_pair_1: currency_pair_1,
-                    currency_pair_2: currency_pair_2,
-                    time_steps: time_steps,
-                    epochs_number: epochs_number,
-                    training_enabled: true
-                }));
-            };
-
-            predictButton.onclick = () => {
-
-                startingTime = new Date();
-                startingTimeString = startingTime.toString();
-
-                predictButton.disabled = true;
-                predictButton.textContent = "WAIT PLEASE...";
-
-                let currency_pair_1 = $("#currency_pair_1").val();
-                let currency_pair_2 = $("#currency_pair_2").val();
-                let time_interval = $("#time_interval").val();
-                let market_name = $("#market_name").val();
-                time_steps = $("#time_steps").val();
-                let epochs_number = '50';//$("#epochs_number").val();
-
-                socket.emit('predict', JSON.stringify({
-                    market_name: market_name,
-                    time_interval: time_interval,
-                    currency_pair_1: currency_pair_1,
-                    currency_pair_2: currency_pair_2,
-                    time_steps: time_steps,
-                    epochs_number: epochs_number,
-                    training_enabled: false
-                }));
-            };
-
-            /*socket.on('training', (result) => {
-             grafico(result, "Training");
-             });
-             
-             socket.on('testing', (result) => {
-             grafico(result, "Testing");
-             });*/
-
-            socket.on('final', (result) => {
-                let endingTime = $("#time_interval option:selected").text();
-
-                let result2 = JSON.parse(result);
-                //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
-                /*$("#finalResult").html("Last Closed Price: " + result2[7] + 
-                 "\n\n" + result2[6] + 
-                 " Predicted Take Profit: " + parseFloat(result2[5]) + 
-                 "\n\nTake Profit Percentual Gain: " + parseFloat(result2[8]).toFixed(2) + "% (x1) "
-                 + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) "
-                 + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
-                 + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
-                 + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+            <input type="text" class="form-control" id="advice" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
 
 
-                $("#last_price").val(result2[7]);
-                $("#advice").val(result2[6]);
-                $("#take_profit").val(parseFloat(result2[5]));
-                $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
-                $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
-                $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
-                $("#take_profit_percentual_x20").val((parseFloat(result2[8]) * 20).toFixed(2));
-                $("#take_profit_percentual_x30").val((parseFloat(result2[8]) * 30).toFixed(2));
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Reccom. Take Profit</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
 
-                trainButton.disabled = false;
-                trainButton.textContent = "PREDICT";
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Last News Positivity (%)</span>
+            </div>
+            <input type="text" class="form-control" id="news_analysis" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
 
-                predictButton.disabled = true;
-                predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Market Depth Status</span>
+            </div>
+            <input type="text" class="form-control" id="market_depth_status" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Price Rise Probability (%)</span>
+            </div>
+            <input type="text" class="form-control" id="price_rise_probability" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Price Drop Probability (%)</span>
+            </div>
+            <input type="text" class="form-control" id="price_drop_probability" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x1)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x1" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x5)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x5" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x10)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x10" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x20)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x20" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x30)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3"
+                style="pointer-events: none;">
+        </div>
+
+
+
+
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">NB: Some predictions could be wrong. Use this software under your full
+                responsability.</span>
+        </div>
+    </footer>
+
+    <script>
+        var socket = io();
+
+        const trainButton = document.getElementById('train-button');
+        const predictButton = document.getElementById('predict-button');
+        let startingTime = null;
+        let startingTimeString = "";
+        let time_steps = "";
+
+        trainButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "WAIT PLEASE...";
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50;// $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        predictButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            predictButton.disabled = true;
+            predictButton.textContent = "WAIT PLEASE...";
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = '50';//$("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: false
+            }));
+        };
+
+        /*socket.on('training', (result) => {
+         grafico(result, "Training");
+         });
+         
+         socket.on('testing', (result) => {
+         grafico(result, "Testing");
+         });*/
+
+        socket.on('final', (result) => {
+            let endingTime = $("#time_interval option:selected").text();
+
+            let result2 = JSON.parse(result);
+            //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
+            /*$("#finalResult").html("Last Closed Price: " + result2[7] + 
+             "\n\n" + result2[6] + 
+             " Predicted Take Profit: " + parseFloat(result2[5]) + 
+             "\n\nTake Profit Percentual Gain: " + parseFloat(result2[8]).toFixed(2) + "% (x1) "
+             + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) "
+             + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
+             + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
+             + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+
+
+            $("#last_price").val(result2[7]);
+            $("#advice").val(result2[6]);
+            $("#take_profit").val(parseFloat(result2[5]));
+            $("#news_analysis").val(parseFloat(result2[9]));
+            $("#market_depth_status").val(result2[12]);
+            $("#price_rise_probability").val(parseFloat(result2[10]).toFixed(2));
+            $("#price_drop_probability").val(parseFloat(result2[11]).toFixed(2));
+            $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
+            $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
+            $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
+            $("#take_profit_percentual_x20").val((parseFloat(result2[8]) * 20).toFixed(2));
+            $("#take_profit_percentual_x30").val((parseFloat(result2[8]) * 30).toFixed(2));
+
+            trainButton.disabled = false;
+            trainButton.textContent = "PREDICT";
+
+            predictButton.disabled = true;
+            predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
+        });
+
+        function grafico(bi_array_json, titolo) {
+            let result = JSON.parse(bi_array_json);
+
+            tfvis.render.linechart({
+                name: titolo
+            }, {
+                values: [result[0], result[1]],
+                series: ['original', 'predicted']
+            }, {
+                xLabel: 'contatore',
+                yLabel: 'prezzo',
+                height: 300,
+                zoomToFit: true
             });
+        }
 
-            function grafico(bi_array_json, titolo) {
-                let result = JSON.parse(bi_array_json);
-
-                tfvis.render.linechart({
-                    name: titolo
-                }, {
-                    values: [result[0], result[1]],
-                    series: ['original', 'predicted']
-                }, {
-                    xLabel: 'contatore',
-                    yLabel: 'prezzo',
-                    height: 300,
-                    zoomToFit: true
-                });
-            }
-
-            function fillCurrencyPairs(market_name) {
-                switch (market_name) {
-                    case "FOREX":
-                        $("#currency_pair_1").html("\
+        function fillCurrencyPairs(market_name) {
+            switch (market_name) {
+                case "FOREX":
+                    $("#currency_pair_1").html("\
                     <option>EUR</option>\n\
                     <option>USD</option>\n\
                     <option>GBP</option>");
-                        $("#currency_pair_2").html("\
+                    $("#currency_pair_2").html("\
                 <option>EUR</option>\n\
                 <option selected>USD</option>\n\
                 <option>GBP</option>");
-                        break;
-                    case "CRYPTO":
-                        $("#currency_pair_1").html("\
+                    break;
+                case "CRYPTO":
+                    $("#currency_pair_1").html("\
                     <option>BTC</option>\n\
                     <option>DOGE</option>\n\
                     <option>DOT</option>\n\
                     <option>ADA</option>\n\
                     <option>XRP</option>\n\
-                    <option>BNB</option>");
-                        $("#currency_pair_2").html("<option>USD</option>");
-                        break;
-                }
+                    <option>BNB</option>\n\
+                    <option>SHIB</option>");
+                    $("#currency_pair_2").html("<option>USD</option>");
+                    break;
             }
-        </script>
+        }
+    </script>
 
-    </body>
+</body>
 
 </html>

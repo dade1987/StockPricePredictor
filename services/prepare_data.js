@@ -113,6 +113,9 @@ module.exports = {
 
             return arr;
         } else {
+            console.log("TROPPO POCHI DATI PER ADDESTRARE IL MODELLO");
+            console.log("RICARICA LA PAGINA HTML");
+            console.log("LISTENING...");
             return false;
         }
 

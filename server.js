@@ -165,6 +165,12 @@ async function getNewsData(currency_pair_1) {
             case "CRO":
                 currency_full_name = "Crypto Coin CRO";
                 break;
+            case "SOL":
+                currency_full_name = "SOLANA COIN";
+                break;
+            case "SHIB":
+                currency_full_name = "SHIBAINU COIN";
+                break;
             default:
                 currency_full_name = currency_pair_1;
         }
@@ -237,7 +243,7 @@ Default: 1.
 
 */
 
-        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=5&page=1&apiKey='+process.env.NEWS_API_KEY;
+        let url_news = 'https://newsapi.org/v2/everything?q=' + currency_full_name + '&language=en&from=' + yesterday() + '&sortBy=publishedAt&pageSize=5&page=1&apiKey=' + process.env.NEWS_API_KEY;
 
         console.log(url_news);
 
@@ -547,7 +553,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
         }
 
 
-        let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey='+process.env.ALPHADVANTAGE_API_KEY;
+        let url = 'https://www.alphavantage.co/query?function=' + market_name_url + '&' + symbol_name_1 + '=' + currency_pair_1 + '&' + symbol_name_2 + '=' + currency_pair_2 + '' + interval + '&outputsize=full&apikey=' + process.env.ALPHADVANTAGE_API_KEY;
 
 
 
@@ -573,22 +579,43 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
                 switch (market_name) {
                     case "CRYPTO":
                         if (time_interval.indexOf("INTRADAY") === 0) {
-                            rawData = Object.values(json_data[json_data_name]).map(d => ({
-                                open: parseFloat(d["1. open"]),
-                                high: parseFloat(d["2. high"]),
-                                low: parseFloat(d["3. low"]),
-                                close: parseFloat(d["4. close"]),
-                                volume: parseFloat(d["5. volume"])
-                            }));
+                            if (currency_pair_1 === "SHIB") {
+                                rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                    open: parseFloat(d["1. open"]) * 1000,
+                                    high: parseFloat(d["2. high"]) * 1000,
+                                    low: parseFloat(d["3. low"]) * 1000,
+                                    close: parseFloat(d["4. close"]) * 1000,
+                                    volume: parseFloat(d["5. volume"])
+                                }));
+                            } else {
+                                rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                    open: parseFloat(d["1. open"]),
+                                    high: parseFloat(d["2. high"]),
+                                    low: parseFloat(d["3. low"]),
+                                    close: parseFloat(d["4. close"]),
+                                    volume: parseFloat(d["5. volume"])
+                                }));
+                            }
                         } else {
-                            rawData = Object.values(json_data[json_data_name]).map(d => ({
-                                open: parseFloat(d["1b. open (USD)"]),
-                                high: parseFloat(d["2b. high (USD)"]),
-                                low: parseFloat(d["3b. low (USD)"]),
-                                close: parseFloat(d["4b. close (USD)"]),
-                                volume: parseFloat(d["5. volume"]),
-                                market_cap: parseFloat(d["6. market cap (USD)"])
-                            }));
+                            if (currency_pair_1 === "SHIB") {
+                                rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                    open: parseFloat(d["1b. open (USD)"]) * 1000,
+                                    high: parseFloat(d["2b. high (USD)"]) * 1000,
+                                    low: parseFloat(d["3b. low (USD)"]) * 1000,
+                                    close: parseFloat(d["4b. close (USD)"]) * 1000,
+                                    volume: parseFloat(d["5. volume"]) * 1000,
+                                    market_cap: parseFloat(d["6. market cap (USD)"])
+                                }));
+                            } else {
+                                rawData = Object.values(json_data[json_data_name]).map(d => ({
+                                    open: parseFloat(d["1b. open (USD)"]),
+                                    high: parseFloat(d["2b. high (USD)"]),
+                                    low: parseFloat(d["3b. low (USD)"]),
+                                    close: parseFloat(d["4b. close (USD)"]),
+                                    volume: parseFloat(d["5. volume"]),
+                                    market_cap: parseFloat(d["6. market cap (USD)"])
+                                }));
+                            }
 
                         }
                         break;
