@@ -17,7 +17,7 @@ module.exports = {
 
         //console.log("INDICATORS", indicators, "RSI", indicators);
 
-        if (parseFloat(indicators.pick_incidence) < 0.3) {
+        if (parseFloat(indicators.pick_incidence) < 0.4) {
             console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
             sum++;
         };
@@ -82,7 +82,7 @@ module.exports = {
         realResults.forEach((v) => { close_sum += v.y });
         let media = close_sum / data.length;*/
 
-        if (parseFloat(indicators.pick_incidence) > 0.7) {
+        if (parseFloat(indicators.pick_incidence) > 0.6) {
             console.log("SELL", "parseFloat(indicators.pick_incidence) > 0.7", parseFloat(indicators.pick_incidence) > 0.7);
             sum++;
         };

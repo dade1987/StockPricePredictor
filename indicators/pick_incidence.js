@@ -1,6 +1,6 @@
 module.exports = {
 
-    pickIncidence: function (close, macd) {
+    pickIncidence: function (close, sma) {
         let return_value = 0.5
 
         /*if (close - macd >= macd / 100 * 10) {
@@ -13,7 +13,7 @@ module.exports = {
             return_value = 1;
         }*/
 
-        return_value = close - macd;
+        return_value = close - sma;
 
         return return_value;
     }

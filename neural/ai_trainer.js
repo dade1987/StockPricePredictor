@@ -3,11 +3,11 @@ module.exports = {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
-            period: 7,
+            period: 14,
             values: data.map(d => d.close)
         });
         let sma = SMA.calculate({
-            period: 7,
+            period: 14,
             values: data.map(d => d.close)
         });
         let macd = MACD.calculate({
@@ -38,14 +38,17 @@ module.exports = {
             data[i].stochastic_d = 0;
         }
 
+
         let d = 0;
         for (let i = 14; i < data.length; i++) {
+            //console.log("DEBUG RSI",sma[d],i,d)
             data[i].rsi = rsi[d];
             d++;
         }
 
         d = 0;
-        for (let i = 6; i < data.length; i++) {
+        for (let i = 13; i < data.length; i++) {
+            //console.log("DEBUG SMA",sma[d],i,d)
             data[i].sma = sma[d];
             d++;
         }
