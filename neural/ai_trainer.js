@@ -164,7 +164,21 @@ module.exports = {
         /* bisogna stare attenti ad evitare il rimbalzo dopo la correzione 
          * così basso è meglio perchè rimbalza poco nell'ambito dei miei prezzi 
          * e mettendo meno diventa troppo basso e non impara niente (TESTATO)*/
-        let learningRate = 0.0001;
+        let learningRate = 0;
+
+        if (time_interval === "DAILY") {
+            //epochs_number = 30;
+            //learningRate = 0.001;
+            //errore 0.001
+          
+           epochs_number = 50;
+           learningRate = 0.001;
+           //errore
+
+        } else {
+            learningRate = 0.0001;
+            epochs_number = 50;
+        }
 
         /* selecting the best training optimizer */
         const optimizer = tf.train.adam(learningRate);

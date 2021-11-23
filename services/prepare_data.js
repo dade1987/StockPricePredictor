@@ -35,9 +35,9 @@ module.exports = {
                             //con RSI e Stoch solamente
                             //return [].concat(Object.values(d).slice(0, 5), Object.values(d).slice(6, 7), Object.values(d).slice(7, 9));
 
-                            if(time_interval==="DAILY"){
+                            /*if(time_interval==="DAILY"){
                                 return [].concat(Object.values(d).slice(0, 6));    
-                            }
+                            }*/
                             return [].concat(Object.values(d).slice(0, 5)/*, Object.values(d).slice(6, 7)*//*, Object.values(d).slice(12, 13)*/);
                             //con tutto
                             break;

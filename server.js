@@ -27,7 +27,7 @@ global.normalizer = require('./services/normalizer');
 global.prepare_data = require('./services/prepare_data');
 global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
-
+global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
 //global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
 
@@ -679,11 +679,15 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 }
 
 async function train_models() {
+
+    
+    await main('CRYPTO', 'DAILY', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'DAILY', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'DAILY', "DOGE", "USD", 14, 50, true, null);
+
+    
     await main('CRYPTO', 'INTRADAY_60_MIN', "BTC", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_60_MIN', "ETH", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_60_MIN', "DOGE", "USD", 14, 50, true, null);
 
-    await main('CRYPTO', 'DAILY', "BTC", "USD", 14, 50, true, null);
-    await main('CRYPTO', 'DAILY', "ETH", "USD", 14, 50, true, null);
-    await main('CRYPTO', 'DAILY', "DOGE", "USD", 14, 50, true, null);
 }
