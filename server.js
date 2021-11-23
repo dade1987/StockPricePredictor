@@ -29,6 +29,8 @@ global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
+global.original_data;
+
 //global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
 
 

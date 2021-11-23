@@ -1,10 +1,10 @@
 module.exports = {
     //console.log(data);
 
-    buy_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook,bool_last_prediction) {
+    buy_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction) {
 
         //console.log("last_data, indicators",last_data, indicators);
-        console.log("indicators.rsi", indicators.rsi)
+        //console.log("indicators.rsi", indicators.rsi,"data[i - 1]",indicators);
 
         let sum = 0;
         let totale_per_media = 0;
@@ -29,11 +29,11 @@ module.exports = {
         };
         totale_per_media++;
 
-        if (parseFloat(last_data) < parseFloat(actual)) {
+        /*if (parseFloat(last_data) < parseFloat(actual)) {
             console.log("BUY", "parseFloat(last_data) < parseFloat(actual)", parseFloat(last_data) < parseFloat(actual));
             sum++;
         };
-        totale_per_media++;
+        totale_per_media++;*/
 
         if (parseFloat(prediction) > parseFloat(actual)) {
             console.log("BUY", "parseFloat(prediction) > parseFloat(actual)", parseFloat(prediction) > parseFloat(actual));
@@ -70,7 +70,7 @@ module.exports = {
 
     },
 
-    sell_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook,bool_last_prediction) {
+    sell_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction) {
 
 
         let sum = 0;
@@ -82,8 +82,8 @@ module.exports = {
         realResults.forEach((v) => { close_sum += v.y });
         let media = close_sum / data.length;*/
 
-        if (parseFloat(indicators.pick_incidence) < 0.3) {
-            console.log("SELL", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
+        if (parseFloat(indicators.pick_incidence) > 0.7) {
+            console.log("SELL", "parseFloat(indicators.pick_incidence) > 0.7", parseFloat(indicators.pick_incidence) > 0.7);
             sum++;
         };
         totale_per_media++;
@@ -94,11 +94,11 @@ module.exports = {
         };
         totale_per_media++;
 
-        if (parseFloat(last_data) > parseFloat(actual)) {
-            console.log("SELL", "parseFloat(last_data) > parseFloat(actual)", parseFloat(last_data) > parseFloat(actual));
-            sum++;
-        };
-        totale_per_media++;
+        /* if (parseFloat(last_data) > parseFloat(actual)) {
+             console.log("SELL", "parseFloat(last_data) > parseFloat(actual)", parseFloat(last_data) > parseFloat(actual));
+             sum++;
+         };
+         totale_per_media++;*/
 
         if (parseFloat(prediction) < parseFloat(actual)) {
             console.log("SELL", "parseFloat(prediction) < parseFloat(actual)", parseFloat(prediction) < parseFloat(actual));

@@ -39,7 +39,7 @@ module.exports = {
         }
 
         let d = 0;
-        for (let i = 7; i < data.length; i++) {
+        for (let i = 14; i < data.length; i++) {
             data[i].rsi = rsi[d];
             d++;
         }
@@ -67,7 +67,8 @@ module.exports = {
 
         d = 0;
         for (let i = 25; i < data.length; i++) {
-            data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].macd_macd);
+            //console.log(data[i]);
+            data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].sma);
             d++;
         }
 
@@ -77,9 +78,14 @@ module.exports = {
         /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
         data = data.slice(33);
 
+        original_data = data;
+
+
         //console.log("TRAIN DATA 1", data[0]);
 
         data = normalizer.normalizza_dati(data);
+
+
 
         //console.log("TRAIN DATA 2", data[0]);
         /* sometimes Chrome crashes and you need to open a new window */
@@ -95,9 +101,11 @@ module.exports = {
 
         const start = data.length - size - predict_size;
 
+
         const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
+        //console.log("TEST",original_data.slice(-1));
 
 
 
@@ -170,10 +178,10 @@ module.exports = {
             //epochs_number = 30;
             //learningRate = 0.001;
             //errore 0.001
-          
-           epochs_number = 50;
-           learningRate = 0.001;
-           //errore
+
+            epochs_number = 50;
+            learningRate = 0.001;
+            //errore
 
         } else {
             learningRate = 0.0001;
@@ -369,8 +377,9 @@ module.exports = {
             percentuale_take_profit,
             price_rise_probability,
             price_drop_probability
-        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size, start + size + predict_size), newsData, orderBook);
+        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook);
 
+        //console.log("TEST2",data.slice(start + size, start + size + predict_size));
 
         let temp_testingData = [...testing];
 
