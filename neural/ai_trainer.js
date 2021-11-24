@@ -402,7 +402,7 @@ module.exports = {
 
 
 
-        //console.log("CRESCITA", crescita, giusti, errori, pari);
+        console.log("CRESCITA", crescita, giusti, errori, pari);
 
 
         let market_depth_status = "POSITIVE";

@@ -2,7 +2,7 @@ module.exports = {
 
 
     simulazione_guadagni: function (realResults, predictions, data, sentimentAnalysis, orderBook) {
-       
+
 
         //intanto proviamo sui 5 minuti con alternative coins
 
@@ -35,6 +35,9 @@ module.exports = {
         let bool_last_prediction = false;
         let approval_cutoff = 60;
 
+
+        //let operations=new Array();
+
         //console.log("LAST DATA SIMULATION",data.slice(-1),realResults.length,data.length);
 
         let i = 1;
@@ -64,18 +67,19 @@ module.exports = {
                         //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
 
                     } else {*/
-                        if (status === 0 && bool_last_prediction === false) {
-                            console.log("CLOSE");
-                            status = 1;
-                        }
-                        status = 2;
-                        importo_attuale = realResults[i - 1].y;
-                        percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
-                        tipo_negoziazione = "BUY";
-                        importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
-                        
-                        console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
-                   /* }*/
+                    if (status === 0 && bool_last_prediction === false) {
+                        console.log("CLOSE");
+                        status = 1;
+                    }
+                    status = 2;
+                    importo_attuale = realResults[i - 1].y;
+                    percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                    tipo_negoziazione = "BUY";
+                    importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
+
+                    //se la previsione del buy sell condition è fatta sui dati -1 ovviamente il giro da cui parte la predizione sarà il -1
+                    console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                    /* }*/
                 } else if (price_drop_probability > approval_cutoff) {
                     /*if (status === 0 && bool_last_prediction === false) {
                         importo_attuale = realResults[i - 1].y;
@@ -87,21 +91,26 @@ module.exports = {
 
 
                     } else {*/
-                        if (status === 2 && bool_last_prediction === false) {
-                            console.log("CLOSE");
-                            status = 1;
-                        }
+                    if (status === 2 && bool_last_prediction === false) {
+                        console.log("CLOSE");
+                        status = 1;
+                    }
 
-                        status = 0;
+                    status = 0;
 
-                        importo_attuale = realResults[i - 1].y;
-                        percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
-                        tipo_negoziazione = "SELL";
-                        importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
+                    importo_attuale = realResults[i - 1].y;
+                    percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                    tipo_negoziazione = "SELL";
+                    importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
 
-                        console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                    //se la previsione del buy sell condition è fatta sui dati -1 ovviamente il giro da cui parte la predizione sarà il -1
+                    console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
                     /*}*/
                 } else {
+
+
+
+
                     importo_attuale = realResults[i - 1].y;
                     percentuale_take_profit = 0;
                     tipo_negoziazione = "NOTHING";
@@ -116,7 +125,8 @@ module.exports = {
 
         }
 
-        console.log("IL "+i+"-ESIMO GIRO E' LA PREDIZIONE E NON HA DATI");
+        //è -1 perchè nel ciclo mostro il giro -1, dato che i data sono -1 (l'ultimo non ce l'ho perchè è la previsione)
+        console.log("IL " + (i-1) + "-ESIMO GIRO E' LA PREDIZIONE E NON HA DATI");
 
         return {
             crescita,

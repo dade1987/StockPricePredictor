@@ -18,13 +18,13 @@ module.exports = {
         //console.log("INDICATORS", indicators);
 
         if (parseFloat(indicators.pick_incidence) < 0.4) {
-            console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
+            //console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
             sum++;
         };
         totale_per_media++;
 
         if (parseFloat(indicators.rsi) < 0.3) {
-            console.log("BUY", "parseFloat(indicators.rsi) < 0.3", parseFloat(indicators.rsi) < 0.3);
+            //console.log("BUY", "parseFloat(indicators.rsi) < 0.3", parseFloat(indicators.rsi) < 0.3);
             sum++;
         };
         totale_per_media++;
@@ -36,20 +36,20 @@ module.exports = {
         totale_per_media++;*/
 
         if (parseFloat(prediction) > parseFloat(actual)) {
-            console.log("BUY", "parseFloat(prediction) > parseFloat(actual)", parseFloat(prediction) > parseFloat(actual));
+            ////console.log("BUY", "parseFloat(prediction) > parseFloat(actual)", parseFloat(prediction) > parseFloat(actual));
             sum++;
         }
         totale_per_media++;
 
         if (bool_last_prediction === true) {
             if (sentimentAnalysis > 0.5) {
-                console.log("BUY", "sentimentAnalysis > 0.5", sentimentAnalysis > 0.5);
+                //console.log("BUY", "sentimentAnalysis > 0.5", sentimentAnalysis > 0.5);
                 sum++;
             }
             totale_per_media++;
 
             if (orderBook === true) {
-                console.log("BUY", "orderBook === true", orderBook === true);
+                //console.log("BUY", "orderBook === true", orderBook === true);
                 sum++;
             }
             totale_per_media++;
@@ -83,13 +83,13 @@ module.exports = {
         let media = close_sum / data.length;*/
 
         if (parseFloat(indicators.pick_incidence) > 0.6) {
-            console.log("SELL", "parseFloat(indicators.pick_incidence) > 0.7", parseFloat(indicators.pick_incidence) > 0.7);
+            //console.log("SELL", "parseFloat(indicators.pick_incidence) > 0.7", parseFloat(indicators.pick_incidence) > 0.7);
             sum++;
         };
         totale_per_media++;
 
         if (parseFloat(indicators.rsi) > 0.7) {
-            console.log("SELL", "parseFloat(indicators.rsi) > 0.7", parseFloat(indicators.rsi) > 0.7);
+            //console.log("SELL", "parseFloat(indicators.rsi) > 0.7", parseFloat(indicators.rsi) > 0.7);
             sum++;
         };
         totale_per_media++;
@@ -101,20 +101,20 @@ module.exports = {
          totale_per_media++;*/
 
         if (parseFloat(prediction) < parseFloat(actual)) {
-            console.log("SELL", "parseFloat(prediction) < parseFloat(actual)", parseFloat(prediction) < parseFloat(actual));
+            //console.log("SELL", "parseFloat(prediction) < parseFloat(actual)", parseFloat(prediction) < parseFloat(actual));
             sum++;
         }
         totale_per_media++;
 
         if (bool_last_prediction === true) {
             if (sentimentAnalysis < 0.5) {
-                console.log("SELL", "sentimentAnalysis < 0.5", sentimentAnalysis < 0.5);
+                //console.log("SELL", "sentimentAnalysis < 0.5", sentimentAnalysis < 0.5);
                 sum++;
             }
             totale_per_media++;
 
             if (orderBook === false) {
-                console.log("SELL", "orderBook === false", orderBook === false);
+                //console.log("SELL", "orderBook === false", orderBook === false);
                 sum++;
             }
             totale_per_media++;
@@ -129,7 +129,7 @@ module.exports = {
 
         console.log("PROBABILITA DI DISCESA DEL PREZZO:" + probabilita + "%");
 
-        console.log("\r\n");
+        //console.log("\r\n");
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
         return probabilita;
