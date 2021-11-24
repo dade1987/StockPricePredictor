@@ -33,6 +33,8 @@ module.exports = {
         let price_rise_probability = 0;
         let price_drop_probability = 0;
         let bool_last_prediction = false;
+        
+        //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
         let approval_cutoff = 60;
 
 

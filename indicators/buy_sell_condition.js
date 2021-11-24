@@ -15,7 +15,7 @@ module.exports = {
         realResults.forEach((v) => { close_sum += v.y });
         let media = close_sum / data.length;*/
 
-        //console.log("INDICATORS", indicators);
+        //console.log("INDICATORS", indicators,"PREDICTION",prediction,"LAST DATA",last_data);
 
         if (parseFloat(indicators.pick_incidence) < 0.4) {
             //console.log("BUY", "parseFloat(indicators.pick_incidence) < 0.3", parseFloat(indicators.pick_incidence) < 0.3);
