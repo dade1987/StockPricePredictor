@@ -30,6 +30,13 @@ global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
 global.original_data;
+global.sma_period=21;
+global.rsi_period=14;
+global.stochastic_period=14;
+global.stochastic_signalPeriod=3;
+global.macd_fastPeriod= 12;
+global.macd_slowPeriod= 26;
+global.macd_signalPeriod= 9;
 
 //global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
 

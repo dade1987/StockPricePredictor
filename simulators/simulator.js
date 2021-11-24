@@ -1,5 +1,8 @@
 module.exports = {
+
+
     simulazione_guadagni: function (realResults, predictions, data, sentimentAnalysis, orderBook) {
+       
 
         //intanto proviamo sui 5 minuti con alternative coins
 
@@ -30,10 +33,12 @@ module.exports = {
         let price_rise_probability = 0;
         let price_drop_probability = 0;
         let bool_last_prediction = false;
+        let approval_cutoff = 60;
 
         //console.log("LAST DATA SIMULATION",data.slice(-1),realResults.length,data.length);
 
-        for (let i = 1; i <= realResults.length; i++) {
+        let i = 1;
+        for (; i <= realResults.length; i++) {
 
             //console.log("CICLO", i);
 
@@ -45,64 +50,64 @@ module.exports = {
                     bool_last_prediction = true;
                 }
                 //console.log("DATI", data[i - 1], realResults[i - 1].y);
-               // console.log("original_data",original_data.slice(-3));
+                // console.log("original_data",original_data.slice(-3));
                 price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction);
                 price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction)
 
-                if (price_rise_probability > 65) {
-                    /* if (status === 0) {
-                         console.log("CLOSE");
-                         status = 1;
-                     } else if (status === 2) {
-                         importo_attuale = realResults[i - 1].y;
-                         percentuale_take_profit = 0;
-                         tipo_negoziazione = "NOTHING";
-                         importo_take_profit = importo_attuale;
-     
-                         //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
-     
-                     } else {*/
-                    status = 2;
-                    importo_attuale = realResults[i - 1].y;
-                    percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
-                    tipo_negoziazione = "BUY";
-                    importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
-                    /*player.play('buy.mp3', function(err){
-                        if (err) throw err
-                      });*/
-                    console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
-                    /*}*/
-                } else if (price_drop_probability > 65) {
-                    /*if (status === 2) {
-                        console.log("CLOSE");
-                        status = 1;
-                    } else if (status === 0) {
+                if (price_rise_probability > approval_cutoff) {
+                    /*if (status === 2 && bool_last_prediction === false) {
                         importo_attuale = realResults[i - 1].y;
                         percentuale_take_profit = 0;
                         tipo_negoziazione = "NOTHING";
                         importo_take_profit = importo_attuale;
-    
-                        //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
-    
-    
-                    } else {*/
-                    status = 0;
 
-                    importo_attuale = realResults[i - 1].y;
-                    percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
-                    tipo_negoziazione = "SELL";
-                    importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
-                    /*player.play('sell.mp3', function(err){
-                        if (err) throw err
-                      });*/
-                    console.log(i, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
-                    /* }*/
+                        //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+                    } else {*/
+                        if (status === 0 && bool_last_prediction === false) {
+                            console.log("CLOSE");
+                            status = 1;
+                        }
+                        status = 2;
+                        importo_attuale = realResults[i - 1].y;
+                        percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                        tipo_negoziazione = "BUY";
+                        importo_take_profit = (parseFloat(importo_attuale) + (importo_attuale / 100 * percentuale_take_profit));
+                        
+                        console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                   /* }*/
+                } else if (price_drop_probability > approval_cutoff) {
+                    /*if (status === 0 && bool_last_prediction === false) {
+                        importo_attuale = realResults[i - 1].y;
+                        percentuale_take_profit = 0;
+                        tipo_negoziazione = "NOTHING";
+                        importo_take_profit = importo_attuale;
+
+                        //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+
+
+                    } else {*/
+                        if (status === 2 && bool_last_prediction === false) {
+                            console.log("CLOSE");
+                            status = 1;
+                        }
+
+                        status = 0;
+
+                        importo_attuale = realResults[i - 1].y;
+                        percentuale_take_profit = Math.abs(((((parseFloat(predictions[i].y) / parseFloat(predictions[i - 1].y) - 1) * 100))));
+                        tipo_negoziazione = "SELL";
+                        importo_take_profit = (parseFloat(importo_attuale) - (importo_attuale / 100 * percentuale_take_profit));
+
+                        console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
+                    /*}*/
                 } else {
                     importo_attuale = realResults[i - 1].y;
                     percentuale_take_profit = 0;
                     tipo_negoziazione = "NOTHING";
                     importo_take_profit = importo_attuale;
 
+                    console.log("GIRO", i - 1);
                     //console.log(tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
 
                 }
@@ -110,6 +115,8 @@ module.exports = {
             }
 
         }
+
+        console.log("IL "+i+"-ESIMO GIRO E' LA PREDIZIONE E NON HA DATI");
 
         return {
             crescita,

@@ -3,18 +3,18 @@ module.exports = {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
-            period: 14,
+            period: rsi_period,
             values: data.map(d => d.close)
         });
         let sma = SMA.calculate({
-            period: 14,
+            period: sma_period,
             values: data.map(d => d.close)
         });
         let macd = MACD.calculate({
             values: data.map(d => d.close),
-            fastPeriod: 12,
-            slowPeriod: 26,
-            signalPeriod: 9,
+            fastPeriod: macd_fastPeriod,
+            slowPeriod: macd_slowPeriod,
+            signalPeriod: macd_signalPeriod,
             SimpleMAOscillator: false,
             SimpleMASignal: false
         });
@@ -24,8 +24,8 @@ module.exports = {
             high: data.map(d => d.high),
             low: data.map(d => d.low),
             close: data.map(d => d.close),
-            period: 14,
-            signalPeriod: 3
+            period: stochastic_period,
+            signalPeriod: stochastic_signalPeriod
         });
 
         for (let i = 0; i < data.length; i++) {
@@ -40,28 +40,29 @@ module.exports = {
 
 
         let d = 0;
-        for (let i = 14; i < data.length; i++) {
+        for (let i = rsi_period; i < data.length; i++) {
             //console.log("DEBUG RSI",sma[d],i,d)
             data[i].rsi = rsi[d];
             d++;
         }
 
+        //alcuni periodi sono -1
         d = 0;
-        for (let i = 13; i < data.length; i++) {
+        for (let i = sma_period-1; i < data.length; i++) {
             //console.log("DEBUG SMA",sma[d],i,d)
             data[i].sma = sma[d];
             d++;
         }
 
         d = 0;
-        for (let i = 13; i < data.length; i++) {
+        for (let i = stochastic_period-1; i < data.length; i++) {
             data[i].stochastic_k = stochastic[d].k;
             data[i].stochastic_d = stochastic[d].d;
             d++;
         }
 
         d = 0;
-        for (let i = 25; i < data.length; i++) {
+        for (let i = macd_slowPeriod-1; i < data.length; i++) {
             data[i].macd_macd = macd[d].MACD;
             data[i].macd_signal = macd[d].signal;
             data[i].macd_histogram = macd[d].histogram;
@@ -69,13 +70,13 @@ module.exports = {
         }
 
         d = 0;
-        for (let i = 25; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             //console.log(data[i]);
             data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].sma);
             d++;
         }
 
-        //console.log("TRAIN DATA 0", data[0]);
+        //console.log("TRAIN DATA 0", data[data.length-1]);
 
 
         /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
@@ -108,8 +109,9 @@ module.exports = {
         const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
-        //console.log("TEST",original_data.slice(-1));
-
+        console.log("original_data",original_data.slice(-1));
+        console.log("data",data.slice(-1));
+        console.log("input",input.slice(-1));
 
 
         const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name, time_interval);
@@ -396,11 +398,11 @@ module.exports = {
         const testingAccuracyDataSync = testingAccuracy[1].dataSync();
         const testingAccuracyArray = Array.from(testingAccuracyDataSync);
 
-        console.log("TESTING ACCURACY", testingAccuracyArray);
+        //console.log("TESTING ACCURACY", testingAccuracyArray);
 
 
 
-        console.log("CRESCITA", crescita, giusti, errori, pari);
+        //console.log("CRESCITA", crescita, giusti, errori, pari);
 
 
         let market_depth_status = "POSITIVE";
