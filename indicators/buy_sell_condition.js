@@ -63,7 +63,6 @@ module.exports = {
 
         console.log("PROBABILITA DI SALITA DEL PREZZO:" + probabilita + "%");
 
-        console.log("\r\n");
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
         return probabilita;
@@ -129,7 +128,7 @@ module.exports = {
 
         console.log("PROBABILITA DI DISCESA DEL PREZZO:" + probabilita + "%");
 
-        //console.log("\r\n");
+     
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
         return probabilita;
