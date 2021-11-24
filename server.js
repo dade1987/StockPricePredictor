@@ -699,4 +699,16 @@ async function train_models() {
     await main('CRYPTO', 'INTRADAY_60_MIN', "ETH", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_60_MIN', "DOGE", "USD", 14, 50, true, null);
 
+    await main('CRYPTO', 'INTRADAY_30_MIN', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_30_MIN', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_30_MIN', "DOGE", "USD", 14, 50, true, null);
+
+    await main('CRYPTO', 'INTRADAY_15_MIN', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_15_MIN', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_15_MIN', "DOGE", "USD", 14, 50, true, null);
+
+    await main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_5_MIN', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_5_MIN', "DOGE", "USD", 14, 50, true, null);
+
 }
