@@ -1,5 +1,5 @@
 module.exports = {
-    prepareInputDatas: function (data, time_steps, b_test, market_name,time_interval) {
+    prepareInputDatas: function (data, time_steps, b_test, market_name, time_interval) {
 
         let test = 0;
         if (b_test === true) {
@@ -131,6 +131,25 @@ module.exports = {
             for (let i = time_steps; i < data.length; i++) {
 
                 arr.push(data[i].close);
+
+
+            }
+
+            return arr;
+
+        } else {
+            return false;
+        }
+    }, prepareOutputSpecs: function (data, time_steps) {
+
+        if (data.length > time_steps) {
+
+            let arr = new Array();
+
+            /* create output training set (or testing values) (y values) */
+            for (let i = time_steps; i < data.length; i++) {
+
+                arr.push(data[i]);
 
 
             }

@@ -116,7 +116,9 @@ module.exports = {
 
         const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name, time_interval);
         const testingResults = prepare_data.prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
+        const testingSpecs = prepare_data.prepareOutputSpecs(data.slice(start + size, start + size + predict_size), time_steps);
 
+        
 
         //console.log("INPUT", input[0]);
         //console.log("OUTPUT", output);
@@ -358,6 +360,23 @@ module.exports = {
                 };
             }
         });
+        const outputSpecsHigh = Array.from(testingSpecs).map((d, i) => {
+            if (d) {
+                console.log(d.high);
+                return {
+                    x: i,
+                    y: d.high * (prices_max - prices_min) + prices_min
+                };
+            }
+        });
+        const outputSpecsLow = Array.from(testingSpecs).map((d, i) => {
+            if (d) {
+                return {
+                    x: i,
+                    y: d.low * (prices_max - prices_min) + prices_min
+                };
+            }
+        });
 
         //console.log("INPUT", testing);
 
@@ -367,7 +386,9 @@ module.exports = {
         //console.log("PREDICTIONS", predictions);
 
         if (socket !== null) {
-            setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions])), 1500);
+            console.log("SENDING SOCKET");
+            setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions,outputSpecsHigh,outputSpecsLow])), 1500);
+            console.log("SOCKET SENT");
         }
 
 
