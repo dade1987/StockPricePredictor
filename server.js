@@ -21,10 +21,12 @@ global.Stochastic = require('technicalindicators').Stochastic;
 global.router = express.Router();
 global.app = express();
 
-global.trainer = require('./neural/ai_trainer');
+//modulo intercambiabile (tipo dependancy injector linearRegressor,multiClassClassifier)
+global.trainer = require('./neural/linearRegressor');
 global.pick_incidence = require('./indicators/pick_incidence');
 global.normalizer = require('./services/normalizer');
-global.prepare_data = require('./services/prepare_data');
+//linearRegressorPrepareData,multiClassClassifierPrepareData
+global.prepare_data = require('./services/linearRegressorPrepareData');
 global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');

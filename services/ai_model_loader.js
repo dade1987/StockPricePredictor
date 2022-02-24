@@ -1,22 +1,29 @@
 module.exports = {
 
-    load_model: async function (market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer) {
+    load_model: async function (model_name, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer) {
 
-        let model = await tf.loadLayersModel('file://' + process.cwd() + '/ai_models/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json')
+        console.log("MODEL LOADING...");
 
-        console.log("LOAD MODEL", 'file://' + process.cwd() + '/ai_models/' + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
+        let model = await tf.loadLayersModel('file://' + process.cwd() + '/ai_models/' + model_name + market_name + time_interval + currency_pair_1 + currency_pair_2 + time_steps + epochs_number + '/model.json');
 
         model.summary();
 
-        /* compiling model with optimizer, loss and metrics */
-        /* meglio con queste 2 loss assieme, oppure con meanabsolute */
-        model.compile({
+        //default is linear regressor
+        if (model_name === '') {
 
-            optimizer: optimizer,
-            loss: tf.losses.meanSquaredError,
-            metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
-
-        });
+            /* compiling model with optimizer, loss and metrics */
+            /* meglio con queste 2 loss assieme, oppure con meanabsolute */
+            model.compile({
+                optimizer: optimizer,
+                loss: tf.losses.meanSquaredError,
+                metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+            });
+        } else if (model_name === 'multiClassClassifier') {
+            model.compile({
+                loss: 'categoricalCrossentropy',
+                optimizer: optimizer
+            });
+        }
 
         return model;
     }

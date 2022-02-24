@@ -109,9 +109,9 @@ module.exports = {
         const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
-        console.log("original_data",original_data.slice(-1));
+        /*console.log("original_data",original_data.slice(-1));
         console.log("data",data.slice(-1));
-        console.log("input",input.slice(-1));
+        console.log("input",input.slice(-1));*/
 
 
         const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name, time_interval);
@@ -204,7 +204,7 @@ module.exports = {
 
             try {
 
-                model = await ai_model_loader.load_model(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
+                model = await ai_model_loader.load_model('',market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
                 /* in caso di errore */
             } catch (e) {
 
@@ -323,7 +323,7 @@ module.exports = {
 
         } else {
 
-            model = await ai_model_loader.load_model(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
+            model = await ai_model_loader.load_model('',market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
 
         }
 
@@ -419,8 +419,7 @@ module.exports = {
         const testingAccuracyDataSync = testingAccuracy[1].dataSync();
         const testingAccuracyArray = Array.from(testingAccuracyDataSync);
 
-        //console.log("TESTING ACCURACY", testingAccuracyArray);
-
+        console.log("TESTING ACCURACY", testingAccuracyArray);
 
 
         console.log("CRESCITA", crescita, giusti, errori, pari);
