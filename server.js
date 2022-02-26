@@ -184,10 +184,10 @@ async function getOrderBook(currency_pair_1) {
                 //in mezzo c'è lo spread
 
                 //quindi siccome bids sono gli ordini in acquisto, se i volumi dei grossi traders sono negativi si propende per la vendita
-                console.log("DIREZIONE DELLE BALENE... COMPRANO ?", bids > asks);
+                console.log("DIREZIONE DEL MERCATO?", total_asks_volume > total_bids_volume);
 
-                //SE E' false vendono, se è true comprano
-                resolve(bids > asks);
+                //se il volume della domanda (bids)  è più alto  dell'offerta totale (asks) è true, il prezzo sale
+                resolve(total_bids_volume > total_asks_volume);
 
             });
         });
