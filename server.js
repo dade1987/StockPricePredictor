@@ -32,13 +32,13 @@ global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
 global.original_data;
-global.sma_period=21;
-global.rsi_period=14;
-global.stochastic_period=14;
-global.stochastic_signalPeriod=3;
-global.macd_fastPeriod= 12;
-global.macd_slowPeriod= 26;
-global.macd_signalPeriod= 9;
+global.sma_period = 21;
+global.rsi_period = 14;
+global.stochastic_period = 14;
+global.stochastic_signalPeriod = 3;
+global.macd_fastPeriod = 12;
+global.macd_slowPeriod = 26;
+global.macd_signalPeriod = 9;
 
 //global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
 
@@ -55,12 +55,12 @@ const INDEX = '/index.html';
 dotenv.config();
 
 const server = express()
-    .get('/', function (req, res) {
+    .get('/', function(req, res) {
         res.sendFile(process.cwd() + "/index.html");
     })
-    .get('/admin', function (req, res) {
+    .get('/admin', function(req, res) {
         res.sendFile(process.cwd() + "/index_modificabile.html");
-    }).get('/banner', function (req, res) {
+    }).get('/banner', function(req, res) {
         res.sendFile(process.cwd() + "/banner.jpg");
     }).listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -73,7 +73,7 @@ io.on('connection', (socket) => {
         console.log("connection");
     });
 
-    socket.on('predict', async (arg) => {
+    socket.on('predict', async(arg) => {
         console.log('received predict request');
 
         let parameters = JSON.parse(arg);
@@ -84,7 +84,7 @@ io.on('connection', (socket) => {
     });
 });
 
-process.argv.forEach(function (val, index, array) {
+process.argv.forEach(function(val, index, array) {
     console.log(val);
 
     if (val === "--train") {
@@ -107,21 +107,47 @@ const yesterday = () => {
 
 async function getOrderBook(currency_pair_1) {
 
-    //leggi il primo 5% degli ordini più grossi
-    //attenzione. 5 vale solo come span per 5 bitcoins
-    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook";//?span=5
-    //let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook?limit=1";
+    //documentazione: https://cryptowat.ch/docs/api
+
+    //Il raggruppamento o tick size indica in che misura raggruppare il book
+    //Esempio:
+    //100 significa che da 39100 a 39199 vanno in 39100 i conti
+    //50 invece significa che da 39050 a 39059 vanno in 39050
+    //4 da 39055 a 39059 vanno in 39050
+    //quindi ad esempio potrebbe dire che 3500 persone vorrebbero vendere 84 bitcoin a 40300 USDT per bitcoin
+    //mentre 6000 persone magari vorrebbero acquistare 50 bitcoin pagandolo 39000 dollari
+    //quindi succede che il prezzo si muoverà tra questi valori (il valore medio è lo spread)
+    //per accontentare i compratori e venditori
+    //nei trades si vedono le quantità di soldi movimentata, e se è una vendita o un acquisto
+
+
+    //MIGLIORE SPREAD (MIGLIOR BID E ASK)
+    //https://api.cryptowat.ch/markets/binance/btcusdt/orderbook?limit=1
+
+    //SOLO ORDINI NEL 5% PIU' ALTO DEL BOOK
+    //https://api.cryptowat.ch/markets/binance/btcusdt/orderbook?span=0.5
+
+    //Solo ordini sufficienti per aggiungere fino a 100 BTC su ciascun lato
+    //https://api.cryptowat.ch/markets/binance/btcusdt/orderbook?depth=100
+
+    //Liquidità dell'order book (da approfondire)
+    //https://api.cryptowat.ch/markets/binance/btcusdt/orderbook/liquidity
+
+    //Trades (operazioni di mercato) più recenti
+    //https://api.cryptowat.ch/markets/:exchange/:pair/trades
+
+    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook";
 
     return new Promise((resolve, reject) => {
 
-        let newsRequest = https.get(url.toLowerCase(), function (res) {
+        let newsRequest = https.get(url.toLowerCase(), function(res) {
             let data = '',
                 json_data;
 
-            res.on('data', function (stream) {
+            res.on('data', function(stream) {
                 data += stream;
             });
-            res.on('end', function () {
+            res.on('end', function() {
                 json_data = JSON.parse(data);
 
                 // will output a Javascript object
@@ -134,15 +160,28 @@ async function getOrderBook(currency_pair_1) {
 
                 //console.log(json_data.result.asks[0][0]);
 
-                let asks = 0;
+                let total_asks_volume = 0;
                 json_data.result.asks.forEach((v) => {
-                    asks += v[0] * v[1];
+                    total_asks_volume += v[0] * v[1];
                 });
 
-                let bids = 0;
+                let total_bids_volume = 0;
                 json_data.result.bids.forEach((v) => {
-                    bids += v[0] * v[1];
+                    total_bids_volume += v[0] * v[1];
                 });
+
+                console.log("TOTAL ASKS VOLUME", total_asks_volume);
+
+                console.log("TOTAL BIDS VOLUME", total_bids_volume)
+
+                //l'ask migliore è il prezzo più basso al quale qualcuno vorrebbe vendere l'asset,
+                //quindi è il prezzo che devi pagare se vuoi comprare l'asset in questo momento
+
+
+                //il bid migliore è il prezzo più alto al quale qualcuno vorrebbe comprare l'asset
+                //quindi è il prezzo che devi pagare se vuoi vendere l'asset in questo momento a mercato
+
+                //in mezzo c'è lo spread
 
                 //quindi siccome bids sono gli ordini in acquisto, se i volumi dei grossi traders sono negativi si propende per la vendita
                 console.log("DIREZIONE DELLE BALENE... COMPRANO ?", bids > asks);
@@ -150,8 +189,7 @@ async function getOrderBook(currency_pair_1) {
                 //SE E' false vendono, se è true comprano
                 resolve(bids > asks);
 
-            }
-            );
+            });
         });
 
     });
@@ -258,14 +296,14 @@ Default: 1.
 
         console.log(url_news);
 
-        let newsRequest = https.get(url_news, function (res) {
+        let newsRequest = https.get(url_news, function(res) {
             let data = '',
                 json_data;
 
-            res.on('data', function (stream) {
+            res.on('data', function(stream) {
                 data += stream;
             });
-            res.on('end', function () {
+            res.on('end', function() {
                 json_data = JSON.parse(data);
 
                 // will output a Javascript object
@@ -275,8 +313,7 @@ Default: 1.
                 console.log(json_data.articles[0].title + ' ' + json_data.articles[0].description + ' ' + json_data.articles[0].content);*/
 
                 resolve(json_data.articles);
-            }
-            );
+            });
         });
     });
 
@@ -338,8 +375,7 @@ async function getSentimentAnalysis(newsJsonData) {
         risultato = sum / total;
 
         console.log("MEDIA DELLA SENTIMENTAL ANALYSIS E' " + risultato);
-    }
-    catch (e) {
+    } catch (e) {
 
         console.log(e);
 
@@ -570,14 +606,14 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
         console.log("URL", url);
 
-        let timeseriesRequest = https.get(url, function (res) {
+        let timeseriesRequest = https.get(url, function(res) {
             let data = '',
                 json_data;
 
-            res.on('data', function (stream) {
+            res.on('data', function(stream) {
                 data += stream;
             });
-            res.on('end', function () {
+            res.on('end', function() {
                 json_data = JSON.parse(data);
 
                 // will output a Javascript object
@@ -646,7 +682,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
             });
         });
 
-        timeseriesRequest.on('error', function (e) {
+        timeseriesRequest.on('error', function(e) {
             console.log(e.message);
         });
 
@@ -691,12 +727,12 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
 async function train_models() {
 
-    
+
     await main('CRYPTO', 'DAILY', "BTC", "USD", 14, 50, true, null);
     await main('CRYPTO', 'DAILY', "ETH", "USD", 14, 50, true, null);
     await main('CRYPTO', 'DAILY', "DOGE", "USD", 14, 50, true, null);
 
-    
+
     await main('CRYPTO', 'INTRADAY_60_MIN', "BTC", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_60_MIN', "ETH", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_60_MIN', "DOGE", "USD", 14, 50, true, null);
