@@ -1,5 +1,5 @@
 module.exports = {
-    train_data: async function (data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook) {
+    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook) {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
@@ -48,21 +48,21 @@ module.exports = {
 
         //alcuni periodi sono -1
         d = 0;
-        for (let i = sma_period-1; i < data.length; i++) {
+        for (let i = sma_period - 1; i < data.length; i++) {
             //console.log("DEBUG SMA",sma[d],i,d)
             data[i].sma = sma[d];
             d++;
         }
 
         d = 0;
-        for (let i = stochastic_period-1; i < data.length; i++) {
+        for (let i = stochastic_period - 1; i < data.length; i++) {
             data[i].stochastic_k = stochastic[d].k;
             data[i].stochastic_d = stochastic[d].d;
             d++;
         }
 
         d = 0;
-        for (let i = macd_slowPeriod-1; i < data.length; i++) {
+        for (let i = macd_slowPeriod - 1; i < data.length; i++) {
             data[i].macd_macd = macd[d].MACD;
             data[i].macd_signal = macd[d].signal;
             data[i].macd_histogram = macd[d].histogram;
@@ -118,7 +118,7 @@ module.exports = {
         const testingResults = prepare_data.prepareOutputDatas(data.slice(start + size, start + size + predict_size), time_steps);
         const testingSpecs = prepare_data.prepareOutputSpecs(data.slice(start + size, start + size + predict_size), time_steps);
 
-        
+
 
         //console.log("INPUT", input[0]);
         //console.log("OUTPUT", output);
@@ -204,7 +204,7 @@ module.exports = {
 
             try {
 
-                model = await ai_model_loader.load_model('',market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
+                model = await ai_model_loader.load_model('', market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
                 /* in caso di errore */
             } catch (e) {
 
@@ -302,7 +302,9 @@ module.exports = {
 
                 /* non serve saperlo per forza */
                 if (socket !== null) {
-                    socket.emit('training', JSON.stringify([trainingResults, trainingValidation]));
+                    if (socket.send !== undefined) {
+                        socket.emit('training', JSON.stringify([trainingResults, trainingValidation]));
+                    }
                 }
 
                 /* creating training chart */
@@ -323,7 +325,7 @@ module.exports = {
 
         } else {
 
-            model = await ai_model_loader.load_model('',market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
+            model = await ai_model_loader.load_model('', market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer);
 
         }
 
@@ -386,9 +388,11 @@ module.exports = {
         //console.log("PREDICTIONS", predictions);
 
         if (socket !== null) {
-            console.log("SENDING SOCKET");
-            setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions,outputSpecsHigh,outputSpecsLow])), 1500);
-            console.log("SOCKET SENT");
+            if (socket.send !== undefined) {
+                console.log("SENDING SOCKET");
+                setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions, outputSpecsHigh, outputSpecsLow])), 1500);
+                console.log("SOCKET SENT");
+            }
         }
 
 
@@ -430,9 +434,14 @@ module.exports = {
             market_depth_status === "NEGATIVE";
         }
 
+
         if (socket !== null) {
+            if (socket.send !== undefined) {
+                socket.send(JSON.stringify([{ take_profit: parseFloat(importo_take_profit).toFixed(0), transaction_type: tipo_negoziazione, actual_price: importo_attuale, take_profit_percent: percentuale_take_profit, news_status: (parseFloat(newsData) * 100).toFixed(2), price_rise_probability: price_rise_probability, price_drop_probability: price_drop_probability, order_book_status: market_depth_status }]));
+            } else if (socket.emit !== undefined) {
+                socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status]));
+            }
             // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
-            socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status]));
         }
 
         /* creating prediction chart */

@@ -62,7 +62,24 @@ const server = express()
         res.sendFile(process.cwd() + "/index_modificabile.html");
     }).get('/banner', function(req, res) {
         res.sendFile(process.cwd() + "/banner.jpg");
-    }).listen(PORT, () => console.log(`Listening on ${PORT}`));
+    })
+    .get('/predict/:timeInterval/:currencyPairOne', function(req, res) {
+        //currency_pair_1
+        //BTC
+        //ETH
+
+        //time_interval
+        //DAILY
+        //INTRADAY_60_MIN
+
+        //non serve await perchè le API sono asincrone
+        //res.send(req.params.timeInterval);
+        main('CRYPTO', req.params.timeInterval, req.params.currencyPairOne, 'USD', 14, 50, false, res);
+
+    }).get('/users/:userId/books/:bookId', (req, res) => {
+        res.send(req.params)
+    })
+    .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 const io = socketio(server);

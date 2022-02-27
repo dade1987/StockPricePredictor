@@ -3,6 +3,11 @@ To predict stock prices. Features based on last values in a timestep, and techni
 
 Currently running on https://price-predictor-eu.herokuapp.com/
 
+API https://price-predictor-eu.herokuapp.com/predict/:timeInterval/:currencyPairOne
+
+timeInterval: DAILY, INTRADAY_60_MIN
+currencyPairOne: BTC, ETH
+
 On Windows 11, in case of this error after executing server node.js:
 C:\laragon\www\StockPricePredictor
 C:\laragon\www\StockPricePredictor
