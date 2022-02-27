@@ -302,7 +302,7 @@ module.exports = {
 
                 /* non serve saperlo per forza */
                 if (socket !== null) {
-                    if (socket.send !== undefined) {
+                    if (socket.constructor.name === 'Socket') {
                         socket.emit('training', JSON.stringify([trainingResults, trainingValidation]));
                     }
                 }
@@ -388,7 +388,7 @@ module.exports = {
         //console.log("PREDICTIONS", predictions);
 
         if (socket !== null) {
-            if (socket.send !== undefined) {
+            if (socket.constructor.name === 'Socket') {
                 console.log("SENDING SOCKET");
                 setTimeout(() => socket.emit('testing', JSON.stringify([realResults, predictions, outputSpecsHigh, outputSpecsLow])), 1500);
                 console.log("SOCKET SENT");
@@ -436,9 +436,11 @@ module.exports = {
 
 
         if (socket !== null) {
-            if (socket.send !== undefined) {
+            //console.log(socket.constructor, socket.constructor.name === 'ServerResponse', socket.constructor.name === 'Socket');
+
+            if (socket.constructor.name === 'ServerResponse') {
                 socket.send(JSON.stringify([{ take_profit: parseFloat(importo_take_profit).toFixed(0), transaction_type: tipo_negoziazione, actual_price: importo_attuale, take_profit_percent: percentuale_take_profit, news_status: (parseFloat(newsData) * 100).toFixed(2), price_rise_probability: price_rise_probability, price_drop_probability: price_drop_probability, order_book_status: market_depth_status }]));
-            } else if (socket.emit !== undefined) {
+            } else if (socket.constructor.name === 'Socket') {
                 socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status]));
             }
             // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
