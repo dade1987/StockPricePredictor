@@ -8,6 +8,23 @@ API https://price-predictor-eu.herokuapp.com/predict/:timeInterval/:currencyPair
 timeInterval: DAILY, INTRADAY_60_MIN
 currencyPairOne: BTC, ETH
 
+Answer Example:
+[{
+  "take_profit":"39193",            // take profit price (USD)
+  "transaction_type":"NOTHING",     // what to do (NOTHING, BUY, SELL)
+  "actual_price":39193.05,          // actual price (USD)
+  "take_profit_percent":0,          // take profit percent
+  "news_status":"16.00",            // news sentimental analysis (percent)
+  "price_rise_probability":"20.00", // price rise probability (percent)
+  "price_drop_probability":"40.00", // price drop probablity (percent)
+  "order_book_status":"POSITIVE"    // order book status (POSITIVE, NEGATIVE)
+  }]
+
+ 
+
+
+
+
 On Windows 11, in case of this error after executing server node.js:
 C:\laragon\www\StockPricePredictor
 C:\laragon\www\StockPricePredictor
