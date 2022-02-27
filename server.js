@@ -152,6 +152,9 @@ async function getOrderBook(currency_pair_1) {
 
     //Trades (operazioni di mercato) più recenti
     //https://api.cryptowat.ch/markets/:exchange/:pair/trades
+    //se è maggiore del trade precedente è verde, se è minore è rosso
+    //quindi se è verde ha comprato, se è rosso ha venduto
+    //da questo si possono analizzare anche se ci sono whales
 
     let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook";
 
@@ -265,6 +268,105 @@ function getResistenceAndSupport(orderBook) {
 
 function roundHundred(value) {
     return Math.round(value / 100) * 100;
+}
+
+async function getTrades(currency_pair_1) {
+    //analisi ultimi 1000 trades
+    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?limit=1000";
+
+    return new Promise((resolve, reject) => {
+
+        let request = https.get(url.toLowerCase(), function(res) {
+            let data = '',
+                json_data;
+
+            res.on('data', function(stream) {
+                data += stream;
+            });
+            res.on('end', function() {
+                json_data = JSON.parse(data);
+
+                console.log(json_data, typeof(json_data.resulr));
+
+                let buy = false;
+
+                let whales_buying_num = 0;
+                let whales_selling_num = 0;
+                let poveraccis_buying_num = 0;
+                let poveraccis_selling_num = 0;
+
+                let whales_buying_vol = 0;
+                let whales_selling_vol = 0;
+                let poveraccis_buying_vol = 0;
+                let poveraccis_selling_vol = 0;
+                //indice 2 prezzo di transazione in dollari
+                //indice 3 numero di crypto transate
+
+                json_data.result.forEach(function(v, i) {
+                    if (json_data.result[i - 1] !== undefined) {
+                        if (v[2] > json_data.result[i - 1][2]) {
+                            buy = true;
+                        } else if (v[2] < json_data.result[i - 1][2]) {
+                            buy = false;
+                        }
+
+                        let transacted_amount = v[2] * v[3];
+
+                        //per ora è 1 milione ma si potrà cambiare
+                        if (transacted_amount > 1000000) {
+                            if (buy === true) {
+                                whales_buying_num++;
+                                whales_buying_vol += transacted_amount;
+                            } else {
+                                whales_selling_num++;
+                                whales_selling_vol += transacted_amount;
+                            }
+                        } else {
+                            if (buy === true) {
+                                poveraccis_buying_num++;
+                                poveraccis_buying_vol += transacted_amount;
+                            } else {
+                                poveraccis_selling_num++;
+                                poveraccis_selling_vol += transacted_amount;
+                            }
+                        }
+                        //se è uguale mantiene lo status
+                    }
+                    json_data.result[i].push(buy);
+                });
+
+                /*console.log({
+                    trades: json_data.result,
+                    whales_buying_num: whales_buying_num,
+                    whales_selling_num: whales_selling_num,
+                    poveraccis_buying_num: poveraccis_buying_num,
+                    poveraccis_selling_num: poveraccis_selling_num,
+
+                    whales_buying_vol: whales_buying_vol,
+                    whales_selling_vol: whales_selling_vol,
+                    poveraccis_buying_vol: poveraccis_buying_vol,
+                    poveraccis_selling_vol: poveraccis_selling_vol
+                });*/
+
+                //per ora se uno muove almeno 1 milione di dollari posso considerarlo "whale"
+
+                resolve({
+                    trades: json_data.result,
+                    whales_buying_num: whales_buying_num,
+                    whales_selling_num: whales_selling_num,
+                    poveraccis_buying_num: poveraccis_buying_num,
+                    poveraccis_selling_num: poveraccis_selling_num,
+
+                    whales_buying_vol: whales_buying_vol,
+                    whales_selling_vol: whales_selling_vol,
+                    poveraccis_buying_vol: poveraccis_buying_vol,
+                    poveraccis_selling_vol: poveraccis_selling_vol
+                });
+
+            });
+        });
+
+    });
 }
 
 async function getNewsData(currency_pair_1) {
@@ -786,10 +888,13 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     const orderBook = await getOrderBook(currency_pair_1);
 
-
     const orderBookTrend = orderBook['trend'];
 
     const orderBookStatus = orderBook['status'];
+
+    const trades = await getTrades(currency_pair_1);
+
+    console.log(trades);
 
     /*console.log('orderBookTrend', orderBookTrend);
     console.log('orderBookStatus', orderBookStatus);*/
@@ -802,9 +907,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     const sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
-
-
-    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport);
+    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades);
 
 }
 

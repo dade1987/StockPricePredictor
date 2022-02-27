@@ -1,7 +1,7 @@
 module.exports = {
 
 
-    simulazione_guadagni: function(realResults, predictions, data, sentimentAnalysis, orderBook, resistenceAndSupport) {
+    simulazione_guadagni: function(realResults, predictions, data, sentimentAnalysis, orderBook, resistenceAndSupport, trades) {
 
 
         //intanto proviamo sui 5 minuti con alternative coins
@@ -56,8 +56,8 @@ module.exports = {
                 }
                 //console.log("DATI", data[i - 1], realResults[i - 1].y);
                 // console.log("original_data",original_data.slice(-3));
-                price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction);
-                price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction)
+                price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades);
+                price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades)
 
                 if (price_rise_probability > approval_cutoff) {
                     /*if (status === 2 && bool_last_prediction === false) {

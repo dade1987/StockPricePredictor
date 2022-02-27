@@ -1,7 +1,7 @@
 module.exports = {
     //console.log(data);
 
-    buy_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction) {
+    buy_condition: function(prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction, trades) {
 
         //console.log("last_data, indicators",last_data, indicators);
         //console.log("indicators.rsi", indicators.rsi,"data[i - 1]",indicators);
@@ -53,6 +53,30 @@ module.exports = {
                 sum++;
             }
             totale_per_media++;
+
+            if (trades.whales_buying_vol > trades.whales_selling_vol) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.whales_buying_num > trades.whales_selling_num) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.poveraccis_buying_vol > trades.poveraccis_selling_vol) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.poveraccis_buying_num > trades.poveraccis_selling_num) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
         }
 
 
@@ -69,7 +93,7 @@ module.exports = {
 
     },
 
-    sell_condition: function (prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction) {
+    sell_condition: function(prediction, actual, last_data, indicators, sentimentAnalysis, orderBook, bool_last_prediction, trades) {
 
 
         let sum = 0;
@@ -117,6 +141,30 @@ module.exports = {
                 sum++;
             }
             totale_per_media++;
+
+            if (trades.whales_selling_vol > trades.whales_buying_vol) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.whales_selling_num > trades.whales_buying_num) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.poveraccis_selling_vol > trades.poveraccis_buying_vol) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
+
+            if (trades.poveraccis_selling_num > trades.poveraccis_buying_num) {
+                //console.log("BUY", "orderBook === true", orderBook === true);
+                sum++;
+            }
+            totale_per_media++;
         }
 
 
@@ -128,7 +176,7 @@ module.exports = {
 
         console.log("PROBABILITA DI DISCESA DEL PREZZO:" + probabilita + "%");
 
-     
+
 
         //SE LA PROBABILITA E' ALTA LA CONDIZIONE E' VERA
         return probabilita;

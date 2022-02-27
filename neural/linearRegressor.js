@@ -1,5 +1,5 @@
 module.exports = {
-    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport) {
+    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport, trades) {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
@@ -407,7 +407,7 @@ module.exports = {
             percentuale_take_profit,
             price_rise_probability,
             price_drop_probability
-        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook, resistenceAndSupport);
+        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook, resistenceAndSupport, trades);
 
         //console.log("TEST2",data.slice(start + size, start + size + predict_size));
 
