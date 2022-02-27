@@ -1,7 +1,7 @@
 module.exports = {
 
 
-    simulazione_guadagni: function (realResults, predictions, data, sentimentAnalysis, orderBook) {
+    simulazione_guadagni: function(realResults, predictions, data, sentimentAnalysis, orderBook, resistenceAndSupport) {
 
 
         //intanto proviamo sui 5 minuti con alternative coins
@@ -33,7 +33,7 @@ module.exports = {
         let price_rise_probability = 0;
         let price_drop_probability = 0;
         let bool_last_prediction = false;
-        
+
         //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
         let approval_cutoff = 60;
 
@@ -48,7 +48,7 @@ module.exports = {
             //console.log("CICLO", i);
 
             //solo per la previsione di oggi
-            if (/*realResults[i] === undefined*/true) {
+            if ( /*realResults[i] === undefined*/ true) {
 
 
                 if (realResults[i] === undefined) {
@@ -128,7 +128,7 @@ module.exports = {
         }
 
         //è -1 perchè nel ciclo mostro il giro -1, dato che i data sono -1 (l'ultimo non ce l'ho perchè è la previsione)
-        console.log("IL " + (i-1) + "-ESIMO GIRO E' LA PREDIZIONE E NON HA DATI");
+        console.log("IL " + (i - 1) + "-ESIMO GIRO E' LA PREDIZIONE E NON HA DATI");
 
         return {
             crescita,
@@ -140,13 +140,14 @@ module.exports = {
             importo_attuale,
             percentuale_take_profit,
             price_rise_probability,
-            price_drop_probability
+            price_drop_probability,
+            resistenceAndSupport
         };
     },
 
 
 
-    simulazione_guadagni_FINO_AL_18112021: function (realResults, predictions, data) {
+    simulazione_guadagni_FINO_AL_18112021: function(realResults, predictions, data) {
         let crescita = 0;
         let giusti = 0;
         let errori = 0;
@@ -222,7 +223,7 @@ module.exports = {
 
     },
     /*data are real data referred to testing results*/
-    simulazione_guadagni_2: function (realResults, predictions, data) {
+    simulazione_guadagni_2: function(realResults, predictions, data) {
         let crescita = 0;
         let giusti = 0;
         let errori = 0;

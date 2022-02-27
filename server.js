@@ -187,6 +187,9 @@ async function getOrderBook(currency_pair_1) {
                     total_bids_volume += v[0] * v[1];
                 });
 
+
+
+
                 console.log("TOTAL ASKS VOLUME", total_asks_volume);
 
                 console.log("TOTAL BIDS VOLUME", total_bids_volume)
@@ -204,12 +207,64 @@ async function getOrderBook(currency_pair_1) {
                 console.log("DIREZIONE DEL MERCATO?", total_asks_volume > total_bids_volume);
 
                 //se il volume della domanda (bids)  è più alto  dell'offerta totale (asks) è true, il prezzo sale
-                resolve(total_bids_volume > total_asks_volume);
+                resolve({ trend: total_bids_volume > total_asks_volume, status: json_data });
 
             });
         });
 
     });
+}
+
+function getResistenceAndSupport(orderBook) {
+
+    //prima cosa bisogna vedere di quante cifre è il numero
+    //prima senza decimali, poi con
+
+    //poi va raggruppato l'order book in decimali, decine, centinaia, migliaia, ecc
+
+    //poi da lì bisogna vedere i salti grossi che ci sono verso l'alto
+
+    //come prima prova, dato che abbiamo solo eth e btc raggruppiamoli a centinaia
+
+    let asks_hundred = new Object();
+    orderBook.result.asks.forEach((v) => {
+        if (asks_hundred[roundHundred(v[0])] === undefined) {
+            asks_hundred[roundHundred(v[0])] = 0;
+        }
+        asks_hundred[roundHundred(v[0])] += parseFloat(v[1]);
+    });
+
+    let arrAsks = Object.values(asks_hundred).slice(0, 10);
+    let arrAsksPrices = Object.keys(asks_hundred).slice(0, 10);
+    console.log('asks', arrAsks);
+
+    let maxAsk = Math.max(...arrAsks);
+    let support = arrAsksPrices[arrAsks.indexOf(maxAsk)];
+    console.log('Supporto asks', support, maxAsk);
+
+    //nei bids va fatta dal più basso l'analisi
+    let bids_hundred = new Object();
+
+    orderBook.result.bids.forEach((v) => {
+        if (bids_hundred[roundHundred(v[0])] === undefined) {
+            bids_hundred[roundHundred(v[0])] = 0;
+        }
+        bids_hundred[roundHundred(v[0])] += parseFloat(v[1]);
+    });
+
+    let arrBids = Object.values(bids_hundred).reverse().slice(0, 10);
+    let arrBidsPrices = Object.keys(bids_hundred).reverse().slice(0, 10);
+    console.log('bids', arrBids);
+
+    let maxBid = Math.max(...arrBids);
+    let resistence = arrBidsPrices[arrBids.indexOf(maxBid)];
+    console.log('Resistenza bids', resistence, maxBid);
+
+    return { resistence: resistence, support: support }
+}
+
+function roundHundred(value) {
+    return Math.round(value / 100) * 100;
 }
 
 async function getNewsData(currency_pair_1) {
@@ -732,13 +787,24 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     const orderBook = await getOrderBook(currency_pair_1);
 
 
+    const orderBookTrend = orderBook['trend'];
+
+    const orderBookStatus = orderBook['status'];
+
+    /*console.log('orderBookTrend', orderBookTrend);
+    console.log('orderBookStatus', orderBookStatus);*/
+
+    const resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
+
+    console.log('resistencesAndSupport', resistenceAndSupport['resistence'], resistenceAndSupport['support']);
+
     const newsData = await getNewsData(currency_pair_1);
 
     const sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
 
 
-    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBook);
+    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport);
 
 }
 

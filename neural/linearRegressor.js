@@ -1,5 +1,5 @@
 module.exports = {
-    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook) {
+    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport) {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
@@ -407,7 +407,7 @@ module.exports = {
             percentuale_take_profit,
             price_rise_probability,
             price_drop_probability
-        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook);
+        } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook, resistenceAndSupport);
 
         //console.log("TEST2",data.slice(start + size, start + size + predict_size));
 
@@ -439,9 +439,9 @@ module.exports = {
             //console.log(socket.constructor, socket.constructor.name === 'ServerResponse', socket.constructor.name === 'Socket');
 
             if (socket.constructor.name === 'ServerResponse') {
-                socket.send(JSON.stringify([{ take_profit: parseFloat(importo_take_profit).toFixed(0), transaction_type: tipo_negoziazione, actual_price: importo_attuale, take_profit_percent: percentuale_take_profit, news_status: (parseFloat(newsData) * 100).toFixed(2), price_rise_probability: price_rise_probability, price_drop_probability: price_drop_probability, order_book_status: market_depth_status }]));
+                socket.send(JSON.stringify([{ take_profit: parseFloat(importo_take_profit).toFixed(0), transaction_type: tipo_negoziazione, actual_price: importo_attuale, take_profit_percent: percentuale_take_profit, news_status: (parseFloat(newsData) * 100).toFixed(2), price_rise_probability: price_rise_probability, price_drop_probability: price_drop_probability, order_book_status: market_depth_status, resistence: resistenceAndSupport['resistence'], support: resistenceAndSupport['support'] }]));
             } else if (socket.constructor.name === 'Socket') {
-                socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status]));
+                socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport]));
             }
             // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
         }
