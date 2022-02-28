@@ -5,7 +5,7 @@ Currently running on https://price-predictor-eu.herokuapp.com/
 
 API https://price-predictor-eu.herokuapp.com/predict/:timeInterval/:currencyPairOne
 
-timeInterval: DAILY, INTRADAY_60_MIN
+timeInterval: DAILY, INTRADAY_60_MIN, INTRADAY_1_MIN (DA TESTARE)
 currencyPairOne: BTC, ETH
 
 Answer Example:

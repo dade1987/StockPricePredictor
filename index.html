@@ -139,13 +139,14 @@
         <br>
         <label>Time Interval (default 1 Day)</label>
         <select class="form-control" id="time_interval">
-            <!--<option value="INTRADAY_1_MIN">1 min</option>
+            <!--
                 <option value="INTRADAY_5_MIN">5 min</option>
                 <option value="INTRADAY_15_MIN">15 min</option>
                 <option value="INTRADAY_30_MIN">30 min</option>-->
-            <option value="INTRADAY_60_MIN">60 MIN</option>
-            <option value="DAILY" selected>1 DAY</option>
-            <!--<option value="WEEKLY">1 WEEK</option>
+                <option value="INTRADAY_1_MIN">1 MIN (DA TESTARE)</option>
+                <option value="INTRADAY_60_MIN">60 MIN</option>
+                <option value="DAILY" selected>1 DAY</option>
+                <!--<option value="WEEKLY">1 WEEK</option>
                 <option value="MONTHLY">1 MONTH</option>-->
         </select>
         <br>
@@ -328,7 +329,12 @@
             <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3" style="pointer-events: none;">
         </div>
 
-
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Log</span>
+            </div>
+            <textarea class="form-control" id="log" aria-describedby="basic-addon3"></textarea>
+        </div>
 
 
     </div>
@@ -441,6 +447,9 @@
             $("#market_depth_status").val(result2[12]);
             $("#price_rise_probability").val(parseFloat(result2[10]).toFixed(2));
             $("#price_drop_probability").val(parseFloat(result2[11]).toFixed(2));
+
+            $("#log").val($("#log").val() + 'Time: ' + new Date() + ' Rise P: ' + parseFloat(result2[10]).toFixed(2) + ' Drop P: ' + parseFloat(result2[11]).toFixed(2) + '\n');
+
             $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
             $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
             $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
@@ -506,6 +515,11 @@
                     break;
             }
         }
+
+        /*trainButton.click();
+        setInterval(function() {
+            trainButton.click();
+        }, 60000);*/
     </script>
 
 </body>

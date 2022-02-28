@@ -158,6 +158,8 @@ async function getOrderBook(currency_pair_1) {
 
     let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/orderbook";
 
+    console.log(url);
+
     return new Promise((resolve, reject) => {
 
         let newsRequest = https.get(url.toLowerCase(), function(res) {
@@ -904,6 +906,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     actual_price = actual_price.result.price;
 
+    console.log(currency_pair_1, actual_price);
 
     let orderBook = await getOrderBook(currency_pair_1);
 
@@ -913,13 +916,25 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     let resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
 
-
+    let i = 0;
     //se le resistenze e supporti sono irrealistici rifà il giro
-    while (
-        percDiff(actual_price, resistenceAndSupport['resistence']) > 25 ||
-        percDiff(actual_price, resistenceAndSupport['support']) > 25 ||
-        actual_price > resistenceAndSupport['support'] ||
-        actual_price < resistenceAndSupport['resistence']) {
+    //massimo 3 tentativi, poi uno si arrangia
+    while (i < 3 &&
+        (percDiff(actual_price, resistenceAndSupport['resistence']) > 25 ||
+            percDiff(actual_price, resistenceAndSupport['support']) > 25 ||
+            actual_price > resistenceAndSupport['support'] ||
+            actual_price < resistenceAndSupport['resistence'])) {
+
+        console.log("CONDIZIONI RIPETUTE",
+            percDiff(actual_price, resistenceAndSupport['resistence']) > 25,
+            percDiff(actual_price, resistenceAndSupport['support']) > 25,
+            actual_price > resistenceAndSupport['support'],
+            actual_price < resistenceAndSupport['resistence'],
+            actual_price,
+            resistenceAndSupport['resistence'],
+            resistenceAndSupport['support'],
+            percDiff(actual_price, resistenceAndSupport['resistence']),
+            percDiff(actual_price, resistenceAndSupport['support']))
 
         orderBook = await getOrderBook(currency_pair_1);
 
@@ -929,6 +944,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
         resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
 
+        i++;
     }
 
     console.log(actual_price, resistenceAndSupport);
@@ -972,5 +988,9 @@ async function train_models() {
     await main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_5_MIN', "ETH", "USD", 14, 50, true, null);
     await main('CRYPTO', 'INTRADAY_5_MIN', "DOGE", "USD", 14, 50, true, null);
+
+    await main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_1_MIN', "ETH", "USD", 14, 50, true, null);
+    await main('CRYPTO', 'INTRADAY_1_MIN', "DOGE", "USD", 14, 50, true, null);
 
 }
