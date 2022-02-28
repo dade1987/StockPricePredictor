@@ -1,5 +1,5 @@
 module.exports = {
-    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport, trades) {
+    train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport, trades, actual_price) {
 
         /* applica indicatori */
         let rsi = RSI.calculate({
@@ -438,10 +438,43 @@ module.exports = {
         if (socket !== null) {
             //console.log(socket.constructor, socket.constructor.name === 'ServerResponse', socket.constructor.name === 'Socket');
 
+            /*
+            whales_buying_num:trades['whales_buying_num'],
+                whales_selling_num:trades['whales_selling_num'],
+                poveraccis_buying_num:trades['poveraccis_buying_num'],
+                poveraccis_selling_num:trades['poveraccis_selling_num'],
+
+                whales_buying_vol:trades['whales_buying_vol'],
+                whales_selling_vol:trades['whales_selling_vol'],
+                poveraccis_buying_vol:trades['poveraccis_buying_vol'],
+                poveraccis_selling_vol:trades['poveraccis_selling_vol']
+                */
+
+            //l'actual price corrisponde meglio a quello di binance, rispetto a prezzo_attuale
+            //che viene preso invece dal simulatore dall'api di alphadv
             if (socket.constructor.name === 'ServerResponse') {
-                socket.send(JSON.stringify([{ take_profit: parseFloat(importo_take_profit).toFixed(0), transaction_type: tipo_negoziazione, actual_price: importo_attuale, take_profit_percent: percentuale_take_profit, news_status: (parseFloat(newsData) * 100).toFixed(2), price_rise_probability: price_rise_probability, price_drop_probability: price_drop_probability, order_book_status: market_depth_status, resistence: resistenceAndSupport['resistence'], support: resistenceAndSupport['support'] }]));
+                socket.send(JSON.stringify([{
+                    take_profit: parseFloat(importo_take_profit).toFixed(0),
+                    transaction_type: tipo_negoziazione,
+                    actual_price: actual_price,
+                    take_profit_percent: percentuale_take_profit,
+                    news_status: (parseFloat(newsData) * 100).toFixed(2),
+                    price_rise_probability: price_rise_probability,
+                    price_drop_probability: price_drop_probability,
+                    order_book_status: market_depth_status,
+                    resistence: resistenceAndSupport['resistence'],
+                    support: resistenceAndSupport['support'],
+                    whales_buying_num: trades['whales_buying_num'],
+                    whales_selling_num: trades['whales_selling_num'],
+                    poveraccis_buying_num: trades['poveraccis_buying_num'],
+                    poveraccis_selling_num: trades['poveraccis_selling_num'],
+                    whales_buying_vol: trades['whales_buying_vol'],
+                    whales_selling_vol: trades['whales_selling_vol'],
+                    poveraccis_buying_vol: trades['poveraccis_buying_vol'],
+                    poveraccis_selling_vol: trades['poveraccis_selling_vol']
+                }]));
             } else if (socket.constructor.name === 'Socket') {
-                socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport]));
+                socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, actual_price, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport, trades]));
             }
             // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
         }

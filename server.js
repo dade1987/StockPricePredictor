@@ -209,7 +209,8 @@ async function getOrderBook(currency_pair_1) {
                 //quindi siccome bids sono gli ordini in acquisto, se i volumi dei grossi traders sono negativi si propende per la vendita
                 console.log("DIREZIONE DEL MERCATO?", total_asks_volume > total_bids_volume);
 
-                //se il volume della domanda (bids)  è più alto  dell'offerta totale (asks) è true, il prezzo sale
+                //se il volume della domanda (bids)  è più alto  dell'offerta totale (asks) è true, il prezzo potrebbe salire,
+                //ma solo se il mercato ovviamente è stabile. Non certo in caso di guerre o pandemie.
                 resolve({ trend: total_bids_volume > total_asks_volume, status: json_data });
 
             });
@@ -270,6 +271,27 @@ function roundHundred(value) {
     return Math.round(value / 100) * 100;
 }
 
+async function getMarketPrice(currency_pair_1) {
+    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/price";
+
+    return new Promise((resolve, reject) => {
+
+        let request = https.get(url.toLowerCase(), function(res) {
+            let data = '',
+                json_data;
+
+            res.on('data', function(stream) {
+                data += stream;
+            });
+            res.on('end', function() {
+                json_data = JSON.parse(data);
+
+                resolve(json_data);
+            });
+        });
+    });
+}
+
 async function getTrades(currency_pair_1) {
     //analisi ultimi 1000 trades
     let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?limit=1000";
@@ -286,7 +308,7 @@ async function getTrades(currency_pair_1) {
             res.on('end', function() {
                 json_data = JSON.parse(data);
 
-                console.log(json_data, typeof(json_data.resulr));
+                //console.log(json_data, typeof(json_data.result));
 
                 let buy = false;
 
@@ -864,16 +886,9 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
     });
 }
 
-
-
-
-
-
-
-
-
-
-
+function percDiff(a, b) {
+    return 100 * Math.abs((a - b) / ((a + b) / 2));
+}
 
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 
@@ -885,29 +900,52 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     const timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
 
+    let actual_price = await getMarketPrice(currency_pair_1);
 
-    const orderBook = await getOrderBook(currency_pair_1);
+    actual_price = actual_price.result.price;
 
-    const orderBookTrend = orderBook['trend'];
 
-    const orderBookStatus = orderBook['status'];
+    let orderBook = await getOrderBook(currency_pair_1);
+
+    let orderBookTrend = orderBook['trend'];
+
+    let orderBookStatus = orderBook['status'];
+
+    let resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
+
+
+    //se le resistenze e supporti sono irrealistici rifà il giro
+    while (
+        percDiff(actual_price, resistenceAndSupport['resistence']) > 25 ||
+        percDiff(actual_price, resistenceAndSupport['support']) > 25 ||
+        actual_price > resistenceAndSupport['support'] ||
+        actual_price < resistenceAndSupport['resistence']) {
+
+        orderBook = await getOrderBook(currency_pair_1);
+
+        orderBookTrend = orderBook['trend'];
+
+        orderBookStatus = orderBook['status'];
+
+        resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
+
+    }
+
+    console.log(actual_price, resistenceAndSupport);
+
+
+
+    console.log('resistencesAndSupport', resistenceAndSupport['resistence'], resistenceAndSupport['support']);
 
     const trades = await getTrades(currency_pair_1);
 
     console.log(trades);
 
-    /*console.log('orderBookTrend', orderBookTrend);
-    console.log('orderBookStatus', orderBookStatus);*/
-
-    const resistenceAndSupport = getResistenceAndSupport(orderBookStatus);
-
-    console.log('resistencesAndSupport', resistenceAndSupport['resistence'], resistenceAndSupport['support']);
-
     const newsData = await getNewsData(currency_pair_1);
 
     const sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
-    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades);
+    await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
 
 }
 

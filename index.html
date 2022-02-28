@@ -237,7 +237,61 @@
         </div>
 
 
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Buying Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="whales_buying_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
 
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Selling Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="whales_selling_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Buying Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_buying_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Selling Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_selling_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Buying Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="whales_buying_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Selling Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="whales_selling_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Buying Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_buying_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Selling Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_selling_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -394,6 +448,15 @@
             $("#take_profit_percentual_x30").val((parseFloat(result2[8]) * 30).toFixed(2));
             $("#support").val(result2[13].support);
             $("#resistence").val(result2[13].resistence);
+
+            $("#whales_buying_num").val(result2[14].whales_buying_num);
+            $("#whales_selling_num").val(result2[14].whales_selling_num);
+            $("#poveraccis_buying_num").val(result2[14].poveraccis_buying_num);
+            $("#poveraccis_selling_num").val(result2[14].poveraccis_selling_num);
+            $("#whales_buying_vol").val(result2[14].whales_buying_vol);
+            $("#whales_selling_vol").val(result2[14].whales_selling_vol);
+            $("#poveraccis_buying_vol").val(result2[14].poveraccis_buying_vol);
+            $("#poveraccis_selling_vol").val(result2[14].poveraccis_selling_vol);
 
             trainButton.disabled = false;
             trainButton.textContent = "PREDICT";
