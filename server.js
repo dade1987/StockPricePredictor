@@ -294,9 +294,40 @@ async function getMarketPrice(currency_pair_1) {
     });
 }
 
-async function getTrades(currency_pair_1) {
-    //analisi ultimi 1000 trades
-    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?limit=1000";
+async function getTrades(currency_pair_1, time_interval) {
+    //prima c'era l'analisi ultimi 1000 trades
+    //ora proviamo a farla a seconda dell'intervallo da prevedere
+    //in realtà va bene solo per lo scalping. al massimo va indietro di 1 ora
+    //il timestamp dev'essere in secondi. Non in millisecondi
+    let interval = Math.round(Date.now() / 1000);
+
+    //proviamo ad analizzare 3 intervalli precedenti
+    //secondo la teoria di Elliott il trend continua, ma ha bisogno di correzioni
+    //ogni 5 fasi di trend con 3 fasi di correzione
+    switch (time_interval) {
+        case "INTRADAY_1_MIN":
+            interval -= 3 * 60 /** 1000*/ ;
+            break;
+        case "INTRADAY_5_MIN":
+            interval -= 3 * 5 * 60 /** 1000*/ ;
+            break;
+        case "INTRADAY_15_MIN":
+            interval -= 3 * 15 * 60 /** 1000*/ ;
+            break;
+        case "INTRADAY_30_MIN":
+            interval -= 3 * 30 * 60 /** 1000*/ ;
+            break;
+        case "INTRADAY_60_MIN":
+            interval -= 3 * 60 * 60 /** 1000*/ ;
+            break;
+        case "DAILY":
+            interval -= 3 * 24 * 60 /** 60 * 1000*/ ;
+            break;
+    }
+
+    let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?since=" + interval;
+
+    console.log(url);
 
     return new Promise((resolve, reject) => {
 
@@ -513,6 +544,11 @@ Default: 1.
                 resolve(json_data.articles);
             });
         });
+
+        /*newsRequest.setTimeout(10000, function() {
+            request.abort();
+            resolve(false);
+        });*/
     });
 
 }
@@ -953,13 +989,17 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     console.log('resistencesAndSupport', resistenceAndSupport['resistence'], resistenceAndSupport['support']);
 
-    const trades = await getTrades(currency_pair_1);
+    const trades = await getTrades(currency_pair_1, time_interval);
 
     console.log(trades);
 
     const newsData = await getNewsData(currency_pair_1);
 
+    console.log("got news data");
+
     const sentimentAnalysisData = await getSentimentAnalysis(newsData);
+
+    console.log("got sentiment analysis data");
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
 

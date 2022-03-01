@@ -60,8 +60,5 @@ Time: Mon Feb 28 2022 12:13:08 GMT+0100 (Ora standard dell’Europa centrale) Rise
 Time: Mon Feb 28 2022 12:14:08 GMT+0100 (Ora standard dell’Europa centrale) Rise P: 11.11 Drop P: 44.44 Y
 Time: Mon Feb 28 2022 12:15:11 GMT+0100 (Ora standard dell’Europa centrale) Rise P: 11.11 Drop P: 44.44 Y                     +0.07
 
-2.10% indovinato
-1.23% sbagliato
-
 Su 60 ne ha fatti giusti 36 (60% numericamente)
 Avrei guadagnato, aprendo ai secondi 01 di ogni minuto e chiudendo alla fine (tranne gli X che avrei mantenuto aperto) il  0.87%

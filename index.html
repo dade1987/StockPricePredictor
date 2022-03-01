@@ -346,7 +346,7 @@
                 </span>
         </div>
         <div class="container">
-            <span class="text-muted">v. 1.00 Beta</span>
+            <span class="text-muted">v. 1.02 Beta</span>
         </div>
         <div class="container mt-3">
             <span class="text-muted">If you want to collaborate with this project, visit the source code in <a href="https://github.com/dade1987/StockPricePredictor" target="_blank">https://github.com/dade1987/StockPricePredictor</a> or write to
@@ -438,9 +438,15 @@
              + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
              + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
              + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+            let date = new Date();
+
+            let readable_date = date.getDate() + '-' + date.getMonth() + '-' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes() + ":" + date.getSeconds();
 
 
             $("#last_price").val(result2[7]);
+            $("#log").val($("#log").val() + 'Time: ' + readable_date + ' Last Price: ' + result2[7] + '\n');
+
+
             $("#advice").val(result2[6]);
             $("#take_profit").val(parseFloat(result2[5]));
             $("#news_analysis").val(parseFloat(result2[9]));
@@ -448,7 +454,8 @@
             $("#price_rise_probability").val(parseFloat(result2[10]).toFixed(2));
             $("#price_drop_probability").val(parseFloat(result2[11]).toFixed(2));
 
-            $("#log").val($("#log").val() + 'Time: ' + new Date() + ' Rise P: ' + parseFloat(result2[10]).toFixed(2) + ' Drop P: ' + parseFloat(result2[11]).toFixed(2) + '\n');
+
+            $("#log").val($("#log").val() + 'Time: ' + readable_date + ' R: ' + parseFloat(result2[10]).toFixed(2) + ' D: ' + parseFloat(result2[11]).toFixed(2) + ' Sup: ' + result2[13].support + ' Res: ' + result2[13].resistence + '\n');
 
             $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
             $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
@@ -516,10 +523,37 @@
             }
         }
 
-        /*trainButton.click();
-        setInterval(function() {
-            trainButton.click();
-        }, 60000);*/
+
+        //la prima volta parte al minuto 1, poi fa ogni minuto
+
+        let timeout;
+        let interval;
+
+        function autoOneMinute() {
+            $('#time_interval option[value="INTRADAY_1_MIN"]').prop('selected', true);
+
+            let next_minute_date = new Date();
+            next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+            next_minute_date.setSeconds(1);
+            let next_minute = next_minute_date.getTime();
+
+            let current_date = Date.now();
+            let wait_fist_time = next_minute_date - current_date;
+
+            timeout = setTimeout(function() {
+                trainButton.click();
+                interval = setInterval(function() {
+                    trainButton.click();
+                }, 60000);
+            }, wait_fist_time);
+
+            console.log('wait_fist_time', wait_fist_time);
+        }
+
+        function clearAuto() {
+            clearTimeout(timeout);
+            clearInterval(interval);
+        }
     </script>
 
 </body>
