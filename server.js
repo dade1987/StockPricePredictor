@@ -306,22 +306,22 @@ async function getTrades(currency_pair_1, time_interval) {
     //ogni 5 fasi di trend con 3 fasi di correzione
     switch (time_interval) {
         case "INTRADAY_1_MIN":
-            interval -= 3 * 60 /** 1000*/ ;
+            interval -= 5 * 60 /** 1000*/ ;
             break;
         case "INTRADAY_5_MIN":
-            interval -= 3 * 5 * 60 /** 1000*/ ;
+            interval -= 5 * 5 * 60 /** 1000*/ ;
             break;
         case "INTRADAY_15_MIN":
-            interval -= 3 * 15 * 60 /** 1000*/ ;
+            interval -= 5 * 15 * 60 /** 1000*/ ;
             break;
         case "INTRADAY_30_MIN":
-            interval -= 3 * 30 * 60 /** 1000*/ ;
+            interval -= 5 * 30 * 60 /** 1000*/ ;
             break;
         case "INTRADAY_60_MIN":
-            interval -= 3 * 60 * 60 /** 1000*/ ;
+            interval -= 5 * 60 * 60 /** 1000*/ ;
             break;
         case "DAILY":
-            interval -= 3 * 24 * 60 /** 60 * 1000*/ ;
+            interval -= 5 * 24 * 60 /** 60 * 1000*/ ;
             break;
     }
 
