@@ -36,7 +36,7 @@ module.exports = {
 
         //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
         let historical_approval_cutoff = 60;
-        let actual_approval_cutoff = 37;
+        let actual_approval_cutoff = 44;
 
 
         //let operations=new Array();
@@ -110,9 +110,6 @@ module.exports = {
                     console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
                     /*}*/
                 } else {
-
-
-
 
                     importo_attuale = realResults[i - 1].y;
                     percentuale_take_profit = 0;
