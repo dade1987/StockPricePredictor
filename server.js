@@ -31,6 +31,17 @@ global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
+const Binance = require('node-binance-api');
+const binance = new Binance().options({
+    APIKEY: process.env.BINANCE_KEY,
+    APISECRET: process.env.BINANCE_SECRET
+});
+
+/*
+Documentazione Binance API
+https://github.com/jaggedsoft/node-binance-api#binance-api-spot-trading
+*/
+
 global.original_data;
 global.sma_period = 21;
 global.rsi_period = 14;
@@ -1023,6 +1034,9 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
+
+    /*let ticker = await binance.prices();
+    console.info(`Price of BTC: ${ticker.BTCUSDT}`);*/
 
 }
 
