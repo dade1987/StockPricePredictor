@@ -35,7 +35,8 @@ module.exports = {
         let bool_last_prediction = false;
 
         //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
-        let approval_cutoff = 60;
+        let historical_approval_cutoff = 60;
+        let actual_approval_cutoff = 37;
 
 
         //let operations=new Array();
@@ -59,7 +60,7 @@ module.exports = {
                 price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades);
                 price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades)
 
-                if (price_rise_probability > approval_cutoff) {
+                if ((bool_last_prediction === true && price_rise_probability > actual_approval_cutoff) || (bool_last_prediction === false && price_rise_probability > historical_approval_cutoff)) {
                     /*if (status === 2 && bool_last_prediction === false) {
                         importo_attuale = realResults[i - 1].y;
                         percentuale_take_profit = 0;
@@ -82,7 +83,7 @@ module.exports = {
                     //se la previsione del buy sell condition è fatta sui dati -1 ovviamente il giro da cui parte la predizione sarà il -1
                     console.log(i - 1, tipo_negoziazione, importo_attuale, predictions[i - 1].y, predictions[i].y, percentuale_take_profit, importo_take_profit);
                     /* }*/
-                } else if (price_drop_probability > approval_cutoff) {
+                } else if ((bool_last_prediction === true && price_drop_probability > actual_approval_cutoff) || (bool_last_prediction === false && price_drop_probability > historical_approval_cutoff)) {
                     /*if (status === 0 && bool_last_prediction === false) {
                         importo_attuale = realResults[i - 1].y;
                         percentuale_take_profit = 0;

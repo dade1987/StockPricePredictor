@@ -474,10 +474,9 @@
             $("#price_rise_probability").val(parseFloat(result2[10]).toFixed(2));
             $("#price_drop_probability").val(parseFloat(result2[11]).toFixed(2));
 
-            if (parseFloat(result2[10]) > parseFloat(result2[11])) {
+            if (result2[6] === "BUY") {
                 buy();
-            }
-            if (parseFloat(result2[10]) < parseFloat(result2[11])) {
+            } else if (result2[6] === "SELL") {
                 sell();
             }
 

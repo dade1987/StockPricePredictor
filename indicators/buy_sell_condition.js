@@ -67,11 +67,16 @@ module.exports = {
             totale_per_media++;
 
             if (trades.poveraccis_buying_vol > trades.poveraccis_selling_vol) {
-                //console.log("BUY", "orderBook === true", orderBook === true);
+                //solo se la proporzione tra chi compra e vende è forte conta, 
+                //perchè i volumi spostati sono poca roba (almeno 50%)
+                //if (trades.poveraccis_buying_vol > trades.poveraccis_selling_vol + (trades.poveraccis_selling_vol / 100 * 50)) {
                 sum++;
+                //}
             }
             totale_per_media++;
 
+            //nel caso dei poveracci non c'entra quanti sono, ma solo il volume spostato
+            //però comunque significa che la fiducia sale
             if (trades.poveraccis_buying_num > trades.poveraccis_selling_num) {
                 //console.log("BUY", "orderBook === true", orderBook === true);
                 sum++;
@@ -155,11 +160,15 @@ module.exports = {
             totale_per_media++;
 
             if (trades.poveraccis_selling_vol > trades.poveraccis_buying_vol) {
-                //console.log("BUY", "orderBook === true", orderBook === true);
+                //solo se la proporzione tra chi compra e vende è forte conta, 
+                //perchè i volumi spostati sono poca roba (almeno 50%)
+                //if (trades.poveraccis_selling_vol > trades.poveraccis_buying_vol + (trades.poveraccis_buying_vol / 100 * 50)) {
                 sum++;
+                //}
             }
             totale_per_media++;
 
+            //nel caso dei poveracci non c'entra quanti sono, ma solo il volume spostato
             if (trades.poveraccis_selling_num > trades.poveraccis_buying_num) {
                 //console.log("BUY", "orderBook === true", orderBook === true);
                 sum++;

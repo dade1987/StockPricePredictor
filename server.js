@@ -327,6 +327,10 @@ async function getTrades(currency_pair_1, time_interval) {
 
     let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?since=" + interval;
 
+    //temporaneamente riprovo così col limit 1000. mi pareva andasse meglio
+    //comunque 1000 è il massimo
+    url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/trades?limit=1000";
+
     console.log(url);
 
     return new Promise((resolve, reject) => {
@@ -928,6 +932,10 @@ function percDiff(a, b) {
     return 100 * Math.abs((a - b) / ((a + b) / 2));
 }
 
+let newsData;
+let newsDataTimestamp = 0;
+let sentimentAnalysisData;
+
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 
     let learningRate = 0.0001;
@@ -993,13 +1001,26 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     console.log(trades);
 
-    const newsData = await getNewsData(currency_pair_1);
+    //le news le deve prendere solo 1 volta ogni ora, poi devono rimanere quelle
+    //sennò ci mette troppo a dare le indicazioni per lo scalping
+    //e non serve a una sega così
 
-    console.log("got news data");
+    //se la data di adesso - la data delle ultime news 
+    //è superiore a 60 minuti per 60 secondi ovvero mezz'ora
+    //le richiede nuovamente. se è 0 ovviamente sarà superiore
+    const dateNow = new Date().getTime() / 1000;
+    if (dateNow - newsDataTimestamp > (30 * 60)) {
+        newsData = await getNewsData(currency_pair_1);
+        newsDataTimestamp = new Date().getTime() / 1000;
 
-    const sentimentAnalysisData = await getSentimentAnalysis(newsData);
+        console.log("got news data");
 
-    console.log("got sentiment analysis data");
+        sentimentAnalysisData = await getSentimentAnalysis(newsData);
+
+        console.log("got sentiment analysis data");
+    }
+
+
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
 
