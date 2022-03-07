@@ -4,6 +4,33 @@ module.exports = {
     simulazione_guadagni: function(realResults, predictions, data, sentimentAnalysis, orderBook, resistenceAndSupport, trades) {
 
 
+        const myArr = realResults.map((v, i) => {
+            return v.y;
+        });
+
+        console.log("A", myArr);
+
+        const percentageArr = myArr.map((v, i) => i === 0 ? 100 : Math.abs(100 - (v * 100 / myArr[i - 1])));
+        percentageArr.shift();
+
+        console.log("B", percentageArr);
+
+        const median = arr => {
+            const mid = Math.floor(arr.length / 2),
+                nums = [...arr].sort((a, b) => a - b);
+            return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+        };
+
+        let median_difference = median(percentageArr);
+
+        //lo stop loss è il prezzo + (o -) la mediana della differenza percentuale degli ultimi 30 valori + il 10%;
+        let stop_loss_percent = median_difference / 100 * 110;
+        let take_profit_percent = median_difference / 100 * 90;
+
+        console.log("C", median_difference);
+
+        console.log("STOP");
+        //return;
         //intanto proviamo sui 5 minuti con alternative coins
 
         //SE C'E' un picco, le notizie hanno un sentiment contrario, il volume cambia al contrario e le previsioni sono contrarie al trend
@@ -139,7 +166,9 @@ module.exports = {
             percentuale_take_profit,
             price_rise_probability,
             price_drop_probability,
-            resistenceAndSupport
+            resistenceAndSupport,
+            stop_loss_percent,
+            take_profit_percent
         };
     },
 

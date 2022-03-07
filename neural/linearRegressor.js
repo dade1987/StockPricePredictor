@@ -406,7 +406,10 @@ module.exports = {
             importo_attuale,
             percentuale_take_profit,
             price_rise_probability,
-            price_drop_probability
+            price_drop_probability,
+            resistence_support,
+            stop_loss_percent,
+            take_profit_percent
         } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook, resistenceAndSupport, trades);
 
         //console.log("TEST2",data.slice(start + size, start + size + predict_size));
@@ -473,8 +476,33 @@ module.exports = {
                     poveraccis_buying_vol: trades['poveraccis_buying_vol'],
                     poveraccis_selling_vol: trades['poveraccis_selling_vol']
                 }]));
+
+
             } else if (socket.constructor.name === 'Socket') {
                 socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, actual_price, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport, trades]));
+
+
+                console.log("GLOBAL BINANCE API STATUS", global.binance_api_status);
+                if (global.binance_api_status === true) {
+                    let stop_loss = null;
+                    if (tipo_negoziazione === "BUY") {
+                        //se compri quanto scende è una perdita
+                        //se sale è un take profit
+                        stop_loss = actual_price / 100 * (100 - stop_loss_percent);
+                        take_profit = actual_price / 100 * (100 + take_profit_percent);
+
+                        console.log("SL BUY", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit);
+                        global.binance_future_buy(currency_pair_1, currency_pair_2, stop_loss, take_profit);
+                    } else if (tipo_negoziazione === "SELL") {
+                        //se shorti quanto sale è una perdita
+                        //se scende è un take profit
+                        stop_loss = actual_price / 100 * (100 + stop_loss_percent);
+                        take_profit = actual_price / 100 * (100 - take_profit_percent);
+                        console.log("SL SELL", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit);
+                        global.binance_future_sell(currency_pair_1, currency_pair_2, stop_loss, take_profit);
+                    }
+                }
+
             }
             // setTimeout(() => socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, importo_attuale, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(0), price_rise_probability, price_drop_probability, orderBook])), 3000);
         }

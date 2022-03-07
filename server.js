@@ -5,6 +5,9 @@ console.log(process.cwd());
 
 console.log(__dirname);
 
+
+
+
 global.http = require('http');
 global.https = require('https');
 
@@ -31,11 +34,7 @@ global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition');
 
-const Binance = require('node-binance-api');
-const binance = new Binance().options({
-    APIKEY: process.env.BINANCE_KEY,
-    APISECRET: process.env.BINANCE_SECRET
-});
+
 
 /*
 Documentazione Binance API
@@ -58,6 +57,8 @@ global.macd_signalPeriod = 9;
 global.prices_min = 0;
 global.prices_max = 0;
 */
+
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -127,11 +128,32 @@ process.argv.forEach(function(val, index, array) {
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
+
+global.binance_api_status = true;
+
+
+const Binance = require('node-binance-api-testnet');
+let binance;
+
+if (global.binance_api_status === true) {
+
+    //console.log(process.env.BINANCE_FUTURES_TESTNET_KEY);
+
+    binance = new Binance().options({
+        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
+        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
+    });
+
+
+
+}
+
 const yesterday = () => {
     let d = new Date();
     d.setDate(d.getDate() - 1);
     return d.toISOString().split('T')[0];
 };
+
 
 async function getOrderBook(currency_pair_1) {
 
@@ -947,7 +969,211 @@ let newsData;
 let newsDataTimestamp = 0;
 let sentimentAnalysisData;
 
+
+
+/* --------------------------- BINANCE ------------------------- */
+//forse meglio simulare con un centesimo in USDT del bilancio (iniziale quasi 100mila)
+
+
+//nella one way mode, se shorti va negativo, e se longhi va positivo l'ammontare
+//ma la positionSide è sempre BOTH
+
+async function currency_conversion(currency_pair_1, currency_pair_2, currency_pair_2_amount) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+
+    //restituisce la somma di currency_pair_1 ottenuta pagando con currency_pair_2
+    let currency_pair_1_price = await binance_future_price(currency_pair_1, currency_pair_2);
+
+    return currency_pair_2_amount / currency_pair_1_price;
+}
+
+async function binance_future_price(currency_pair_1, currency_pair_2) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+
+    let futurePrices = await binance.futuresPrices();
+
+    //console.log("MARK PRICE", await binance.futuresMarkPrice(currency_pair_1 + currency_pair_2));
+
+    //console.info("QUOTE", await binance.futuresQuote("BCHUSDT"));
+
+
+
+
+    return futurePrices[currency_pair_1 + currency_pair_2];
+}
+
+async function binance_future_wallet_balance(currency_pair_2) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+    let futuresBalance = await binance.futuresBalance();
+    let USDTBalance = futuresBalance.filter(word => word.asset === currency_pair_2);
+    if (USDTBalance[0]) {
+        return USDTBalance[0].availableBalance;
+    } else {
+        return 0;
+    }
+
+}
+
+async function binance_future_opened_position(currency_pair_1, currency_pair_2, message) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+
+
+    let futuresPositions = await binance.futuresPositionRisk();
+
+
+
+    let BTCUSDTPosition = futuresPositions.filter(word => word.symbol === currency_pair_1 + currency_pair_2);
+    //BTCUSDTPosition.forEach((v) => {
+
+    if (message != undefined) {
+        console.log("FUTURES POSITIONS", message, BTCUSDTPosition);
+    }
+
+    if (BTCUSDTPosition[0]) {
+        return BTCUSDTPosition[0].positionAmt;
+    } else {
+        return 0;
+    }
+}
+
+//stop loss and take profit
+//https://github.com/jaggedsoft/node-binance-api/issues/754
+
+global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*quantity,*/ limit = 0, take_profit = 0) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+    limit = limit.toFixed(2);
+    take_profit = take_profit.toFixed(2);
+
+    let invested_amount = await binance_future_wallet_balance(currency_pair_2);
+
+    let quantity = await currency_conversion(currency_pair_1, currency_pair_2, invested_amount / 100 * 20);
+
+    quantity = quantity.toFixed(3);
+
+    //chiude se ci sono sell
+    let opened_position = await binance_future_opened_position(currency_pair_1, currency_pair_2);
+
+    console.log("BUY DEBUG", invested_amount, quantity, currency_pair_1, currency_pair_2, limit, opened_position);
+
+    let close_qty = 0;
+    if (opened_position < 0) {
+        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
+        console.log("CLOSE SELL POSITION", currency_pair_1 + currency_pair_2, opened_position * -1);
+        close_qty += Math.abs(opened_position);
+    }
+    if (opened_position <= 0) {
+        let size = parseFloat(quantity) + parseFloat(close_qty);
+
+        console.log("SEND BUY", currency_pair_1 + currency_pair_2, quantity + close_qty);
+        console.info(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, size.toFixed(3)));
+
+        //se arriva allo stop loss deve vendere per chiudere la posizione in long
+        if (limit > 0) {
+            //quantity è in currency pair 1, limit in currency pair 2
+            console.log("SET BUY STOP LOSS", currency_pair_1 + currency_pair_2, quantity, limit);
+            //console.info(await binance.futuresSell(currency_pair_1 + currency_pair_2, quantity, limit));
+            console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
+                type: "STOP_MARKET",
+                stopPrice: limit,
+                priceProtect: true
+            }));
+        }
+
+        if (take_profit > 0) {
+            console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
+
+            await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, /*take_profit,*/ {
+                //newClientOrderId: my_order_id_tp,
+                stopPrice: take_profit,
+                type: "TAKE_PROFIT",
+                //timeInForce: "GTC",
+                priceProtect: true
+            });
+        }
+
+        await binance_future_opened_position(currency_pair_1, currency_pair_2, "AFTER BUY");
+    }
+}
+
+global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /* quantity,*/ limit = 0, take_profit = 0) {
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+
+    limit = limit.toFixed(2);
+    take_profit = take_profit.toFixed(2);
+
+    let invested_amount = await binance_future_wallet_balance(currency_pair_2);
+
+    let quantity = await currency_conversion(currency_pair_1, currency_pair_2, invested_amount / 100 * 20);
+
+    quantity = quantity.toFixed(3);
+
+    //chiude se ci sono buy
+    let opened_position = await binance_future_opened_position(currency_pair_1, currency_pair_2);
+
+    console.log("SELL DEBUG", invested_amount, quantity, currency_pair_1, currency_pair_2, limit, opened_position);
+
+    let close_qty = 0;
+    if (opened_position > 0) {
+        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
+        console.log("CLOSE BUY POSITION", currency_pair_1 + currency_pair_2, opened_position * -1);
+        close_qty += Math.abs(opened_position);
+    }
+    if (opened_position >= 0) {
+        let size = parseFloat(quantity) + parseFloat(close_qty);
+
+        console.log("SEND SELL", currency_pair_1 + currency_pair_2, quantity + close_qty);
+        console.info(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, size.toFixed(3)));
+
+
+
+        //se arriva allo stop loss deve comprare per chiudere la posizione in short
+        if (limit > 0) {
+            //quantity è in currency pair 1, limit in currency pair 2
+            console.log("SET SELL STOP LOSS", currency_pair_1 + currency_pair_2, quantity, limit);
+            //console.info(await binance.futuresBuy(currency_pair_1 + currency_pair_2, quantity, limit));
+
+            await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
+                type: "STOP_MARKET",
+                stopPrice: limit,
+                priceProtect: true
+            });
+        }
+
+        if (take_profit > 0) {
+            console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
+
+            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, /*take_profit,*/ {
+                //newClientOrderId: my_order_id_tp,
+                stopPrice: take_profit,
+                type: "TAKE_PROFIT",
+                //timeInForce: "GTC",
+                priceProtect: true
+            }));
+        }
+
+
+        await binance_future_opened_position(currency_pair_1, currency_pair_2, "AFTER SELL");
+    }
+}
+
+/* ------------------- END BINANCE --------------------------- */
+
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
+
+    /*console.log(await binance_future_price(currency_pair_1, currency_pair_2));
+    return;*/
 
     let learningRate = 0.0001;
     const optimizer = tf.train.adam(learningRate);
@@ -957,11 +1183,22 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     const timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
 
-    let actual_price = await getMarketPrice(currency_pair_1);
+    /*let actual_price = await getMarketPrice(currency_pair_1);
 
-    actual_price = actual_price.result.price;
+    actual_price = actual_price.result.price;*/
 
-    console.log(currency_pair_1, actual_price);
+    let tmp_currency_pair_2 = currency_pair_2;
+    if (currency_pair_2 === "USD") {
+        tmp_currency_pair_2 = "USDT";
+    }
+
+    let actual_price = await binance.futuresMarkPrice(currency_pair_1 + tmp_currency_pair_2);
+
+    console.log("DEBUG MARK PRICE", actual_price);
+
+    actual_price = actual_price.markPrice;
+
+    console.log("MARKET PRICE", currency_pair_1, actual_price);
 
     let orderBook = await getOrderBook(currency_pair_1);
 
@@ -1026,7 +1263,12 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
         console.log("got news data");
 
+        //ATTENZIONE
+        sentimentAnalysisData = 0.5;
+
         sentimentAnalysisData = await getSentimentAnalysis(newsData);
+
+
 
         console.log("got sentiment analysis data");
     }
