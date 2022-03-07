@@ -590,6 +590,31 @@ Default: 1.
 
 }
 
+
+async function getSentimentAnalysisFearGreed() {
+
+    let url = "https://api.alternative.me/fng/";
+
+    return new Promise((resolve, reject) => {
+        https.get(url, function(res) {
+            let data = '',
+                json_data;
+
+            res.on('data', function(stream) {
+                data += stream;
+            });
+            res.on('end', function() {
+                json_data = JSON.parse(data);
+
+                console.log("getSentimentAnalysisFearGreed", json_data.data[0].value);
+
+                resolve((parseFloat(json_data.data[0].value) / 100).toFixed(2));
+            });
+        });
+    });
+}
+
+
 async function getSentimentAnalysis(newsJsonData) {
 
 
@@ -1051,8 +1076,8 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
-    limit = limit.toFixed(2);
-    take_profit = take_profit.toFixed(2);
+    limit = limit.toFixed(0);
+    take_profit = take_profit.toFixed(0);
 
     let invested_amount = await binance_future_wallet_balance(currency_pair_2);
 
@@ -1092,13 +1117,13 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
         if (take_profit > 0) {
             console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, /*take_profit,*/ {
+            console.log(await binance.futuresSell(currency_pair_1 + currency_pair_2, quantity, take_profit, {
                 //newClientOrderId: my_order_id_tp,
                 stopPrice: take_profit,
                 type: "TAKE_PROFIT",
                 //timeInForce: "GTC",
                 priceProtect: true
-            });
+            }));
         }
 
         await binance_future_opened_position(currency_pair_1, currency_pair_2, "AFTER BUY");
@@ -1110,8 +1135,8 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
         currency_pair_2 = "USDT";
     }
 
-    limit = limit.toFixed(2);
-    take_profit = take_profit.toFixed(2);
+    limit = limit.toFixed(0);
+    take_profit = take_profit.toFixed(0);
 
     let invested_amount = await binance_future_wallet_balance(currency_pair_2);
 
@@ -1144,17 +1169,17 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
             console.log("SET SELL STOP LOSS", currency_pair_1 + currency_pair_2, quantity, limit);
             //console.info(await binance.futuresBuy(currency_pair_1 + currency_pair_2, quantity, limit));
 
-            await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
+            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 type: "STOP_MARKET",
                 stopPrice: limit,
                 priceProtect: true
-            });
+            }));
         }
 
         if (take_profit > 0) {
             console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, /*take_profit,*/ {
+            console.log(await binance.futuresBuy(currency_pair_1 + currency_pair_2, quantity, take_profit, {
                 //newClientOrderId: my_order_id_tp,
                 stopPrice: take_profit,
                 type: "TAKE_PROFIT",
@@ -1256,7 +1281,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     //se la data di adesso - la data delle ultime news 
     //è superiore a 60 minuti per 60 secondi ovvero mezz'ora
     //le richiede nuovamente. se è 0 ovviamente sarà superiore
-    const dateNow = new Date().getTime() / 1000;
+    /*const dateNow = new Date().getTime() / 1000;
     if (dateNow - newsDataTimestamp > (30 * 60)) {
         newsData = await getNewsData(currency_pair_1);
         newsDataTimestamp = new Date().getTime() / 1000;
@@ -1269,11 +1294,18 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
         sentimentAnalysisData = await getSentimentAnalysis(newsData);
 
 
+        // https://api.alternative.me/fng/
+
+        
 
         console.log("got sentiment analysis data");
-    }
+    }*/
 
+    sentimentAnalysisData = 0.5;
 
+    sentimentAnalysisData = await getSentimentAnalysisFearGreed();
+
+    console.log("FEAR AND GREED", sentimentAnalysisData);
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
 

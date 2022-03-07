@@ -491,6 +491,8 @@ module.exports = {
                         stop_loss = actual_price / 100 * (100 - stop_loss_percent);
                         take_profit = actual_price / 100 * (100 + take_profit_percent);
 
+                        console.log("actual_price", actual_price, "stop_loss", stop_loss, "take_profit", take_profit);
+
                         console.log("SL BUY", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit);
                         global.binance_future_buy(currency_pair_1, currency_pair_2, stop_loss, take_profit);
                     } else if (tipo_negoziazione === "SELL") {
@@ -498,6 +500,9 @@ module.exports = {
                         //se scende è un take profit
                         stop_loss = actual_price / 100 * (100 + stop_loss_percent);
                         take_profit = actual_price / 100 * (100 - take_profit_percent);
+
+                        console.log("actual_price", actual_price, "stop_loss", stop_loss, "take_profit", take_profit);
+
                         console.log("SL SELL", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit);
                         global.binance_future_sell(currency_pair_1, currency_pair_2, stop_loss, take_profit);
                     }
