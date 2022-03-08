@@ -1103,7 +1103,12 @@ async function binance_future_opened_position(currency_pair_1, currency_pair_2, 
 //stop loss and take profit
 //https://github.com/jaggedsoft/node-binance-api/issues/754
 
-global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*quantity,*/ limit = 0, take_profit = 0) {
+//nelle closeposition non serve il reduceOnly perchè già si presume.
+//il reduceOnly serve solo quando si riduce la posizione, ma non del tutto, o anche del tutto, ma senza chiudera
+//se è chiusa è ovvio che viene ridotta del 100%
+//infatti controllando mette da solo il reduce only. in teoria non andrebbe neanche impostata la quantità da ridurre ma funziona uguale
+
+global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*quantity,*/ limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0) {
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
@@ -1123,15 +1128,23 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
 
     let close_qty = 0;
     if (opened_position < 0) {
-        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
+
         console.log("CLOSE SELL POSITION", currency_pair_1 + currency_pair_2, opened_position * -1);
         close_qty += Math.abs(opened_position);
+
+        console.info(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, close_qty.toFixed(3), {
+            type: "MARKET",
+            //priceProtect: true,
+            reduceOnly: true,
+            //closePosition: true
+        }));
     }
     if (opened_position <= 0) {
-        let size = parseFloat(quantity) + parseFloat(close_qty);
+        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
+        //let size = parseFloat(quantity) + parseFloat(close_qty);
 
-        console.log("SEND BUY", currency_pair_1 + currency_pair_2, quantity + close_qty);
-        console.info(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, size.toFixed(3)));
+        console.log("SEND BUY", currency_pair_1 + currency_pair_2, quantity /*+ close_qty*/ );
+        console.info(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity));
 
         //se arriva allo stop loss deve vendere per chiudere la posizione in long
         if (limit > 0) {
@@ -1141,19 +1154,42 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
             console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 type: "STOP_MARKET",
                 stopPrice: limit,
-                priceProtect: true
+
+                //priceProtect: true,
+                reduceOnly: true,
+                //closePosition: true
             }));
         }
 
         if (take_profit > 0) {
+            /*
+            facciamo una prova senza take profit
+            
             console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            console.log(await binance.futuresSell(currency_pair_1 + currency_pair_2, quantity, take_profit, {
+            console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity,  {
                 //newClientOrderId: my_order_id_tp,
                 stopPrice: take_profit,
-                type: "TAKE_PROFIT",
+                type: "TAKE_PROFIT_MARKET",
                 //timeInForce: "GTC",
-                priceProtect: true
+                //priceProtect: true,
+                //reduceOnly: true,
+                closePosition: true
+
+            }));*/
+
+            if (stop_loss_perc < 0.1) {
+                stop_loss_perc = 0.1;
+            }
+            console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
+                //newClientOrderId: my_order_id_tp,
+                activationPrice: parseInt(actual_price) - 10,
+                callbackRate: stop_loss_perc,
+                type: "TRAILING_STOP_MARKET",
+                //timeInForce: "GTC",
+                //priceProtect: true,
+                reduceOnly: true,
+                //closePosition: true
             }));
         }
 
@@ -1161,7 +1197,7 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
     }
 }
 
-global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /* quantity,*/ limit = 0, take_profit = 0) {
+global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /* quantity,*/ limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0) {
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
@@ -1182,15 +1218,26 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
 
     let close_qty = 0;
     if (opened_position > 0) {
-        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
-        console.log("CLOSE BUY POSITION", currency_pair_1 + currency_pair_2, opened_position * -1);
-        close_qty += Math.abs(opened_position);
-    }
-    if (opened_position >= 0) {
-        let size = parseFloat(quantity) + parseFloat(close_qty);
 
-        console.log("SEND SELL", currency_pair_1 + currency_pair_2, quantity + close_qty);
-        console.info(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, size.toFixed(3)));
+        console.log("CLOSE BUY POSITION", currency_pair_1 + currency_pair_2, opened_position * -1);
+
+        close_qty += Math.abs(opened_position);
+
+        console.info(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, close_qty.toFixed(3), {
+            type: "MARKET",
+            //priceProtect: true,
+            reduceOnly: true,
+            //closePosition: true
+        }));
+
+    }
+
+    if (opened_position >= 0) {
+        binance.futuresCancelAll(currency_pair_1 + currency_pair_2);
+        //let size = parseFloat(quantity) + parseFloat(close_qty);
+
+        console.log("SEND SELL", currency_pair_1 + currency_pair_2, quantity);
+        console.info(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity));
 
 
 
@@ -1203,19 +1250,37 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
             console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 type: "STOP_MARKET",
                 stopPrice: limit,
-                priceProtect: true
+                //priceProtect: true,
+                reduceOnly: true,
+                //closePosition: true
             }));
         }
 
         if (take_profit > 0) {
+            /*
             console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            console.log(await binance.futuresBuy(currency_pair_1 + currency_pair_2, quantity, take_profit, {
+            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity  , {
                 //newClientOrderId: my_order_id_tp,
                 stopPrice: take_profit,
-                type: "TAKE_PROFIT",
+                type: "TAKE_PROFIT_MARKET",
                 //timeInForce: "GTC",
-                priceProtect: true
+                //priceProtect: true,
+                //reduceOnly: true,
+                closePosition: true
+            }));*/
+            if (stop_loss_perc < 0.1) {
+                stop_loss_perc = 0.1;
+            }
+            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
+                //newClientOrderId: my_order_id_tp,
+                activationPrice: parseInt(actual_price) - 10,
+                callbackRate: stop_loss_perc,
+                type: "TRAILING_STOP_MARKET",
+                //timeInForce: "GTC",
+                //priceProtect: true,
+                reduceOnly: true,
+                //closePosition: true
             }));
         }
 
@@ -1332,11 +1397,17 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
         console.log("got sentiment analysis data");
     }*/
 
-    sentimentAnalysisData = 0.5;
+    //solo ogni 8 ore guarda la sentiment analysis della giornata da un indicatore apposito
+    const dateNow = new Date().getTime() / 1000;
+    if (dateNow - newsDataTimestamp > (8 * 60 * 60)) {
 
-    sentimentAnalysisData = await getSentimentAnalysisFearGreed();
+        sentimentAnalysisData = 0.5;
 
-    console.log("FEAR AND GREED", sentimentAnalysisData);
+        sentimentAnalysisData = await getSentimentAnalysisFearGreed();
+
+        console.log("FEAR AND GREED", sentimentAnalysisData);
+
+    }
 
     await trainer.train_data(timeseriesData, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, sentimentAnalysisData, orderBookTrend, resistenceAndSupport, trades, actual_price);
 

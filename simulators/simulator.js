@@ -24,8 +24,8 @@ module.exports = {
         let median_difference = median(percentageArr);
 
         //lo stop loss è il prezzo + (o -) la mediana della differenza percentuale degli ultimi 30 valori + il 10%;
-        let stop_loss_percent = median_difference /*/ 100 * 110*/ ;
-        let take_profit_percent = median_difference /*/ 100 * 90*/ ;
+        let stop_loss_percent = median_difference / 100 * 90;
+        let take_profit_percent = median_difference / 100 * 110;
 
         console.log("C", median_difference);
 
