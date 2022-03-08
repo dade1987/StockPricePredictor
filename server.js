@@ -123,13 +123,17 @@ process.argv.forEach(function(val, index, array) {
         train_models();
 
     }
+
+    if (val === "--autoOneMinute") {
+        autoOneMinute();
+    }
 });
 
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 
-global.binance_api_status = true;
+global.binance_api_status = false;
 
 
 const Binance = require('node-binance-api-testnet');
@@ -154,6 +158,33 @@ const yesterday = () => {
     return d.toISOString().split('T')[0];
 };
 
+async function autoOneMinute() {
+
+    global.binance_api_status = true;
+
+    binance = new Binance().options({
+        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
+        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
+    });
+
+    let next_minute_date = new Date();
+    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+    next_minute_date.setSeconds(1);
+    //let next_minute = next_minute_date.getTime();
+
+    let current_date = Date.now();
+    let wait_fist_time = next_minute_date - current_date;
+
+    timeout = setTimeout(function() {
+        main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
+        interval = setInterval(function() {
+            main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
+        }, 60000);
+    }, wait_fist_time);
+
+    console.log('autoOneMinuteBackend wait_fist_time', wait_fist_time);
+
+}
 
 async function getOrderBook(currency_pair_1) {
 
@@ -1313,6 +1344,8 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     console.info(`Price of BTC: ${ticker.BTCUSDT}`);*/
 
 }
+
+
 
 async function train_models() {
 
