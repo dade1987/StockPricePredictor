@@ -113,6 +113,23 @@ io.on('connection', (socket) => {
     });
 });
 
+global.binance_api_status = false;
+
+
+const Binance = require('node-binance-api-testnet');
+let binance;
+
+if (global.binance_api_status === true) {
+
+    //console.log(process.env.BINANCE_FUTURES_TESTNET_KEY);
+
+    binance = new Binance().options({
+        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
+        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
+    });
+
+}
+
 process.argv.forEach(function(val, index, array) {
     console.log(val);
 
@@ -133,24 +150,7 @@ process.argv.forEach(function(val, index, array) {
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
 
 
-global.binance_api_status = false;
 
-
-const Binance = require('node-binance-api-testnet');
-let binance;
-
-if (global.binance_api_status === true) {
-
-    //console.log(process.env.BINANCE_FUTURES_TESTNET_KEY);
-
-    binance = new Binance().options({
-        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
-        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
-    });
-
-
-
-}
 
 const yesterday = () => {
     let d = new Date();
