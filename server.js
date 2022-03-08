@@ -213,7 +213,7 @@ async function autoFiveMinute() {
         }, 60000 * 5);
     }, wait_fist_time);
 
-    console.log('autoOneMinuteBackend wait_fist_time', wait_fist_time);
+    console.log('autoFiveMinuteBackend wait_fist_time', wait_fist_time);
 
 }
 
