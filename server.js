@@ -1134,7 +1134,7 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
 
         console.info(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, close_qty.toFixed(3), {
             type: "MARKET",
-            //priceProtect: true,
+            priceProtect: true,
             reduceOnly: true,
             //closePosition: true
         }));
@@ -1155,7 +1155,7 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
                 type: "STOP_MARKET",
                 stopPrice: limit,
 
-                //priceProtect: true,
+                priceProtect: true,
                 reduceOnly: true,
                 //closePosition: true
             }));
@@ -1183,11 +1183,11 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
             }
             console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                activationPrice: parseInt(actual_price) - 10,
+                activationPrice: parseInt(actual_price) + 5,
                 callbackRate: stop_loss_perc,
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
-                //priceProtect: true,
+                priceProtect: true,
                 reduceOnly: true,
                 //closePosition: true
             }));
@@ -1225,7 +1225,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
 
         console.info(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, close_qty.toFixed(3), {
             type: "MARKET",
-            //priceProtect: true,
+            priceProtect: true,
             reduceOnly: true,
             //closePosition: true
         }));
@@ -1250,7 +1250,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
             console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 type: "STOP_MARKET",
                 stopPrice: limit,
-                //priceProtect: true,
+                priceProtect: true,
                 reduceOnly: true,
                 //closePosition: true
             }));
@@ -1265,7 +1265,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
                 stopPrice: take_profit,
                 type: "TAKE_PROFIT_MARKET",
                 //timeInForce: "GTC",
-                //priceProtect: true,
+                priceProtect: true,
                 //reduceOnly: true,
                 closePosition: true
             }));*/
@@ -1274,11 +1274,11 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
             }
             console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                activationPrice: parseInt(actual_price) - 10,
+                activationPrice: parseInt(actual_price) - 5,
                 callbackRate: stop_loss_perc,
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
-                //priceProtect: true,
+                priceProtect: true,
                 reduceOnly: true,
                 //closePosition: true
             }));
