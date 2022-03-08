@@ -143,6 +143,8 @@ process.argv.forEach(function(val, index, array) {
 
     if (val === "--autoOneMinute") {
         autoOneMinute();
+    } else if (val === "--autoFiveMinute") {
+        autoFiveMinute();
     }
 });
 
@@ -180,6 +182,35 @@ async function autoOneMinute() {
         interval = setInterval(function() {
             main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
         }, 60000);
+    }, wait_fist_time);
+
+    console.log('autoMinuteBackend wait_fist_time', wait_fist_time);
+
+}
+
+
+async function autoFiveMinute() {
+
+    global.binance_api_status = true;
+
+    binance = new Binance().options({
+        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
+        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
+    });
+
+    let next_minute_date = new Date();
+    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+    next_minute_date.setSeconds(1);
+    //let next_minute = next_minute_date.getTime();
+
+    let current_date = Date.now();
+    let wait_fist_time = next_minute_date - current_date;
+
+    timeout = setTimeout(function() {
+        main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
+        interval = setInterval(function() {
+            main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
+        }, 60000 * 5);
     }, wait_fist_time);
 
     console.log('autoOneMinuteBackend wait_fist_time', wait_fist_time);
@@ -1179,12 +1210,16 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
             }));*/
 
             if (stop_loss_perc < 0.1) {
+                console.log("FORZATURA STOP LOSS BUY");
                 stop_loss_perc = 0.1;
             }
+
+            console.log("TAKE PROFIT BUY", currency_pair_1 + currency_pair_2, 'quantity', quantity, 'activation_price', (parseFloat(actual_price) / 100 * (100 + stop_loss_perc)).toFixed(0), 'callback_rate', (stop_loss_perc).toFixed(1));
+
             console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                activationPrice: parseInt(actual_price) + 5,
-                callbackRate: stop_loss_perc,
+                /*activationPrice: (parseFloat(actual_price) / 100 * (100 + stop_loss_perc)).toFixed(0),*/
+                callbackRate: (stop_loss_perc).toFixed(1),
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
                 priceProtect: true,
@@ -1270,12 +1305,16 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
                 closePosition: true
             }));*/
             if (stop_loss_perc < 0.1) {
+                console.log("FORZATURA STOP LOSS SELL");
                 stop_loss_perc = 0.1;
             }
+
+            console.log("TAKE PROFIT SELL", currency_pair_1 + currency_pair_2, 'quantity', quantity, 'activation_price', (parseFloat(actual_price) / 100 * (100 - stop_loss_perc)).toFixed(0), 'callback_rate', (stop_loss_perc).toFixed(1));
+
             console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                activationPrice: parseInt(actual_price) - 5,
-                callbackRate: stop_loss_perc,
+                /*activationPrice: (parseFloat(actual_price) / 100 * (100 - stop_loss_perc)).toFixed(0),*/
+                callbackRate: (stop_loss_perc).toFixed(1),
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
                 priceProtect: true,
@@ -1290,6 +1329,34 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
 }
 
 /* ------------------- END BINANCE --------------------------- */
+
+/* ---------------------- TIMES ------------------------------ */
+
+const roundTo = roundTo => x => Math.round(x / roundTo) * roundTo;
+const roundDownTo = roundTo => x => Math.floor(x / roundTo) * roundTo;
+const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo;
+
+/*const roundTo5Minutes = roundTo(1000 * 60 * 5);
+const roundDownTo5Minutes = roundDownTo(1000 * 60 * 5);*/
+
+const roundUpTo1Minutes = roundUpTo(1000 * 60 * 1);
+const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5);
+const roundUpTo15Minutes = roundUpTo(1000 * 60 * 15);
+const roundUpTo30Minutes = roundUpTo(1000 * 60 * 30);
+const roundUpTo60Minutes = roundUpTo(1000 * 60 * 60);
+
+/*const now = new Date();*/
+
+/*const msRound = roundTo5Minutes(now)
+const msDown = roundDownTo5Minutes(now)
+const msUp = roundUpTo5Minutes(now)*/
+
+/*console.log(now);
+console.log(new Date(msRound));
+console.log(new Date(msDown));
+console.log(new Date(msUp));*/
+
+/* ----------------------------------------------------------- */
 
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 
