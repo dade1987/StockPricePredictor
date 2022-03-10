@@ -50,6 +50,10 @@ global.macd_fastPeriod = 12;
 global.macd_slowPeriod = 26;
 global.macd_signalPeriod = 9;
 
+let timeout;
+let interval;
+
+
 //global.player = require('play-sound')({player: "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"})
 
 
@@ -103,32 +107,130 @@ io.on('connection', (socket) => {
     });
 
     socket.on('predict', async(arg) => {
+
         console.log('received predict request');
 
         let parameters = JSON.parse(arg);
 
         console.log(parameters);
 
-        await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled, socket);
+        if (parameters.auto_loop === 'clearAutoInvestment') {
+            clearInterval(interval);
+            clearTimeout(timeout);
+        } else if (parameters.auto_loop === 'autoOneMinute') {
+            autoOneMinute(parameters.currency_pair_1, parameters.currency_pair_2);
+        } else if (parameters.auto_loop === 'autoFiveMinute') {
+            autoFiveMinute(parameters.currency_pair_1, parameters.currency_pair_2);
+        } else {
+            await main(parameters.market_name, parameters.time_interval, parameters.currency_pair_1, parameters.currency_pair_2, parseInt(parameters.time_steps), parseInt(parameters.epochs_number), parameters.training_enabled, socket);
+        }
     });
+
+
 });
 
 global.binance_api_status = false;
 
-
 const Binance = require('node-binance-api-testnet');
 let binance;
 
-if (global.binance_api_status === true) {
-
-    //console.log(process.env.BINANCE_FUTURES_TESTNET_KEY);
+function initializeBinanceAPI() {
+    global.binance_api_status = true;
 
     binance = new Binance().options({
         APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
         APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
     });
+}
+
+/* ---------------------- TIMES ------------------------------ */
+
+const roundTo = roundTo => x => Math.round(x / roundTo) * roundTo;
+const roundDownTo = roundTo => x => Math.floor(x / roundTo) * roundTo;
+const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo;
+
+/*const roundTo5Minutes = roundTo(1000 * 60 * 5);
+const roundDownTo5Minutes = roundDownTo(1000 * 60 * 5);*/
+
+const roundUpTo1Minutes = roundUpTo(1000 * 60 * 1);
+const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5);
+const roundUpTo15Minutes = roundUpTo(1000 * 60 * 15);
+const roundUpTo30Minutes = roundUpTo(1000 * 60 * 30);
+const roundUpTo60Minutes = roundUpTo(1000 * 60 * 60);
+
+/*const now = new Date();*/
+
+/*const msRound = roundTo5Minutes(now)
+const msDown = roundDownTo5Minutes(now)
+const msUp = roundUpTo5Minutes(now)*/
+
+/*console.log(now);
+console.log(new Date(msRound));
+console.log(new Date(msDown));
+console.log(new Date(msUp));*/
+
+/* ----------------------------------------------------------- */
+
+
+// -------------------------------- END AUTO INVESTMENT ----------------------------------------
+
+
+async function autoOneMinute(currency_pair_1, currency_pair_2) {
+
+
+    initializeBinanceAPI();
+
+    /*let next_minute_date = new Date();
+    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+    next_minute_date.setSeconds(1);*/
+    //let next_minute = next_minute_date.getTime();
+
+    //+ 1000 perchè deve essere + 1 secondo per prendere l'ultimo dato
+    let next_minute_date = roundUpTo1Minutes(new Date()) + 1000;
+
+    let current_date = Date.now();
+    let wait_fist_time = next_minute_date - current_date;
+
+    timeout = setTimeout(function() {
+        main('CRYPTO', 'INTRADAY_1_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
+        interval = setInterval(function() {
+            main('CRYPTO', 'INTRADAY_1_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
+        }, 60000);
+    }, wait_fist_time);
+
+    console.log('autoMinuteBackend wait_fist_time', wait_fist_time);
 
 }
+
+
+async function autoFiveMinute(currency_pair_1, currency_pair_2) {
+
+    initializeBinanceAPI();
+
+    /*let next_minute_date = new Date();
+    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+    next_minute_date.setSeconds(1);*/
+    //let next_minute = next_minute_date.getTime();
+
+    //+ 1000 perchè deve essere + 1 secondo per prendere l'ultimo dato
+    let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+
+    let current_date = Date.now();
+    let wait_fist_time = next_minute_date - current_date;
+
+    timeout = setTimeout(function() {
+        main('CRYPTO', 'INTRADAY_5_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
+        interval = setInterval(function() {
+            main('CRYPTO', 'INTRADAY_5_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
+        }, 60000 * 5);
+    }, wait_fist_time);
+
+    console.log('autoFiveMinuteBackend wait_fist_time', wait_fist_time);
+
+}
+
+
+// -------------------------------- END AUTO INVESTMENT ----------------------------------------
 
 process.argv.forEach(function(val, index, array) {
     console.log(val);
@@ -139,13 +241,17 @@ process.argv.forEach(function(val, index, array) {
 
         train_models();
 
-    }
-
-    if (val === "--autoOneMinute") {
+    } else if (val === "--autoOneMinute") {
         autoOneMinute();
     } else if (val === "--autoFiveMinute") {
         autoFiveMinute();
+    } else if (val === "--cmd") {
+        console.log("eval");
+        cmd();
+        return;
     }
+
+
 });
 
 
@@ -160,62 +266,9 @@ const yesterday = () => {
     return d.toISOString().split('T')[0];
 };
 
-async function autoOneMinute() {
-
-    global.binance_api_status = true;
-
-    binance = new Binance().options({
-        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
-        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
-    });
-
-    let next_minute_date = new Date();
-    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
-    next_minute_date.setSeconds(1);
-    //let next_minute = next_minute_date.getTime();
-
-    let current_date = Date.now();
-    let wait_fist_time = next_minute_date - current_date;
-
-    timeout = setTimeout(function() {
-        main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
-        interval = setInterval(function() {
-            main('CRYPTO', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
-        }, 60000);
-    }, wait_fist_time);
-
-    console.log('autoMinuteBackend wait_fist_time', wait_fist_time);
-
-}
 
 
-async function autoFiveMinute() {
 
-    global.binance_api_status = true;
-
-    binance = new Binance().options({
-        APIKEY: process.env.BINANCE_FUTURES_TESTNET_KEY,
-        APISECRET: process.env.BINANCE_FUTURES_TESTNET_SECRET
-    });
-
-    let next_minute_date = new Date();
-    next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
-    next_minute_date.setSeconds(1);
-    //let next_minute = next_minute_date.getTime();
-
-    let current_date = Date.now();
-    let wait_fist_time = next_minute_date - current_date;
-
-    timeout = setTimeout(function() {
-        main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
-        interval = setInterval(function() {
-            main('CRYPTO', 'INTRADAY_5_MIN', "BTC", "USD", 14, 50, true, null);
-        }, 60000 * 5);
-    }, wait_fist_time);
-
-    console.log('autoFiveMinuteBackend wait_fist_time', wait_fist_time);
-
-}
 
 async function getOrderBook(currency_pair_1) {
 
@@ -963,6 +1016,7 @@ async function getData(market_name, time_interval, currency_pair_1, currency_pai
 
 
         console.log("URL", url);
+        //console.trace();
 
         let timeseriesRequest = https.get(url, function(res) {
             let data = '',
@@ -1062,6 +1116,41 @@ let sentimentAnalysisData;
 //forse meglio simulare con un centesimo in USDT del bilancio (iniziale quasi 100mila)
 
 
+async function cmd() {
+    initializeBinanceAPI();
+
+    //price
+    console.info(await binance.futuresPrices());
+
+    /*console.info(await binance.futuresTime());*/
+    /*console.info(await binance.futuresExchangeInfo());*/
+
+    //https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list
+    console.info(await binance.futuresCandles("BTCUSDT", "1m"));
+
+    console.info(await binance.futuresDepth("BTCUSDT"));
+
+    //bid e ask
+    console.info(await binance.futuresQuote("BTCUSDT"));
+
+    /*console.info(await binance.futuresDaily());*/
+    /*console.info(await binance.futuresOpenInterest("BTCUSDT"));*/
+
+    /*console.info(await binance.futuresMarkPrice("BTCUSDT"));*/
+    /*console.info(await binance.futuresTrades("BTCUSDT"));*/
+    /*console.info(await binance.futuresAggTrades("BTCUSDT"));*/
+    /*console.info(await binance.futuresLiquidationOrders());*/
+    /*console.info(await binance.futuresFundingRate());*/
+    /*console.info(await binance.futuresHistoricalTrades("BTCUSDT"));*/
+    /* console.info(await binance.futuresLeverageBracket("BTCUSDT"));*/
+    /*console.info(await binance.futuresIncome());*/
+    /*console.info(await binance.futuresUserTrades("BTCUSDT"));*/
+    /*console.info(await binance.futuresGetDataStream());*/
+    /*console.info(await binance.futuresPositionMarginHistory("BTCUSDT"));*/
+    /*console.info(await binance.promiseRequest('v1/time')); */
+
+}
+
 //nella one way mode, se shorti va negativo, e se longhi va positivo l'ammontare
 //ma la positionSide è sempre BOTH
 
@@ -1086,8 +1175,6 @@ async function binance_future_price(currency_pair_1, currency_pair_2) {
     //console.log("MARK PRICE", await binance.futuresMarkPrice(currency_pair_1 + currency_pair_2));
 
     //console.info("QUOTE", await binance.futuresQuote("BCHUSDT"));
-
-
 
 
     return futurePrices[currency_pair_1 + currency_pair_2];
@@ -1139,7 +1226,8 @@ async function binance_future_opened_position(currency_pair_1, currency_pair_2, 
 //se è chiusa è ovvio che viene ridotta del 100%
 //infatti controllando mette da solo il reduce only. in teoria non andrebbe neanche impostata la quantità da ridurre ma funziona uguale
 
-global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*quantity,*/ limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0) {
+global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*quantity,*/
+    limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0) {
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
@@ -1330,33 +1418,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
 
 /* ------------------- END BINANCE --------------------------- */
 
-/* ---------------------- TIMES ------------------------------ */
 
-const roundTo = roundTo => x => Math.round(x / roundTo) * roundTo;
-const roundDownTo = roundTo => x => Math.floor(x / roundTo) * roundTo;
-const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo;
-
-/*const roundTo5Minutes = roundTo(1000 * 60 * 5);
-const roundDownTo5Minutes = roundDownTo(1000 * 60 * 5);*/
-
-const roundUpTo1Minutes = roundUpTo(1000 * 60 * 1);
-const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5);
-const roundUpTo15Minutes = roundUpTo(1000 * 60 * 15);
-const roundUpTo30Minutes = roundUpTo(1000 * 60 * 30);
-const roundUpTo60Minutes = roundUpTo(1000 * 60 * 60);
-
-/*const now = new Date();*/
-
-/*const msRound = roundTo5Minutes(now)
-const msDown = roundDownTo5Minutes(now)
-const msUp = roundUpTo5Minutes(now)*/
-
-/*console.log(now);
-console.log(new Date(msRound));
-console.log(new Date(msDown));
-console.log(new Date(msUp));*/
-
-/* ----------------------------------------------------------- */
 
 async function main(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, training_enabled, socket) {
 

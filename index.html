@@ -160,7 +160,10 @@
                    style="display:none;">
             <!--<br>-->
         <button class="btn btn-success" id="train-button">PREDICT</button>
-        <button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>
+        <button class="btn btn-success" id="auto-one-minute-button">AUTO INVEST (1 MINUTE)</button>
+        <button class="btn btn-success" id="auto-five-minutes-button">AUTO INVEST (5 MINUTES)</button>
+        <button class="btn btn-success" id="clear-auto-investment-button" style="display:none;">CLEAR AUTO INVESTMENT</button>
+        <!--<button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>-->
         <br>
         <!--<br>
             <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
@@ -378,6 +381,9 @@
         var socket = io();
 
         const trainButton = document.getElementById('train-button');
+        const autoOneMinuteButton = document.getElementById('auto-one-minute-button');
+        const autoFiveMinutesButton = document.getElementById('auto-five-minutes-button');
+        const clearAutoInvestmentButton = document.getElementById('clear-auto-investment-button');
         const predictButton = document.getElementById('predict-button');
         let startingTime = null;
         let startingTimeString = "";
@@ -399,6 +405,99 @@
             let epochs_number = 50; // $("#epochs_number").val();
 
             socket.emit('predict', JSON.stringify({
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        autoOneMinuteButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "AUTO INVESTING...";
+
+            autoOneMinuteButton.style.display = 'none';
+            autoFiveMinutesButton.style.display = 'none';
+            clearAutoInvestmentButton.style.display = 'inline-block';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'autoOneMinute',
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        autoFiveMinutesButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "AUTO INVESTING...";
+
+            autoOneMinuteButton.style.display = 'none';
+            autoFiveMinutesButton.style.display = 'none';
+            clearAutoInvestmentButton.style.display = 'inline-block';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'autoFiveMinute',
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        clearAutoInvestmentButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = false;
+            trainButton.textContent = "PREDICT";
+
+            autoOneMinuteButton.style.display = 'inline-block';
+            autoFiveMinutesButton.style.display = 'inline-block';
+            clearAutoInvestmentButton.style.display = 'none';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'clearAutoInvestment',
                 market_name: market_name,
                 time_interval: time_interval,
                 currency_pair_1: currency_pair_1,
