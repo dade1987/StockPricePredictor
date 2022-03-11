@@ -28,8 +28,8 @@ module.exports = {
         let stop_loss_percent = median_difference * 3;
         //nel take profit deve fermarsi alla mediana di 1 minuto, ma per ora uso il trailing stop
         let take_profit_percent = median_difference;
-        //nel trailing stop deve tornare indietro di metà della mediana per chiudere. forse così è più facile guadagnare più spesso
-        let trailing_stop_percent = median_difference / 2 /* / 100 * 110*/ ;
+        //nel trailing stop deve tornare indietro al massimo di 1.2 volte la mediana del take profit per evitare correzioni
+        let trailing_stop_percent = median_difference * 1.2 /* / 100 * 110*/ ;
 
         console.log("C", median_difference);
 
