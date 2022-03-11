@@ -16,6 +16,7 @@ global.express = require('express');
 global.socketio = require('socket.io');
 global.tf = require('@tensorflow/tfjs-node');
 
+global.EMA = require('technicalindicators').EMA;
 global.SMA = require('technicalindicators').SMA;
 global.MACD = require('technicalindicators').MACD;
 global.RSI = require('technicalindicators').RSI;
@@ -42,6 +43,7 @@ https://github.com/jaggedsoft/node-binance-api#binance-api-spot-trading
 */
 
 global.original_data;
+global.ema_period = 7;
 global.sma_period = 21;
 global.rsi_period = 14;
 global.stochastic_period = 14;
@@ -796,6 +798,54 @@ async function getSentimentAnalysis(newsJsonData) {
 
 }
 
+async function getFuturesData(market_name, time_interval, currency_pair_1, currency_pair_2) {
+
+
+    if (currency_pair_2 === "USD") {
+        currency_pair_2 = "USDT";
+    }
+
+    let interval = "";
+    let json_data_name = "";
+
+    switch (time_interval) {
+
+        case "INTRADAY_1_MIN":
+            interval = "1m";
+            break;
+
+        case "INTRADAY_5_MIN":
+            interval = "5m";
+            break;
+
+    }
+
+
+    let json_data = await binance.futuresCandles(currency_pair_1 + currency_pair_2, interval);
+
+    // console.log("CANDELE", json_data);
+
+
+
+    //json_data = JSON.parse(data);
+
+    let rawData = null;
+
+    rawData = json_data.map(d => ({
+        open: parseFloat(d[1]),
+        high: parseFloat(d[2]),
+        low: parseFloat(d[3]),
+        close: parseFloat(d[4]),
+        volume: parseFloat(d[5])
+    }));
+
+    console.log("CANDELE RAW DATA", rawData);
+    return rawData;
+
+
+
+}
+
 async function getData(market_name, time_interval, currency_pair_1, currency_pair_2) {
 
     //QOUA4VUTZJXS3M01
@@ -1431,7 +1481,13 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     /*console.log(model = await ai_model_loader.load_model(market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, optimizer));
     return false;*/
 
-    const timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
+    let timeseriesData;
+
+    /* if (market_name === "CRYPTO_FUTURES") {
+         timeseriesData = await getFuturesData(market_name, time_interval, currency_pair_1, currency_pair_2);
+     } else {*/
+    timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
+    /*}*/
 
     /*let actual_price = await getMarketPrice(currency_pair_1);
 

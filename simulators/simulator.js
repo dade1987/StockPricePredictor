@@ -63,7 +63,9 @@ module.exports = {
 
         //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
         let historical_approval_cutoff = 60;
-        let actual_approval_cutoff = 44;
+
+        //almeno ne deve passare 5 su 9 (per comodità http://www.calcolarelapercentuale.it/)
+        let actual_approval_cutoff = 55;
 
 
         //let operations=new Array();

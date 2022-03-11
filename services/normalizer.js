@@ -1,66 +1,75 @@
 module.exports = {
 
-    normalizza_dati: function (data) {
+    normalizza_dati: function(data) {
 
         //console.log("DATA", data[0]);
 
         //prima deve calcolare massimi e minimi
-        prices_min = Math.min.apply(null, data.map(function (d) {
+        prices_min = Math.min.apply(null, data.map(function(d) {
             return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
         }));
-        prices_max = Math.max.apply(null, data.map(function (d) {
+        prices_max = Math.max.apply(null, data.map(function(d) {
             return Math.max.apply(null, [d.open, d.high, d.low, d.close]);
         }));
 
-        let volume_min = Math.min.apply(null, data.map(function (d) {
+        let volume_min = Math.min.apply(null, data.map(function(d) {
             return d.volume;
         }));
 
-        let volume_max = Math.max.apply(null, data.map(function (d) {
+        let volume_max = Math.max.apply(null, data.map(function(d) {
             return d.volume;
         }));
 
 
-        let sma_min = Math.min.apply(null, data.map(function (d) {
+        let sma_min = Math.min.apply(null, data.map(function(d) {
             return d.sma;
         }));
 
-        let sma_max = Math.max.apply(null, data.map(function (d) {
+        let sma_max = Math.max.apply(null, data.map(function(d) {
             return d.sma;
         }));
 
 
-        let rsi_min = Math.min.apply(null, data.map(function (d) {
+        let rsi_min = Math.min.apply(null, data.map(function(d) {
             return d.rsi;
         }));
 
-        let rsi_max = Math.max.apply(null, data.map(function (d) {
+        let rsi_max = Math.max.apply(null, data.map(function(d) {
             return d.rsi;
         }));
 
-        let stochastic_min = Math.min.apply(null, data.map(function (d) {
+        let stochastic_min = Math.min.apply(null, data.map(function(d) {
             return Math.min.apply(null, [d.stochastic_k, d.stochastic_d]);
         }));
 
-        let stochastic_max = Math.max.apply(null, data.map(function (d) {
+        let stochastic_max = Math.max.apply(null, data.map(function(d) {
             return Math.max.apply(null, [d.stochastic_k, d.stochastic_d]);
         }));
 
-        let macd_min = Math.min.apply(null, data.map(function (d) {
+        let macd_min = Math.min.apply(null, data.map(function(d) {
             return Math.min.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
         }));
 
-        let macd_max = Math.max.apply(null, data.map(function (d) {
+        let macd_max = Math.max.apply(null, data.map(function(d) {
             return Math.max.apply(null, [d.macd_macd, d.macd_signal, d.macd_histogram]);
         }));
 
-        let pick_incidence_min = Math.min.apply(null, data.map(function (d) {
+        let pick_incidence_min = Math.min.apply(null, data.map(function(d) {
             return Math.min.apply(null, [d.pick_incidence]);
         }));
 
-        let pick_incidence_max = Math.max.apply(null, data.map(function (d) {
+        let pick_incidence_max = Math.max.apply(null, data.map(function(d) {
             return Math.max.apply(null, [d.pick_incidence]);
         }));
+
+        let ema_min = Math.min.apply(null, data.map(function(d) {
+            return Math.min.apply(null, [d.ema]);
+        }));
+
+        let ema_max = Math.max.apply(null, data.map(function(d) {
+            return Math.max.apply(null, [d.ema]);
+        }));
+
 
         /*let macd_macd_max = 0;
          let macd_macd_min = 0;
@@ -73,7 +82,7 @@ module.exports = {
 
 
 
-        let finale = data.map(function (d) {
+        let finale = data.map(function(d) {
             let volumeTemp = (d.volume - volume_min) / (volume_max - volume_min);
             if (isNaN(volumeTemp)) {
                 volumeTemp = 0;
@@ -92,6 +101,8 @@ module.exports = {
                 macd_signal: (d.macd_signal - macd_min) / (macd_max - macd_min),
                 macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min),
                 pick_incidence: (d.pick_incidence - pick_incidence_min) / (pick_incidence_max - pick_incidence_min),
+                ema: (d.ema - ema_min) / (ema_max - ema_min),
+                ema_alert: d.ema_alert,
             };
         });
 

@@ -1,7 +1,14 @@
 module.exports = {
     train_data: async function(data, time_steps, epochs_number, training_enabled, market_name, time_interval, currency_pair_1, currency_pair_2, time_steps, epochs_number, socket, newsData, orderBook, resistenceAndSupport, trades, actual_price) {
 
+
+
         /* applica indicatori */
+        let ema = EMA.calculate({
+            period: ema_period,
+            values: data.map(d => d.close)
+        });
+
         let rsi = RSI.calculate({
             period: rsi_period,
             values: data.map(d => d.close)
@@ -36,10 +43,19 @@ module.exports = {
             data[i].macd_histogram = 0;
             data[i].stochastic_k = 0;
             data[i].stochastic_d = 0;
+            data[i].ema = 0;
+            data[i].ema_alert = 0;
         }
 
 
         let d = 0;
+        for (let i = ema_period; i < data.length; i++) {
+            //console.log("DEBUG RSI",sma[d],i,d)
+            data[i].ema = ema[d];
+            d++;
+        }
+
+        d = 0;
         for (let i = rsi_period; i < data.length; i++) {
             //console.log("DEBUG RSI",sma[d],i,d)
             data[i].rsi = rsi[d];
@@ -73,10 +89,15 @@ module.exports = {
         for (let i = 0; i < data.length; i++) {
             //console.log(data[i]);
             data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].sma);
+            if (i === 0) {
+                data[i].ema_alert = 0;
+            } else {
+                data[i].ema_alert = pick_incidence.emaAlert(data[i - 1].ema, data[i - 1].open, data[i].ema, data[i].open, );
+            }
             d++;
         }
 
-        //console.log("TRAIN DATA 0", data[data.length-1]);
+        console.log("TRAIN DATA 0", data[data.length - 1]);
 
 
         /* tagliati giusti e testati uno ad uno, compresa istruzione seguente */
@@ -85,13 +106,13 @@ module.exports = {
         original_data = data;
 
 
-        //console.log("TRAIN DATA 1", data[0]);
+        console.log("TRAIN DATA 1", data[0]);
 
         data = normalizer.normalizza_dati(data);
 
 
 
-        //console.log("TRAIN DATA 2", data[0]);
+        console.log("TRAIN DATA 2", data[0]);
         /* sometimes Chrome crashes and you need to open a new window */
 
         /* test sul 10% di dati */
@@ -109,9 +130,9 @@ module.exports = {
         const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
-        /*console.log("original_data",original_data.slice(-1));
-        console.log("data",data.slice(-1));
-        console.log("input",input.slice(-1));*/
+        /*console.log("original_data", original_data.slice(-1));
+        console.log("data", data.slice(-1));
+        console.log("input", input.slice(-1));*/
 
 
         const testing = prepare_data.prepareInputDatas(data.slice(start + size, start + size + predict_size), time_steps, true, market_name, time_interval);
@@ -127,6 +148,8 @@ module.exports = {
 
 
         //Creating tensors (input 3d tensor, and output 1d tensor)
+
+        /* console.log("INPUT", input);*/
 
         const input_size_3 = input.length;
         const input_size_2 = input[0].length;
