@@ -9,6 +9,15 @@ module.exports = {
         let sum = 0;
         let totale_per_media = 0;
 
+        console.log("indicators", indicators);
+
+        if (indicators.ema_25_trend === +1) {
+            console.log("BUY", "indicators.ema_25_trend === +1", indicators.ema_25_trend === +1);
+        }
+
+        if (indicators.ema_99_trend === +1) {
+            console.log("BUY", "indicators.ema_99_trend === +1", indicators.ema_99_trend === +1);
+        }
 
 
         //tecnica scalping bul
@@ -115,6 +124,14 @@ module.exports = {
 
         let sum = 0;
         let totale_per_media = 0;
+
+        if (indicators.ema_25_trend === -1) {
+            console.log("SELL", "indicators.ema_25_trend === -1", indicators.ema_25_trend === -1);
+        }
+
+        if (indicators.ema_99_trend === -1) {
+            console.log("SELL", "indicators.ema_99_trend === -1", indicators.ema_99_trend === -1);
+        }
 
         //tecnica scalping bul
         if (indicators.ema_alert === -1) {

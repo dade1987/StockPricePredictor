@@ -18,6 +18,16 @@ module.exports = {
         return return_value;
     },
 
+    emaExpectation: function(current_ema, current_close) {
+        if (current_close < current_ema) {
+            return +1;
+        } else if (current_close > current_ema) {
+            return -1;
+        } else {
+            return 0;
+        }
+    },
+
 
     emaAlert: function(previous_ema, previous_open, current_ema, current_open) {
         //se l'apertura corrente è più alta dell'ema, mentre l'apertura precedente è minore o uguale dell'ema precedente

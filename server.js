@@ -44,6 +44,8 @@ https://github.com/jaggedsoft/node-binance-api#binance-api-spot-trading
 
 global.original_data;
 global.ema_period = 7;
+global.ema_period_25 = 25;
+global.ema_period_99 = 99;
 global.sma_period = 21;
 global.rsi_period = 14;
 global.stochastic_period = 14;
@@ -1489,22 +1491,29 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
     /*}*/
 
-    /*let actual_price = await getMarketPrice(currency_pair_1);
+    let actual_price;
 
-    actual_price = actual_price.result.price;*/
+    if (global.binance_api_status === true) {
 
-    let tmp_currency_pair_2 = currency_pair_2;
-    if (currency_pair_2 === "USD") {
-        tmp_currency_pair_2 = "USDT";
+
+        let tmp_currency_pair_2 = currency_pair_2;
+        if (currency_pair_2 === "USD") {
+            tmp_currency_pair_2 = "USDT";
+        }
+
+        actual_price = await binance.futuresMarkPrice(currency_pair_1 + tmp_currency_pair_2);
+
+        actual_price = actual_price.markPrice;
+
+        console.log("MARKET PRICE", currency_pair_1, actual_price);
+    } else {
+        actual_price = await getMarketPrice(currency_pair_1);
+
+        actual_price = actual_price.result.price;
+
+
+        console.log("DEBUG MARK PRICE", actual_price);
     }
-
-    let actual_price = await binance.futuresMarkPrice(currency_pair_1 + tmp_currency_pair_2);
-
-    console.log("DEBUG MARK PRICE", actual_price);
-
-    actual_price = actual_price.markPrice;
-
-    console.log("MARKET PRICE", currency_pair_1, actual_price);
 
     let orderBook = await getOrderBook(currency_pair_1);
 

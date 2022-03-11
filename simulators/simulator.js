@@ -24,7 +24,7 @@ module.exports = {
         let median_difference = median(percentageArr);
 
         //lo stop loss è il prezzo + (o -) la mediana della differenza percentuale degli ultimi 30 valori + il 10%;
-        let stop_loss_percent = median_difference /*/ 100 * 90*/ ;
+        let stop_loss_percent = median_difference * 3 /*/ 100 * 90*/ ;
         let take_profit_percent = median_difference /* / 100 * 110*/ ;
 
         console.log("C", median_difference);
@@ -64,8 +64,8 @@ module.exports = {
         //Attenzione: la condizione di cutoff è > MAGGIORE e NON >= MAGGIORE UGUALE
         let historical_approval_cutoff = 60;
 
-        //almeno ne deve passare 5 su 9 (per comodità http://www.calcolarelapercentuale.it/)
-        let actual_approval_cutoff = 55;
+        //almeno ne deve passare 6 su 11 (per comodità http://www.calcolarelapercentuale.it/)
+        let actual_approval_cutoff = 54;
 
 
         //let operations=new Array();

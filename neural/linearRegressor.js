@@ -9,6 +9,16 @@ module.exports = {
             values: data.map(d => d.close)
         });
 
+        let ema_25 = EMA.calculate({
+            period: ema_period_25,
+            values: data.map(d => d.close)
+        });
+
+        let ema_99 = EMA.calculate({
+            period: ema_period_99,
+            values: data.map(d => d.close)
+        });
+
         let rsi = RSI.calculate({
             period: rsi_period,
             values: data.map(d => d.close)
@@ -44,7 +54,11 @@ module.exports = {
             data[i].stochastic_k = 0;
             data[i].stochastic_d = 0;
             data[i].ema = 0;
+            data[i].ema_25 = 0;
+            data[i].ema_99 = 0;
             data[i].ema_alert = 0;
+            data[i].ema_25_trend = 0;
+            data[i].ema_99_trend = 0;
         }
 
 
@@ -52,6 +66,20 @@ module.exports = {
         for (let i = ema_period; i < data.length; i++) {
             //console.log("DEBUG RSI",sma[d],i,d)
             data[i].ema = ema[d];
+            d++;
+        }
+
+        d = 0;
+        for (let i = ema_period_25; i < data.length; i++) {
+            //console.log("DEBUG RSI",sma[d],i,d)
+            data[i].ema_25 = ema_25[d];
+            d++;
+        }
+
+        d = 0;
+        for (let i = ema_period_99; i < data.length; i++) {
+            //console.log("DEBUG RSI",sma[d],i,d)
+            data[i].ema_99 = ema_99[d];
             d++;
         }
 
@@ -91,11 +119,17 @@ module.exports = {
             data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].sma);
             if (i === 0) {
                 data[i].ema_alert = 0;
+                data[i].ema_25_trend = 0;
+                data[i].ema_99_trend = 0;
             } else {
-                data[i].ema_alert = pick_incidence.emaAlert(data[i - 1].ema, data[i - 1].open, data[i].ema, data[i].open, );
+                data[i].ema_alert = pick_incidence.emaAlert(data[i - 1].ema, data[i - 1].open, data[i].ema, data[i].open);
+                data[i].ema_25_trend = pick_incidence.emaExpectation(data[i].ema_25, data[i].close);
+                data[i].ema_99_trend = pick_incidence.emaExpectation(data[i].ema_99, data[i].close);
             }
             d++;
         }
+
+
 
         console.log("TRAIN DATA 0", data[data.length - 1]);
 
@@ -478,6 +512,9 @@ module.exports = {
 
             //l'actual price corrisponde meglio a quello di binance, rispetto a prezzo_attuale
             //che viene preso invece dal simulatore dall'api di alphadv
+
+            console.log("constructor name", socket.constructor.name);
+
             if (socket.constructor.name === 'ServerResponse') {
                 socket.send(JSON.stringify([{
                     take_profit: parseFloat(importo_take_profit).toFixed(0),
@@ -502,6 +539,7 @@ module.exports = {
 
 
             } else if (socket.constructor.name === 'Socket') {
+                console.log("RETURN SOCKET", JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, actual_price, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport, trades]))
                 socket.emit('final', JSON.stringify([crescita, giusti, errori, pari, testingAccuracyArray, parseFloat(importo_take_profit).toFixed(0), tipo_negoziazione, actual_price, percentuale_take_profit, (parseFloat(newsData) * 100).toFixed(2), price_rise_probability, price_drop_probability, market_depth_status, resistenceAndSupport, trades]));
             }
 

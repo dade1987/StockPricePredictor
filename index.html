@@ -508,7 +508,7 @@
             }));
         };
 
-        predictButton.onclick = () => {
+        /*predictButton.onclick = () => {
 
             startingTime = new Date();
             startingTimeString = startingTime.toString();
@@ -532,7 +532,7 @@
                 epochs_number: epochs_number,
                 training_enabled: false
             }));
-        };
+        };*/
 
         /*socket.on('training', (result) => {
          grafico(result, "Training");
@@ -601,8 +601,8 @@
             trainButton.disabled = false;
             trainButton.textContent = "PREDICT";
 
-            predictButton.disabled = true;
-            predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";
+            /*predictButton.disabled = true;
+            predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";*/
         });
 
         function grafico(bi_array_json, titolo) {

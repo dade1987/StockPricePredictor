@@ -70,6 +70,22 @@ module.exports = {
             return Math.max.apply(null, [d.ema]);
         }));
 
+        let ema_25_min = Math.min.apply(null, data.map(function(d) {
+            return Math.min.apply(null, [d.ema_25]);
+        }));
+
+        let ema_25_max = Math.max.apply(null, data.map(function(d) {
+            return Math.max.apply(null, [d.ema_25]);
+        }));
+
+        let ema_99_min = Math.min.apply(null, data.map(function(d) {
+            return Math.min.apply(null, [d.ema_99]);
+        }));
+
+        let ema_99_max = Math.max.apply(null, data.map(function(d) {
+            return Math.max.apply(null, [d.ema_99]);
+        }));
+
 
         /*let macd_macd_max = 0;
          let macd_macd_min = 0;
@@ -102,7 +118,11 @@ module.exports = {
                 macd_histogram: (d.macd_histogram - macd_min) / (macd_max - macd_min),
                 pick_incidence: (d.pick_incidence - pick_incidence_min) / (pick_incidence_max - pick_incidence_min),
                 ema: (d.ema - ema_min) / (ema_max - ema_min),
+                ema_25: (d.ema_25 - ema_25_min) / (ema_25_max - ema_25_min),
+                ema_99: (d.ema_99 - ema_99_min) / (ema_99_max - ema_99_min),
                 ema_alert: d.ema_alert,
+                ema_25_trend: d.ema_25_trend,
+                ema_99_trend: d.ema_99_trend,
             };
         });
 
