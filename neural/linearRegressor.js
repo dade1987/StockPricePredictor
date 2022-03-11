@@ -466,7 +466,8 @@ module.exports = {
             price_drop_probability,
             resistence_support,
             stop_loss_percent,
-            take_profit_percent
+            take_profit_percent,
+            trailing_stop_percent
         } = simulators.simulazione_guadagni(realResults, predictions, data.slice(start + size + time_steps, start + size + predict_size), newsData, orderBook, resistenceAndSupport, trades);
 
         //console.log("TEST2",data.slice(start + size, start + size + predict_size));
@@ -556,8 +557,8 @@ module.exports = {
 
                 console.log("actual_price", actual_price, "stop_loss", stop_loss, "take_profit", take_profit);
 
-                console.log("SL BUY", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit, stop_loss_percent);
-                global.binance_future_buy(currency_pair_1, currency_pair_2, stop_loss, take_profit, stop_loss_percent, actual_price);
+                console.log("SL BUY", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit, stop_loss_percent, trailing_stop_percent);
+                global.binance_future_buy(currency_pair_1, currency_pair_2, stop_loss, take_profit, stop_loss_percent, actual_price, trailing_stop_percent);
             } else if (tipo_negoziazione === "SELL") {
                 //se shorti quanto sale è una perdita
                 //se scende è un take profit
@@ -566,8 +567,8 @@ module.exports = {
 
                 console.log("actual_price", actual_price, "stop_loss", stop_loss, "take_profit", take_profit);
 
-                console.log("SL SELL", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit, stop_loss_percent);
-                global.binance_future_sell(currency_pair_1, currency_pair_2, stop_loss, take_profit, stop_loss_percent, actual_price);
+                console.log("SL SELL", currency_pair_1, currency_pair_2, actual_price, stop_loss, take_profit, stop_loss_percent, trailing_stop_percent);
+                global.binance_future_sell(currency_pair_1, currency_pair_2, stop_loss, take_profit, stop_loss_percent, actual_price, trailing_stop_percent);
             }
         }
 

@@ -78,11 +78,11 @@ module.exports = {
             }
             totale_per_media++;
 
-            if (trades.whales_buying_num > trades.whales_selling_num) {
+            /*if (trades.whales_buying_num > trades.whales_selling_num) {
                 console.log("BUY", "trades.whales_buying_num > trades.whales_selling_num", trades.whales_buying_num > trades.whales_selling_num);
                 sum++;
             }
-            totale_per_media++;
+            totale_per_media++;*/
 
             if (trades.poveraccis_buying_vol > trades.poveraccis_selling_vol) {
                 console.log("BUY", "trades.poveraccis_buying_vol > trades.poveraccis_selling_vol", trades.poveraccis_buying_vol > trades.poveraccis_selling_vol);
@@ -96,13 +96,13 @@ module.exports = {
 
             //nel caso dei poveracci non c'entra quanti sono, ma solo il volume spostato
             //però comunque significa che la fiducia sale
-            if (trades.poveraccis_buying_num > trades.poveraccis_selling_num) {
+            /*if (trades.poveraccis_buying_num > trades.poveraccis_selling_num) {
                 console.log("BUY", "trades.poveraccis_buying_num > trades.poveraccis_selling_num", trades.poveraccis_buying_num > trades.poveraccis_selling_num);
 
                 //console.log("BUY", "orderBook === true", orderBook === true);
                 sum++;
             }
-            totale_per_media++;
+            totale_per_media++;*/
         }
 
 
@@ -189,11 +189,11 @@ module.exports = {
             }
             totale_per_media++;
 
-            if (trades.whales_selling_num > trades.whales_buying_num) {
+            /*if (trades.whales_selling_num > trades.whales_buying_num) {
                 console.log("SELL", "trades.whales_selling_num > trades.whales_buying_num", trades.whales_selling_num > trades.whales_buying_num);
                 sum++;
             }
-            totale_per_media++;
+            totale_per_media++;*/
 
             if (trades.poveraccis_selling_vol > trades.poveraccis_buying_vol) {
                 console.log("SELL", "trades.poveraccis_selling_vol > trades.poveraccis_buying_vol", trades.poveraccis_selling_vol > trades.poveraccis_buying_vol);
@@ -207,13 +207,13 @@ module.exports = {
             totale_per_media++;
 
             //nel caso dei poveracci non c'entra quanti sono, ma solo il volume spostato
-            if (trades.poveraccis_selling_num > trades.poveraccis_buying_num) {
+            /*if (trades.poveraccis_selling_num > trades.poveraccis_buying_num) {
                 console.log("SELL", "trades.poveraccis_selling_num > trades.poveraccis_buying_num", trades.poveraccis_selling_num > trades.poveraccis_buying_num);
 
                 //console.log("BUY", "orderBook === true", orderBook === true);
                 sum++;
             }
-            totale_per_media++;
+            totale_per_media++;*/
         }
 
 
