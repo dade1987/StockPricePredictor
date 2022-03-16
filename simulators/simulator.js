@@ -25,11 +25,11 @@ module.exports = {
 
         //lo stop loss è il prezzo + (o -) la mediana della differenza percentuale degli ultimi 30 valori x 3 volte, 
         //come fosse una media di un minuto ripetuta per 3 minuti
-        let stop_loss_percent = median_difference * 3;
+        let stop_loss_percent = median_difference * 1.5;
         //nel take profit deve fermarsi alla mediana di 1 minuto, ma per ora uso il trailing stop
         let take_profit_percent = median_difference;
         //nel trailing stop deve tornare indietro al massimo di 1.2 volte la mediana del take profit per evitare correzioni
-        let trailing_stop_percent = median_difference * 1.2 /* / 100 * 110*/ ;
+        let trailing_stop_percent = median_difference * 1 /* / 100 * 110*/ ;
 
         console.log("C", median_difference);
 

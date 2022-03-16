@@ -20,9 +20,9 @@ module.exports = {
 
     emaExpectation: function(current_ema, current_close) {
         if (current_close < current_ema) {
-            return +1;
-        } else if (current_close > current_ema) {
             return -1;
+        } else if (current_close > current_ema) {
+            return +1;
         } else {
             return 0;
         }

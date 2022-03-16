@@ -11,25 +11,30 @@ module.exports = {
 
         console.log("indicators", indicators);
 
+        //tecnica scalping bul
+        //se hai appena superato in long ema 10
+        if (indicators.ema_alert === +1) {
+            console.log("BUY", "indicators.ema_alert === 1", indicators.ema_alert === +1);
+            sum++;
+        }
+        totale_per_media++;
+
+        //e hai anche superato in long ema 60 (oraria)
         if (indicators.ema_25_trend === +1) {
             console.log("BUY", "indicators.ema_25_trend === +1", indicators.ema_25_trend === +1);
             sum++;
         }
         totale_per_media++;
 
-        if (indicators.ema_99_trend === +1) {
+        //ma sei sotto l'ema 120 (lungo periodo)
+        /*if (indicators.ema_99_trend === -1) {
             console.log("BUY", "indicators.ema_99_trend === +1", indicators.ema_99_trend === +1);
             sum++;
         }
-        totale_per_media++;
+        totale_per_media++;*/
 
 
-        //tecnica scalping bul
-        if (indicators.ema_alert === +1) {
-            console.log("BUY", "indicators.ema_alert === 1", indicators.ema_alert === +1);
-            sum++;
-        }
-        totale_per_media++;
+
 
         //se ti discosti dalle previsioni del 5% sotto è indicatore che sei ipervenduto quindi può essere da comprare
 
@@ -129,24 +134,29 @@ module.exports = {
         let sum = 0;
         let totale_per_media = 0;
 
+
+        //tecnica scalping bul
+        //se hai appena superato al ribasso l'ema 10
+        if (indicators.ema_alert === -1) {
+            console.log("SELL", "indicators.ema_alert === -1", indicators.ema_alert === -1);
+            sum++;
+        }
+        totale_per_media++;
+
+        //e se sei sotto l'ema 60
         if (indicators.ema_25_trend === -1) {
             console.log("SELL", "indicators.ema_25_trend === -1", indicators.ema_25_trend === -1);
             sum++;
         }
         totale_per_media++;
 
-        if (indicators.ema_99_trend === -1) {
+        //però sei più alto dell'ema 120 (lungo periodo)
+        /*if (indicators.ema_99_trend === +1) {
             console.log("SELL", "indicators.ema_99_trend === -1", indicators.ema_99_trend === -1);
             sum++;
         }
-        totale_per_media++;
+        totale_per_media++;*/
 
-        //tecnica scalping bul
-        if (indicators.ema_alert === -1) {
-            console.log("SELL", "indicators.ema_alert === -1", indicators.ema_alert === -1);
-            sum++;
-        }
-        totale_per_media++;
 
         //se ti discosti dalle previsioni del 5% sotto è indicatore che sei ipervenduto quindi può essere da comprare
 

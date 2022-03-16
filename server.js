@@ -43,9 +43,12 @@ https://github.com/jaggedsoft/node-binance-api#binance-api-spot-trading
 */
 
 global.original_data;
-global.ema_period = 7;
-global.ema_period_25 = 25;
-global.ema_period_99 = 99;
+//in realtà è EMA 10
+global.ema_period = 10;
+//in realtà è EMA 5
+global.ema_period_25 = 60;
+//in realtà è EMA 60
+global.ema_period_99 = 120;
 global.sma_period = 21;
 global.rsi_period = 14;
 global.stochastic_period = 14;
@@ -53,6 +56,8 @@ global.stochastic_signalPeriod = 3;
 global.macd_fastPeriod = 12;
 global.macd_slowPeriod = 26;
 global.macd_signalPeriod = 9;
+
+global.whales_min_import = 50000;
 
 let timeout;
 let interval;
@@ -217,7 +222,8 @@ async function autoFiveMinute(currency_pair_1, currency_pair_2) {
     //let next_minute = next_minute_date.getTime();
 
     //+ 1000 perchè deve essere + 1 secondo per prendere l'ultimo dato
-    let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+    //let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+    let next_minute_date = roundUpTo1Minutes(new Date()) + 1000;
 
     let current_date = Date.now();
     let wait_fist_time = next_minute_date - current_date;
@@ -226,7 +232,7 @@ async function autoFiveMinute(currency_pair_1, currency_pair_2) {
         main('CRYPTO', 'INTRADAY_5_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
         interval = setInterval(function() {
             main('CRYPTO', 'INTRADAY_5_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
-        }, 60000 * 5);
+        }, 60000 /** 5*/ );
     }, wait_fist_time);
 
     console.log('autoFiveMinuteBackend wait_fist_time', wait_fist_time);
@@ -524,7 +530,7 @@ async function getTrades(currency_pair_1, time_interval) {
                         let transacted_amount = v[2] * v[3];
 
                         //per ora è 1 milione ma si potrà cambiare
-                        if (transacted_amount > 50000) {
+                        if (transacted_amount > whales_min_import) {
                             if (buy === true) {
                                 whales_buying_num++;
                                 whales_buying_vol += transacted_amount;
