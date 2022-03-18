@@ -2,9 +2,106 @@ module.exports = {
 
     normalizza_dati: function(data) {
 
-        //console.log("DATA", data[0]);
+        //normalizzazioni da fare
+        /* open: parseFloat(d[1]),
+         high: parseFloat(d[2]),
+         low: parseFloat(d[3]),
+         close: parseFloat(d[4]),
+         volume: parseFloat(d[5]),
+         quote_asset_volume: parseFloat(d[7]),
+         number_trades: parseFloat(d[8]),
+         taker_buy_base_asset_volume: parseFloat(d[9]),
+         taker_buy_quote_asset_volume: parseFloat(d[10])*/
 
-        //prima deve calcolare massimi e minimi
+        prices_min = Math.min.apply(null, data.map(function(d) {
+            return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
+        }));
+        prices_max = Math.max.apply(null, data.map(function(d) {
+            return Math.max.apply(null, [d.open, d.high, d.low, d.close]);
+        }));
+
+        let volume_min = Math.min.apply(null, data.map(function(d) {
+            return d.volume;
+        }));
+
+        let volume_max = Math.max.apply(null, data.map(function(d) {
+            return d.volume;
+        }));
+
+        let quote_asset_volume_min = Math.min.apply(null, data.map(function(d) {
+            return d.quote_asset_volume;
+        }));
+
+        let quote_asset_volume_max = Math.max.apply(null, data.map(function(d) {
+            return d.quote_asset_volume;
+        }));
+
+        let number_trades_min = Math.min.apply(null, data.map(function(d) {
+            return d.number_trades;
+        }));
+
+        let number_trades_max = Math.max.apply(null, data.map(function(d) {
+            return d.number_trades;
+        }));
+
+        let taker_buy_base_asset_volume_min = Math.min.apply(null, data.map(function(d) {
+            return d.taker_buy_base_asset_volume;
+        }));
+
+        let taker_buy_base_asset_volume_max = Math.max.apply(null, data.map(function(d) {
+            return d.taker_buy_base_asset_volume;
+        }));
+
+        let taker_buy_quote_asset_volume_min = Math.min.apply(null, data.map(function(d) {
+            return d.taker_buy_quote_asset_volume;
+        }));
+
+        let taker_buy_quote_asset_volume_max = Math.max.apply(null, data.map(function(d) {
+            return d.taker_buy_quote_asset_volume;
+        }));
+
+        let rsi_min = Math.min.apply(null, data.map(function(d) {
+            return d.rsi;
+        }));
+
+        let rsi_max = Math.max.apply(null, data.map(function(d) {
+            return d.rsi;
+        }));
+
+
+
+
+        let finale = data.map(function(d) {
+            /*let volumeTemp = (d.volume - volume_min) / (volume_max - volume_min);
+            if (isNaN(volumeTemp)) {
+                volumeTemp = 0;
+            }*/
+            return {
+                open: (d.open - prices_min) / (prices_max - prices_min),
+                high: (d.high - prices_min) / (prices_max - prices_min),
+                low: (d.low - prices_min) / (prices_max - prices_min),
+                close: (d.close - prices_min) / (prices_max - prices_min),
+                volume: (d.volume - volume_min) / (volume_max - volume_min),
+                quote_asset_volume: (d.quote_asset_volume - quote_asset_volume_min) / (quote_asset_volume_max - quote_asset_volume_min),
+                number_trades: (d.number_trades - number_trades_min) / (number_trades_max - number_trades_min),
+                taker_buy_base_asset_volume: (d.taker_buy_base_asset_volume - taker_buy_base_asset_volume_min) / (taker_buy_base_asset_volume_max - taker_buy_base_asset_volume_min),
+                taker_buy_quote_asset_volume: (d.taker_buy_quote_asset_volume - taker_buy_quote_asset_volume_min) / (taker_buy_quote_asset_volume_max - taker_buy_quote_asset_volume_min),
+                rsi: (d.rsi - rsi_min) / (rsi_max - rsi_min),
+                //gli ema vanno normalizzati per prezzo minimo e massimo, perchè sono prezzi comunque
+                ema: (d.ema - prices_min) / (prices_max - prices_min),
+                ema_25: (d.ema_25 - prices_min) / (prices_max - prices_min),
+                ema_99: (d.ema_99 - prices_min) / (prices_max - prices_min),
+
+            };
+        });
+
+        return finale;
+
+    },
+
+    normalizza_dati_backup: function(data) {
+
+
         prices_min = Math.min.apply(null, data.map(function(d) {
             return Math.min.apply(null, [d.open, d.high, d.low, d.close]);
         }));
@@ -85,16 +182,6 @@ module.exports = {
         let ema_99_max = Math.max.apply(null, data.map(function(d) {
             return Math.max.apply(null, [d.ema_99]);
         }));
-
-
-        /*let macd_macd_max = 0;
-         let macd_macd_min = 0;
-         
-         let macd_signal_max = 0;        
-         let macd_signal_min = 0;
-         
-         let macd_histogram_max = 0;
-         let macd_histogram_min = 0;*/
 
 
 

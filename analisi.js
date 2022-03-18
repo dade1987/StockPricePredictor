@@ -106,7 +106,7 @@ async function binance_future_opened_position(currency_pair_1, currency_pair_2, 
 //infatti controllando mette da solo il reduce only. in teoria non andrebbe neanche impostata la quantità da ridurre ma funziona uguale
 
 async function binance_future_buy(currency_pair_1, currency_pair_2, /*quantity,*/
-    limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0, trailing_stop_percent = 0) {
+    limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0, trailing_stop_percent = 0, take_profit_percent = 0) {
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
@@ -168,23 +168,21 @@ async function binance_future_buy(currency_pair_1, currency_pair_2, /*quantity,*
         }
 
         if (trailing_stop_percent > 0) {
-            /*
-            facciamo una prova senza take profit
-            
+
             console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity,  {
+            console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                stopPrice: take_profit,
+                stopPrice: (parseFloat(actual_price) / 100 * (100 + take_profit_percent)).toFixed(0),
                 type: "TAKE_PROFIT_MARKET",
                 //timeInForce: "GTC",
-                //priceProtect: true,
+                priceProtect: true,
                 //reduceOnly: true,
                 closePosition: true
 
-            }));*/
+            }));
 
-            if (trailing_stop_percent < 0.1) {
+            /*if (trailing_stop_percent < 0.1) {
                 console.log("FORZATURA STOP LOSS BUY");
                 trailing_stop_percent = 0.1;
             }
@@ -193,15 +191,15 @@ async function binance_future_buy(currency_pair_1, currency_pair_2, /*quantity,*
 
             console.log(await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                /*activationPrice: (parseFloat(actual_price) / 100 * (100 + stop_loss_perc)).toFixed(0),*/
+               
                 callbackRate: (trailing_stop_percent).toFixed(1),
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
                 priceProtect: true,
                 reduceOnly: true,
-                /*workingType: 'MARK_PRICE',*/
+             
                 //closePosition: true
-            }));
+            }));*/
         }
 
         await binance_future_opened_position(currency_pair_1, currency_pair_2, "AFTER BUY");
@@ -209,7 +207,7 @@ async function binance_future_buy(currency_pair_1, currency_pair_2, /*quantity,*
 }
 
 async function binance_future_sell(currency_pair_1, currency_pair_2, /* quantity,*/
-    limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0, trailing_stop_percent = 0) {
+    limit = 0, take_profit = 0, stop_loss_perc = 0, actual_price = 0, trailing_stop_percent = 0, take_profit_percent = 0) {
     if (currency_pair_2 === "USD") {
         currency_pair_2 = "USDT";
     }
@@ -278,19 +276,19 @@ async function binance_future_sell(currency_pair_1, currency_pair_2, /* quantity
         }
 
         if (trailing_stop_percent > 0) {
-            /*
+
             console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
-            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity  , {
+            console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                stopPrice: take_profit,
+                stopPrice: (parseFloat(actual_price) / 100 * (100 - take_profit_percent)).toFixed(0),
                 type: "TAKE_PROFIT_MARKET",
                 //timeInForce: "GTC",
                 priceProtect: true,
                 //reduceOnly: true,
                 closePosition: true
-            }));*/
-            if (trailing_stop_percent < 0.1) {
+            }));
+            /*if (trailing_stop_percent < 0.1) {
                 console.log("FORZATURA STOP LOSS SELL");
                 trailing_stop_percent = 0.1;
             }
@@ -299,15 +297,15 @@ async function binance_future_sell(currency_pair_1, currency_pair_2, /* quantity
 
             console.log(await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 //newClientOrderId: my_order_id_tp,
-                /*activationPrice: (parseFloat(actual_price) / 100 * (100 - stop_loss_perc)).toFixed(0),*/
+                
                 callbackRate: (trailing_stop_percent).toFixed(1),
                 type: "TRAILING_STOP_MARKET",
                 //timeInForce: "GTC",
                 priceProtect: true,
                 reduceOnly: true,
-                /*workingType: 'MARK_PRICE',*/
+                
                 //closePosition: true
-            }));
+            }));*/
         }
 
 
@@ -726,15 +724,16 @@ async function applyIndicators(data) {
         data[i].uguale = data[i].close == data[i - 1].close;
         data[i].diminuzione = data[i].close < data[i - 1].close;
 
-        //non sembra male nello storico. cerco altri indicatori
-        if (data[i].rsi > 40 && data[i].open < data[i].ema_10 /*&& data[i].open < data[i - 1].open*/ ) {
+        //questo è l'indicatore che ho testato il 15 marzo notte che ha prodotto discreti risultati
+        //TRIGGER ACTION 15032022 SERA
+        if (data[i].rsi > 40 && data[i].open < data[i].ema_10) {
 
             valori_media_rsi_buy += data[i].close - data[i - 1].close;
             numero_media_rsi_buy++;
 
             data[i].azione = "BUY";
 
-        } else if (data[i].rsi < 60 && data[i].open > data[i].ema_10 /*&& data[i].open > data[i - 1].open*/ ) {
+        } else if (data[i].rsi < 60 && data[i].open > data[i].ema_10) {
 
             valori_media_rsi_sell += data[i - 1].close - data[i].close;
             numero_media_rsi_sell++;
@@ -1076,23 +1075,6 @@ async function analisiAndamento(data) {
     //parti dal 14 che è il periodo di RSI (il 10 di ema è già incluso)
     for (let i = 14; i < data.length; i++) {
 
-        //i commentati sono non funzionanti
-        /*if (data[i].open < data[i].ema_10) {
-            if (data[i].aumento === true) {
-                arrayStatistica.verificata++;
-            } else {
-                arrayStatistica.non_verificata++;
-            }
-        }
-
-        if (data[i].open > data[i].ema_10) {
-            if (data[i].diminuzione === true) {
-                arrayStatistica.verificata++;
-            } else {
-                arrayStatistica.non_verificata++;
-            }
-        }*/
-
         if (data[i].azione === "BUY") {
 
             if (data[i].aumento === true) {
@@ -1139,7 +1121,7 @@ async function analisi() {
 
     for (let name of nomiCripto) {
 
-        timeseriesData = await binance.futuresCandles(name + "USDT", "5m");
+        timeseriesData = await binance.futuresCandles(name + "USDT", "1m");
 
         timeseriesData = await getFuturesData(timeseriesData)
 
@@ -1172,7 +1154,7 @@ async function analisi() {
         //nel take profit deve fermarsi alla mediana di 1 minuto, ma per ora uso il trailing stop
         let take_profit_percent = median_difference;
         //nel trailing stop deve tornare indietro al massimo di 1.2 volte la mediana del take profit per evitare correzioni
-        let trailing_stop_percent = median_difference / 2 /* / 100 * 110*/ ;
+        let trailing_stop_percent = median_difference;
 
         console.log("VOLATILITA' PERCENTUALE MEDIANA SUL TIMEFRAME CORRENTE", median_difference);
 
@@ -1189,12 +1171,12 @@ async function analisi() {
         if (dataWithIndicators[dataWithIndicators.length - 1].azione === "BUY" && orderBook.trend === true) {
             console.log("LONG", stop_loss_percent, actual_price, trailing_stop_percent);
             if (binance_api_status === true) {
-                binance_future_buy(name, 'USDT', 0, 0, stop_loss_percent, actual_price, trailing_stop_percent);
+                binance_future_buy(name, 'USDT', 0, 0, stop_loss_percent, actual_price, trailing_stop_percent, take_profit_percent);
             }
         } else if (dataWithIndicators[dataWithIndicators.length - 1].azione === "SELL" && orderBook.trend === false) {
             console.log("SHORT", stop_loss_percent, actual_price, trailing_stop_percent);
             if (binance_api_status === true) {
-                binance_future_sell(name, 'USDT', 0, 0, stop_loss_percent, actual_price, trailing_stop_percent);
+                binance_future_sell(name, 'USDT', 0, 0, stop_loss_percent, actual_price, trailing_stop_percent, take_profit_percent);
             }
         } else {
             console.log("NIENTE")
@@ -1262,6 +1244,6 @@ async function autoFiveMinutes() {
 
 initializeBinanceAPI();
 
-//autoFiveMinutes();
+autoOneMinutes();
 
-analisi();
+//analisi();

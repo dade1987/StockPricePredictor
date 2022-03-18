@@ -26,8 +26,13 @@ module.exports = {
                     /* attualmente aderisce molto meglio evitando di usare gli indicatori - per lo meno assieme, impara meglio etc */
                     /*return Object.values(d);//.slice(0, 6);*/
                     switch (market_name) {
-                        case "CRYPTO":
+
                         case "CRYPTO_FUTURES":
+                            return [].concat(Object.values(d).slice(0, 9));
+                            break;
+
+                        case "CRYPTO":
+
                             /* le crypto hanno anche il volume */
                             /* le daily hanno anche il market cap */
                             /* solo close, volume per le cripto e stocastico. prima facevo invece open high low close vol e stocastici (crescita 9 il 19/05/2021) */
@@ -152,7 +157,6 @@ module.exports = {
             for (let i = time_steps; i < data.length; i++) {
 
                 arr.push(data[i]);
-
 
             }
 
