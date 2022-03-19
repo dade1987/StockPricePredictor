@@ -4,7 +4,7 @@ module.exports = {
     simulazione_guadagni: function(realResults, predictions, data, sentimentAnalysis, orderBook, resistenceAndSupport, trades) {
 
 
-        /*const myArr = realResults.map((v, i) => {
+        const myArr = realResults.map((v, i) => {
             return v.y;
         });
 
@@ -21,21 +21,19 @@ module.exports = {
             return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
         };
 
-        let median_difference = median(percentageArr);*/
+        let median_difference = median(percentageArr);
 
         //lo stop loss è il prezzo + (o -) la mediana della differenza percentuale degli ultimi 30 valori x 3 volte, 
         //come fosse una media di un minuto ripetuta per 3 minuti
-        //let stop_loss_percent = median_difference * 1.5;
+        let stop_loss_percent = median_difference * 1.5;
         //nel take profit deve fermarsi alla mediana di 1 minuto, ma per ora uso il trailing stop
-        //let take_profit_percent = median_difference;
+        let take_profit_percent = median_difference;
         //nel trailing stop deve tornare indietro al massimo di 1.2 volte la mediana del take profit per evitare correzioni
-        //let trailing_stop_percent = median_difference * 1 /* / 100 * 110*/ ;
+        let trailing_stop_percent = median_difference * 1 /* / 100 * 110*/ ;
 
-        stop_loss_percent = 0.13;
-        take_profit_percent = 0.13;
-        trailing_stop_percent = 0.13;
+        console.log("C", median_difference);
 
-
+        console.log("STOP");
         //return;
         //intanto proviamo sui 5 minuti con alternative coins
 
@@ -92,8 +90,8 @@ module.exports = {
                 }
                 //console.log("DATI", data[i - 1], realResults[i - 1].y);
                 // console.log("original_data",original_data.slice(-3));
-                price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, orderBook, bool_last_prediction);
-                price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, orderBook, bool_last_prediction)
+                price_rise_probability = buy_sell_condition.buy_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades);
+                price_drop_probability = buy_sell_condition.sell_condition(predictions[i].y, predictions[i - 1].y, realResults[i - 1].y, data[i - 1], sentimentAnalysis, orderBook, bool_last_prediction, trades)
 
                 if ((bool_last_prediction === true && price_rise_probability > actual_approval_cutoff) || (bool_last_prediction === false && price_rise_probability > historical_approval_cutoff)) {
                     /*if (status === 2 && bool_last_prediction === false) {

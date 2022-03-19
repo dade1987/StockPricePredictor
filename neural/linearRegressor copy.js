@@ -170,7 +170,6 @@ module.exports = {
         const input = prepare_data.prepareInputDatas(data.slice(start, start + size), time_steps, false, market_name, time_interval);
         const output = prepare_data.prepareOutputDatas(data.slice(start, start + size), time_steps);
 
-
         /*console.log("original_data", original_data.slice(-1));
         console.log("data", data.slice(-1));
         console.log("input", input.slice(-1));*/
@@ -200,8 +199,6 @@ module.exports = {
 
         const trainingData = tf.tensor3d(input, [input.length, input_size_2, input_size]);
         const outputData = tf.tensor1d(output);
-
-        console.log("OUTPUTDTA", outputData);
 
         if (testing === false) {
             return false;
@@ -350,18 +347,18 @@ module.exports = {
                 const unNormValidation = validation.dataSync();
 
                 const trainingResults = output.map((d, i) => {
-                    if (d !== undefined) {
+                    if (d) {
                         return {
                             x: i,
-                            y: d /** (prices_max - prices_min) + prices_min*/
+                            y: d * (prices_max - prices_min) + prices_min
                         };
                     }
                 });
                 const trainingValidation = Array.from(unNormValidation).map((d, i) => {
-                    if (d !== undefined) {
+                    if (d) {
                         return {
                             x: i,
-                            y: d /** (prices_max - prices_min) + prices_min*/
+                            y: d * (prices_max - prices_min) + prices_min
                         };
                     }
                 });
@@ -412,29 +409,24 @@ module.exports = {
 
         const unNormPredictions = preds.dataSync();
 
-        console.log("TESTING RESULTS", testingResults);
-
         const realResults = testingResults.map((d, i) => {
-            if (d !== undefined) {
+            if (d) {
                 return {
                     x: i,
-                    y: d /* * (prices_max - prices_min) + prices_min*/
+                    y: d * (prices_max - prices_min) + prices_min
                 };
             }
         });
-
-        console.log("REAL RESULTS", realResults);
-
         const predictions = Array.from(unNormPredictions).map((d, i) => {
-            if (d !== undefined) {
+            if (d) {
                 return {
                     x: i,
-                    y: d /* * (prices_max - prices_min) + prices_min*/
+                    y: d * (prices_max - prices_min) + prices_min
                 };
             }
         });
         const outputSpecsHigh = Array.from(testingSpecs).map((d, i) => {
-            if (d !== undefined) {
+            if (d) {
                 console.log(d.high);
                 return {
                     x: i,
@@ -443,7 +435,7 @@ module.exports = {
             }
         });
         const outputSpecsLow = Array.from(testingSpecs).map((d, i) => {
-            if (d !== undefined) {
+            if (d) {
                 return {
                     x: i,
                     y: d.low * (prices_max - prices_min) + prices_min

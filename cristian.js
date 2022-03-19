@@ -30,7 +30,7 @@ global.trainer = require('./neural/linearRegressor');
 global.pick_incidence = require('./indicators/pick_incidence');
 global.normalizer = require('./services/normalizer');
 //linearRegressorPrepareData,multiClassClassifierPrepareData
-global.prepare_data = require('./services/linearRegressorPrepareData');
+global.prepare_data = require('./services/linearRegressorPrepareDataCristian');
 global.simulators = require('./simulators/simulator');
 global.ai_model_loader = require('./services/ai_model_loader');
 global.buy_sell_condition = require('./indicators/buy_sell_condition_cristian');
@@ -310,6 +310,8 @@ let roundByNumber = (value, number) => number * Math.round(value / number);
 
 async function getOrderBookFutures(currency_pair_1, actual_price) {
 
+    //questo è un orderbook spot quindi va bene anche per i futuresù
+
     //console.log(actual_price);
 
     //il mercato tende a cadere verso i buchi
@@ -331,6 +333,8 @@ async function getOrderBookFutures(currency_pair_1, actual_price) {
     let asks = new Object();
     let bids = new Object();
 
+    book_period = 50;
+
     return new Promise((resolve, reject) => {
 
         https.get(url.toLowerCase(), function(res) {
@@ -347,22 +351,22 @@ async function getOrderBookFutures(currency_pair_1, actual_price) {
                 let total_asks_volume = 0;
                 json_data.result.asks.forEach((v) => {
 
-                    if (asks[roundByNumber(v[0], 12)] === undefined) {
-                        asks[roundByNumber(v[0], 12)] = new Object();
-                        asks[roundByNumber(v[0], 12)].volume = 0;
+                    if (asks[roundByNumber(v[0], book_period)] === undefined) {
+                        asks[roundByNumber(v[0], book_period)] = new Object();
+                        asks[roundByNumber(v[0], book_period)].volume = 0;
                     }
-                    asks[roundByNumber(v[0], 12)].volume++;
+                    asks[roundByNumber(v[0], book_period)].volume++;
 
                 });
 
                 let total_bids_volume = 0;
                 json_data.result.bids.forEach((v) => {
 
-                    if (bids[roundByNumber(v[0], 12)] === undefined) {
-                        bids[roundByNumber(v[0], 12)] = new Object();
-                        bids[roundByNumber(v[0], 12)].volume = 0;
+                    if (bids[roundByNumber(v[0], book_period)] === undefined) {
+                        bids[roundByNumber(v[0], book_period)] = new Object();
+                        bids[roundByNumber(v[0], book_period)].volume = 0;
                     }
-                    bids[roundByNumber(v[0], 12)].volume++;
+                    bids[roundByNumber(v[0], book_period)].volume++;
 
                 });
 
@@ -372,7 +376,7 @@ async function getOrderBookFutures(currency_pair_1, actual_price) {
                 asks_vol = 0;
                 first_asks_vol = 0;
                 for (let key of Object.keys(asks)) {
-                    if (i === 3) { break; }
+                    if (i === 2) { break; }
 
                     if (i === 0) {
                         first_asks_vol = asks[key].volume;
@@ -387,7 +391,7 @@ async function getOrderBookFutures(currency_pair_1, actual_price) {
                 bids_vol = 0;
                 first_bids_vol = 0;
                 for (let key of Object.keys(bids).reverse()) {
-                    if (i === 3) { break; }
+                    if (i === 2) { break; }
 
                     if (i === 0) {
                         first_bids_vol = bids[key].volume;
@@ -406,12 +410,24 @@ async function getOrderBookFutures(currency_pair_1, actual_price) {
 
                 let trend = 0;
 
-                if (asks_vol > bids_vol && first_asks_vol < first_bids_vol) {
+                /*if (asks_vol > bids_vol && first_asks_vol < first_bids_vol) {
                     trend = true;
                 } else if (asks_vol < bids_vol && first_asks_vol > first_bids_vol) {
                     trend = false;
-                }
+                }*/
 
+                //vuol dire che sotto c'è più resistenza che sopra
+                //quindi è più facile che vada su se i volumi precedenti sono decenti
+                //la seconda condizione significa che sopra c'è un buco in ask
+
+                //percDiff ha valore assoluto, quindi senza segno
+                if (bids_vol > asks_vol && first_asks_vol < first_bids_vol && percDiff(first_asks_vol, first_bids_vol) > 50) {
+                    trend = true;
+                } else
+                //o viceversa
+                if (asks_vol > bids_vol && first_bids_vol < first_asks_vol && percDiff(first_bids_vol, first_asks_vol) > 50) {
+                    trend = false;
+                }
 
 
                 resolve({ trend: trend, status: json_data });
@@ -1327,7 +1343,7 @@ async function cmd() {
     initializeBinanceAPI();
 
 
-    //await binance_future_opened_position("BTC", "USD");
+
     a = await binance.futuresUserTrades("BTCUSDT");
 
     //giusti,sbagliati,profitto totale
@@ -1335,9 +1351,10 @@ async function cmd() {
     s = 0;
     c = 0;
     a.map((d) => {
-        //timestamp 1647529200
-        if (parseInt(d.time) > 1647529200000) {
+        //timestamp in millisecondi
+        if (parseInt(d.time) > 1647684000000) {
 
+            //console.log("TRADE", new Date(d.time), d);
             if (parseFloat(d.realizedPnl) < 0) { s++ }
             if (parseFloat(d.realizedPnl) > 0) { g++ }
 
@@ -1346,7 +1363,6 @@ async function cmd() {
         }
     });
     console.log("profitto", c, "giusti", g, "sbagliati", s);
-    //return;
 
 
 
@@ -1726,8 +1742,10 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     if (market_name === "CRYPTO_FUTURES") {
         timeseriesData = await getFuturesData(market_name, time_interval, currency_pair_1, currency_pair_2);
+        console.log("TSDATA LENGTH", timeseriesData.length);
     } else {
         timeseriesData = await getData(market_name, time_interval, currency_pair_1, currency_pair_2);
+        console.log("TSDATA LENGTH", timeseriesData.length);
     }
 
     let actual_price;
