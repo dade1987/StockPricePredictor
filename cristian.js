@@ -983,10 +983,22 @@ async function getFuturesData(market_name, time_interval, currency_pair_1, curre
             interval = "5m";
             break;
 
+        case "INTRADAY_15_MIN":
+            interval = "15m";
+            break;
+
+        case "INTRADAY_30_MIN":
+            interval = "30m";
+            break;
+
+        case "INTRADAY_60_MIN":
+            interval = "60m";
+            break;
+
     }
 
 
-    let json_data = await binance.futuresCandles(currency_pair_1 + currency_pair_2, interval);
+    let json_data = await binance.futuresCandles(currency_pair_1 + currency_pair_2, interval, { limit: 1500 });
 
     // console.log("CANDELE", json_data);
 
@@ -1380,8 +1392,10 @@ async function cmd() {
 
     }));*/
 
+
+    //await main('CRYPTO_FUTURES', 'INTRADAY_1_MIN', "BTC", "USD", 5, 50, true, null);
     autoOneMinuteFutures("BTC", "USD");
-    //await main('CRYPTO_FUTURES', 'INTRADAY_1_MIN', "BTC", "USD", 14, 50, true, null);
+
 
     //price
     /*console.info(await binance.futuresPrices());*/

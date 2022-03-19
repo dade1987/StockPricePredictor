@@ -89,6 +89,8 @@ module.exports = {
                 ema_25: (d.ema_25 - prices_min) / (prices_max - prices_min),
                 ema_99: (d.ema_99 - prices_min) / (prices_max - prices_min),
                 hour_trend: d.hour_trend,
+                ema_alert: d.ema_alert,
+                rsi_alert: d.rsi_alert,
             };
         });
 

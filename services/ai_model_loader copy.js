@@ -15,8 +15,8 @@ module.exports = {
             /* meglio con queste 2 loss assieme, oppure con meanabsolute */
             model.compile({
                 optimizer: optimizer,
-                loss: 'binaryCrossentropy',
-                metrics: ['accuracy'] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
+                loss: tf.losses.meanSquaredError,
+                metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
             });
         } else if (model_name === 'multiClassClassifier') {
             model.compile({

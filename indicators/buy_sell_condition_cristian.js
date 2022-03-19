@@ -8,14 +8,17 @@ module.exports = {
 
         let sum = 0;
         let totale_per_media = 2;
-
+        if (parseFloat(prediction) > 0.6) {
+            console.log("BUY", "PREDICTION");
+            sum++;
+        }
 
         if (bool_last_prediction === true) {
 
 
             //se c'è una resistenza forte sotto e un buco sopra
             if (orderBook === true) {
-                console.log("BUY", "orderBook === true", orderBook === true);
+                console.log("BUY", "orderBook");
                 sum++;
             }
 
@@ -41,14 +44,17 @@ module.exports = {
         let sum = 0;
         let totale_per_media = 2;
 
-
+        if (parseFloat(prediction) < 0.4) {
+            console.log("SELL", "PREDICTION");
+            sum++;
+        }
 
 
         if (bool_last_prediction === true) {
 
             //se c'è una resistenza forte sopra e un buco sotto
             if (orderBook === false) {
-                console.log("SELL", "orderBook === false", orderBook === false);
+                console.log("SELL", "orderBook");
                 sum++;
             }
 

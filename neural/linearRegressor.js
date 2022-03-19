@@ -119,12 +119,17 @@ module.exports = {
             //console.log(data[i]);
             data[i].pick_incidence = pick_incidence.pickIncidence(data[i].close, data[i].sma);
             if (i === 0) {
-                data[i].ema_alert = 0;
+                data[i].ema_alert = 0.5;
                 data[i].ema_25_trend = 0;
                 data[i].ema_99_trend = 0;
             } else {
-                data[i].ema_alert = pick_incidence.emaAlert(data[i - 1].ema, data[i - 1].open, data[i].ema, data[i].open);
-                data[i].ema_25_trend = pick_incidence.emaExpectation(data[i].ema_25, data[i].close);
+                if (data[i].open < data[i].ema && data[i].close > data[i].ema) {
+                    data[i].ema_alert = 1;
+                } else
+                if (data[i].open > data[i].ema && data[i].close < data[i].ema) {
+                    data[i].ema_alert = 0;
+                }
+                data[i].ema_25_trend = data[i].open < data[i].ema && data[i].close > data[i].ema;
                 data[i].ema_99_trend = pick_incidence.emaExpectation(data[i].ema_99, data[i].close);
             }
             d++;
@@ -133,6 +138,13 @@ module.exports = {
         d = 0;
         for (let i = 1; i < data.length; i++) {
             data[i].hour_trend = data[i].ema_99 > data[i - 1].ema_99;
+            data[i].rsi_alert = 0.5;
+
+            if (data[i].rsi < 30) {
+                data[i].rsi_alert = 1;
+            } else if (data[i].rsi > 70) {
+                data[i].rsi_alert = 0;
+            }
         }
 
 
@@ -261,8 +273,10 @@ module.exports = {
             epochs_number = 50;
         }
 
-        /* selecting the best training optimizer */
-        const optimizer = tf.train.adam(learningRate);
+        //prima era adam
+        //const optimizer = tf.train.adam(learningRate);
+        const optimizer = tf.train.sgd(learningRate);
+
         //const optimizer = tf.train.rmsprop(learningRate, 0.95);
 
 
@@ -301,10 +315,16 @@ module.exports = {
                     rate: 0.04
                 }));
 
+                //aggiunti ora. prima era solo units 1 senza tipi di attivatore
                 model.add(tf.layers.dense({
-                    units: 1
+                    activation: 'sigmoid',
+                    units: 2
                 }));
 
+                model.add(tf.layers.dense({
+                    activation: 'sigmoid',
+                    units: 1
+                }));
 
 
                 model.summary();
@@ -315,11 +335,9 @@ module.exports = {
                 /* compiling model with optimizer, loss and metrics */
                 /* meglio con queste 2 loss assieme, oppure con meanabsolute */
                 model.compile({
-
                     optimizer: optimizer,
-                    loss: tf.losses.meanSquaredError,
-                    metrics: [tf.losses.meanSquaredError] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
-
+                    loss: 'binaryCrossentropy',
+                    metrics: ['accuracy'] /*[tf.metrics.meanAbsoluteError, tf.losses.meanSquaredError]*/
                 });
 
 
