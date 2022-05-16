@@ -234,8 +234,7 @@ async function autoOneMinuteFutures(currency_pair_1, currency_pair_2) {
         main('CRYPTO_FUTURES', 'INTRADAY_1_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
         interval = setInterval(function() {
             main('CRYPTO_FUTURES', 'INTRADAY_1_MIN', currency_pair_1, currency_pair_2, 14, 50, true, null);
-            //ogni 30 secondi
-        }, 30000);
+        }, 60000);
     }, wait_fist_time);
 
     console.log('autoMinuteBackend wait_fist_time', wait_fist_time);
@@ -407,98 +406,6 @@ async function getOrderBookFutures(currency_pair_1) {
 
 }
 
-async function getOrderBookSpotBinance(currency_pair_1) {
-
-
-    let asks = new Object();
-    let bids = new Object();
-
-    book_period = 10;
-
-    return new Promise((resolve, reject) => {
-
-        binance.depth(currency_pair_1 + "USDT", (error, depth, symbol) => {
-            //console.info(symbol + " market depth", depth);
-
-            json_data = depth;
-
-
-
-            Object.entries(json_data.asks).forEach((v) => {
-
-                if (asks[roundByNumber(v[0], book_period)] === undefined) {
-                    asks[roundByNumber(v[0], book_period)] = new Object();
-                    asks[roundByNumber(v[0], book_period)].volume = 0;
-                }
-                asks[roundByNumber(v[0], book_period)].volume += v[1];
-
-            });
-
-            Object.entries(json_data.bids).forEach((v) => {
-
-                if (bids[roundByNumber(v[0], book_period)] === undefined) {
-                    bids[roundByNumber(v[0], book_period)] = new Object();
-                    bids[roundByNumber(v[0], book_period)].volume = 0;
-                }
-                bids[roundByNumber(v[0], book_period)].volume += v[1];
-
-            });
-
-            // console.log("asks", Object.keys(asks), "bids", Object.keys(bids).reverse())
-
-            i = 0;
-            asks_vol = 0;
-            first_asks_vol = 0;
-            for (let key of Object.keys(asks)) {
-                if (i === 5) { break; }
-
-                if (i === 0) {
-                    first_asks_vol = asks[key].volume;
-                }
-
-                asks_vol += asks[key].volume;
-
-                i++;
-            }
-
-            i = 0;
-            bids_vol = 0;
-            first_bids_vol = 0;
-            for (let key of Object.keys(bids).reverse()) {
-                if (i === 5) { break; }
-
-                if (i === 0) {
-                    first_bids_vol = bids[key].volume;
-                }
-
-                bids_vol += bids[key].volume;
-
-                i++;
-            }
-
-
-            let trend = 0;
-
-
-            //percDiff ha valore assoluto, quindi senza segno
-            if (asks_vol < bids_vol) {
-                trend = true;
-            } else
-            //o viceversa
-            if (asks_vol > bids_vol) {
-                trend = false;
-            }
-
-            console.log(asks_vol, bids_vol);
-
-            resolve({ trend: trend, status: json_data });
-
-
-
-        });
-    });
-}
-
 async function getOrderBookSpot(currency_pair_1) {
 
     //questo è un orderbook spot quindi va bene per vedere i buchi nel mercato spot
@@ -567,7 +474,7 @@ async function getOrderBookSpot(currency_pair_1) {
                 asks_vol = 0;
                 first_asks_vol = 0;
                 for (let key of Object.keys(asks)) {
-                    if (i === 5) { break; }
+                    if (i === 6) { break; }
 
                     if (i === 0) {
                         first_asks_vol = asks[key].volume;
@@ -582,7 +489,7 @@ async function getOrderBookSpot(currency_pair_1) {
                 bids_vol = 0;
                 first_bids_vol = 0;
                 for (let key of Object.keys(bids).reverse()) {
-                    if (i === 5) { break; }
+                    if (i === 6) { break; }
 
                     if (i === 0) {
                         first_bids_vol = bids[key].volume;
@@ -1361,7 +1268,7 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
 
         if (trailing_stop_percent > 0) {
 
-            console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
+            /*console.log("SET BUY TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
             tp = await binance.futuresMarketSell(currency_pair_1 + currency_pair_2, quantity, {
                 stopPrice: (parseFloat(actual_price) / 100 * (100 + take_profit_percent)).toFixed(0),
@@ -1380,9 +1287,9 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
                     reduceOnly: true,
 
                 }));
-            }
+            }*/
 
-            /*if (trailing_stop_percent < 0.1) {
+            if (trailing_stop_percent < 0.1) {
                 console.log("FORZATURA STOP LOSS BUY");
                 trailing_stop_percent = 0.1;
             }
@@ -1399,7 +1306,7 @@ global.binance_future_buy = async function(currency_pair_1, currency_pair_2, /*q
                 reduceOnly: true,
 
                 //closePosition: true
-            }));*/
+            }));
         }
 
         await binance_future_opened_position(currency_pair_1, currency_pair_2, "AFTER BUY");
@@ -1477,7 +1384,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
 
         if (trailing_stop_percent > 0) {
 
-            console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
+            /*console.log("SET SELL TAKE PROFIT", currency_pair_1 + currency_pair_2, quantity, take_profit);
 
             tp = await binance.futuresMarketBuy(currency_pair_1 + currency_pair_2, quantity, {
                 stopPrice: (parseFloat(actual_price) / 100 * (100 - take_profit_percent)).toFixed(0),
@@ -1496,10 +1403,10 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
                     reduceOnly: true,
 
                 }));
-            }
+            }*/
 
 
-            /*if (trailing_stop_percent < 0.1) {
+            if (trailing_stop_percent < 0.1) {
                 console.log("FORZATURA STOP LOSS SELL");
                 trailing_stop_percent = 0.1;
             }
@@ -1516,7 +1423,7 @@ global.binance_future_sell = async function(currency_pair_1, currency_pair_2, /*
                 reduceOnly: true,
 
                 //closePosition: true
-            }));*/
+            }));
         }
 
 
@@ -1563,7 +1470,7 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
     c = 0;
     a.map((d) => {
         //timestamp in millisecondi
-        if (parseInt(d.time) > 1647937530000) {
+        if (parseInt(d.time) > 1647880800000) {
 
             //console.log("TRADE", new Date(d.time), d);
             if (parseFloat(d.realizedPnl) < 0) { s++ }
@@ -1613,24 +1520,24 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
         console.log("SPOT MARKET PRICE", actual_price);
     }
 
-    /*orderBookFutures = await getOrderBookFutures(currency_pair_1);
+    orderBookFutures = await getOrderBookFutures(currency_pair_1);
 
     orderBookFuturesTrend = orderBookFutures['trend'];
     orderBookFuturesStatus = orderBookFutures['status'];
 
-    console.log('orderBookFutures', orderBookFuturesTrend);*/
+    console.log('orderBookFutures', orderBookFuturesTrend);
 
 
-    orderBookSpot = await getOrderBookSpotBinance(currency_pair_1);
+    /*orderBookSpot = await getOrderBookSpot(currency_pair_1);
 
     orderBookSpotTrend = orderBookSpot['trend'];
     orderBookSpotStatus = orderBookSpot['status'];
 
-    console.log('orderBookSpot', orderBookSpotTrend);
+    console.log('orderBookSpot', orderBookSpotTrend);*/
 
 
 
-    /*console.info("OPEN INTEREST", await binance.futuresOpenInterest("BTCUSDT"));*/
+    console.info("OPEN INTEREST", await binance.futuresOpenInterest("BTCUSDT"));
 
 
     sentiment = await getSentiment(currency_pair_1);
@@ -1640,23 +1547,21 @@ async function main(market_name, time_interval, currency_pair_1, currency_pair_2
 
     tradesTrend = null;
 
-    if (sentiment.data[0].longRate > 50) {
+    if (sentiment.data[0].longRate > 55) {
         tradesTrend = true
-    } else if (sentiment.data[0].shortRate > 50) {
+    } else if (sentiment.data[0].shortRate > 55) {
         tradesTrend = false
     }
 
     console.log('tradesTrend', tradesTrend);
 
-    if (orderBookSpotTrend === true && /*orderBookFuturesTrend === true &&*/ tradesTrend === true) {
+    if ( /*orderBookSpotTrend === true &&*/ orderBookFuturesTrend === true && tradesTrend === true) {
         console.log(await binance_future_buy(currency_pair_1, currency_pair_2,
-            0, 0, 0.13, actual_price, 0.13, 0.13));
+            0, 0, 0.13, actual_price, 0.1, 0.1));
     } else
-    if (orderBookSpotTrend === false && /* orderBookFuturesTrend === false &&*/ tradesTrend === false) {
+    if ( /*orderBookSpotTrend === false &&*/ orderBookFuturesTrend === false && tradesTrend === false) {
         console.log(await binance_future_sell(currency_pair_1, currency_pair_2,
-            0, 0, 0.13, actual_price, 0.13, 0.13));
-    } else {
-
+            0, 0, 0.13, actual_price, 0.1, 0.1));
     }
 
 
