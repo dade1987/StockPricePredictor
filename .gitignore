@@ -1,0 +1,6 @@
+/node_modules
+/sentimental_analysis_free_tool.txt
+drafts
+/*.env
+/package-lock.json
+/yarn.lock

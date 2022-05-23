@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+
+    <title>Stock Price Prediction</title>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous">
+    </script>
+
+
+    <!--<script src="node_modules/technicalindicators/dist/browser.es6.js"></script>-->
+
+
+    <!-- Import TensorFlow.js -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>-->
+    <!-- Import tfjs-vis -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>-->
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Import the main script file -->
+    <!--<script src="script.js"></script>-->
+
+    <style>
+        label {
+            font-weight: bold;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <div class="container-lg">
+
+        <!--<h2>Look at the console to see progresses</h2>
+            <h3>(F12 o Dev Tools)</h3>
+            <h4>Forex Best Indicators: Trend, Momentum, Volatility, Volume</h4>-->
+
+
+
+
+        <header>
+            <!-- Navbar -->
+            <!--<nav class="navbar navbar-expand-lg navbar-light bg-white">
+                    <div class="container-fluid">
+                        <button
+                            class="navbar-toggler"
+                            type="button"
+                            data-mdb-toggle="collapse"
+                            data-mdb-target="#navbarExample01"
+                            aria-controls="navbarExample01"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"
+                            >
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarExample01">
+                            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                                <li class="nav-item active">
+                                    <a class="nav-link" aria-current="page" href="#">Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Features</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Pricing</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">About</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>-->
+            <!-- Navbar -->
+            <br>
+            <!-- Background image -->
+            <div class="p-0 text-center bg-image" style="
+                     background-size: cover;
+                     background-image: url('banner');
+                     height: 20vh;
+                     background-repeat: round;
+                     ">
+                <div class="mask" style="background-color: rgb(0 0 0 / 35%);height:100%;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="text-white">
+                            <h1 class="mb-3">ForexAIForecast</h1>
+                            <h4 class="mb-3">Artificial Intelligence<br>to Invest Better</h4>
+                            <!--<a class="btn btn-outline-light btn-lg" href="#!" role="button"
+                                >Call to action</a
+                                >-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Background image -->
+        </header>
+        <br>
+
+
+        <label>Market Name</label>
+
+        <!--onchange="fillCurrencyPairs(this.value)" -->
+        <select class="form-control" id="market_name">
+            <option value="CRYPTO">CRYPTO</option>
+            <!--<option value="FOREX">FOREX</option>-->
+        </select>
+        <br>
+        <label>Currency Pair 1</label>
+        <select class="form-control" id="currency_pair_1">
+            <!--<option>EUR</option>-->
+            <option>BTC</option>
+            <option>ETH</option>
+            <!--<option>DOGE</option>
+            <!--<option>SOL</option> TROPPO POCHI DATI
+                <option>SHIB</option>TROPPO POCHI DATI-->
+        </select>
+        <br>
+        <label>Currency Pair 2</label>
+        <select class="form-control" id="currency_pair_2">
+            <option>USD</option>
+            <!--<option>GBP</option>-->
+            <!--<option>USD</option>-->
+        </select>
+        <br>
+        <label>Time Interval (default 1 Day)</label>
+        <select class="form-control" id="time_interval">
+            
+            <option value="INTRADAY_1_MIN">1 MIN (DA TESTARE)</option>
+            <option value="INTRADAY_5_MIN">5 MIN (DA TESTARE)</option>
+            <option value="INTRADAY_15_MIN">15 MIN (DA TESTARE)</option>
+            <option value="INTRADAY_30_MIN">30 MIN (DA TESTARE)</option>-->
+            
+            <option value="INTRADAY_60_MIN">60 MIN</option>
+            <option value="DAILY" selected>1 DAY</option>
+            <!--<option value="WEEKLY">1 WEEK</option>
+            <option value="MONTHLY">1 MONTH</option>-->
+
+        </select>
+        <br>
+        <label style="display:none;">Time Steps (default 14)</label>
+        <input class="form-control" id="time_steps" value="14" placeholder="Daily Time Steps default 14" style="display:none;">
+        <!--<br>-->
+        <!--<label style="display:none;">Epochs Number (default 10)</label>
+            <input class="form-control" id="epochs_number" value="50" placeholder="Daily Epochs Number default 15"
+                   style="display:none;">
+            <!--<br>-->
+        <button class="btn btn-success" id="train-button">PREDICT</button>
+        <button class="btn btn-success" id="auto-one-minute-button">AUTO INVEST (1 MINUTE)</button>
+        <button class="btn btn-success" id="auto-five-minutes-button">AUTO INVEST (5 MINUTES)</button>
+        <button class="btn btn-success" id="clear-auto-investment-button" style="display:none;">CLEAR AUTO INVESTMENT</button>
+        <!--<button class="btn btn-success" id="predict-button" style="display:none;">ONLY PREDICT (AFTER TRAINING)</button>-->
+        <br>
+        <!--<br>
+            <textarea class="form-control" id="trainingAccuracy" placeholder="Training Accuracy"></textarea>-->
+        <br>
+        <!--<textarea class="form-control" id="finalResult" rows="10" placeholder="Results"></textarea>-->
+
+        <label for="basic-url">RESULTS</label>
+
+
+
+
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Last Closed Price</span>
+            </div>
+            <input type="text" class="form-control" id="last_price" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Negotiation Advice</span>
+            </div>
+            <input type="text" class="form-control" id="advice" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Reccom. Take Profit</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Last News Positivity (%)</span>
+            </div>
+            <input type="text" class="form-control" id="news_analysis" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Market Depth Status</span>
+            </div>
+            <input type="text" class="form-control" id="market_depth_status" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Price Rise Probability (%)</span>
+            </div>
+            <input type="text" class="form-control" id="price_rise_probability" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Price Drop Probability (%)</span>
+            </div>
+            <input type="text" class="form-control" id="price_drop_probability" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Support (stop profit LONG or stop loss SHORT)</span>
+            </div>
+            <input type="text" class="form-control" id="support" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Resistence (stop loss LONG or take profit SHORT)</span>
+            </div>
+            <input type="text" class="form-control" id="resistence" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Buying Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="whales_buying_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Selling Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="whales_selling_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Buying Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_buying_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Selling Transactions Number</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_selling_num" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Buying Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="whales_buying_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Millionaire Selling Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="whales_selling_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Buying Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_buying_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Poor Selling Transactions Volume</span>
+            </div>
+            <input type="text" class="form-control" id="poveraccis_selling_vol" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x1)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x1" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x5)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x5" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x10)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x10" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x20)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x20" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Percentual Gain (x30)</span>
+            </div>
+            <input type="text" class="form-control" id="take_profit_percentual_x30" aria-describedby="basic-addon3" style="pointer-events: none;">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Log</span>
+            </div>
+            <textarea class="form-control" id="log" aria-describedby="basic-addon3"></textarea>
+        </div>
+
+
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">NB: Some predictions could be wrong. Use this software under your full
+                responsability.
+                </span>
+        </div>
+        <div class="container">
+            <span class="text-muted">v. 1.03 Beta</span>
+        </div>
+        <div class="container mt-3">
+            <span class="text-muted">If you want to collaborate with this project, visit the source code in <a href="https://github.com/dade1987/StockPricePredictor" target="_blank">https://github.com/dade1987/StockPricePredictor</a> or write to
+            <a href="mailto:davidecavallini1987@gmail.com">davidecavallini1987@gmail.com</a>.</span>
+        </div>
+    </footer>
+
+    <script>
+        function beep() {
+            var snd = new Audio("data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=");
+            snd.play();
+        }
+
+        function sell() {
+            //2 bip vicini
+            beep();
+            setTimeout(function() {
+                beep()
+            }, 100)
+        }
+
+        function buy() {
+            //1 bip
+            beep();
+        }
+
+        var socket = io();
+
+        const trainButton = document.getElementById('train-button');
+        const autoOneMinuteButton = document.getElementById('auto-one-minute-button');
+        const autoFiveMinutesButton = document.getElementById('auto-five-minutes-button');
+        const clearAutoInvestmentButton = document.getElementById('clear-auto-investment-button');
+        const predictButton = document.getElementById('predict-button');
+        let startingTime = null;
+        let startingTimeString = "";
+        let time_steps = "";
+
+        trainButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "WAIT PLEASE...";
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        autoOneMinuteButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "AUTO INVESTING...";
+
+            autoOneMinuteButton.style.display = 'none';
+            autoFiveMinutesButton.style.display = 'none';
+            clearAutoInvestmentButton.style.display = 'inline-block';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'autoOneMinute',
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        autoFiveMinutesButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = true;
+            trainButton.textContent = "AUTO INVESTING...";
+
+            autoOneMinuteButton.style.display = 'none';
+            autoFiveMinutesButton.style.display = 'none';
+            clearAutoInvestmentButton.style.display = 'inline-block';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'autoFiveMinute',
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        clearAutoInvestmentButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            trainButton.disabled = false;
+            trainButton.textContent = "PREDICT";
+
+            autoOneMinuteButton.style.display = 'inline-block';
+            autoFiveMinutesButton.style.display = 'inline-block';
+            clearAutoInvestmentButton.style.display = 'none';
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = 50; // $("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                auto_loop: 'clearAutoInvestment',
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: true
+            }));
+        };
+
+        /*predictButton.onclick = () => {
+
+            startingTime = new Date();
+            startingTimeString = startingTime.toString();
+
+            predictButton.disabled = true;
+            predictButton.textContent = "WAIT PLEASE...";
+
+            let currency_pair_1 = $("#currency_pair_1").val();
+            let currency_pair_2 = $("#currency_pair_2").val();
+            let time_interval = $("#time_interval").val();
+            let market_name = $("#market_name").val();
+            time_steps = $("#time_steps").val();
+            let epochs_number = '50'; //$("#epochs_number").val();
+
+            socket.emit('predict', JSON.stringify({
+                market_name: market_name,
+                time_interval: time_interval,
+                currency_pair_1: currency_pair_1,
+                currency_pair_2: currency_pair_2,
+                time_steps: time_steps,
+                epochs_number: epochs_number,
+                training_enabled: false
+            }));
+        };*/
+
+        /*socket.on('training', (result) => {
+         grafico(result, "Training");
+         });
+         
+         socket.on('testing', (result) => {
+         grafico(result, "Testing");
+         });*/
+
+        socket.on('final', (result) => {
+            let endingTime = $("#time_interval option:selected").text();
+
+            let result2 = JSON.parse(result);
+
+            //console.log("result2", result2[13].resistence, result2[13].support);
+            //$("#finalResult").html("Prezzo Attuale: " + result2[7] + "\n\n" + result2[6] + " Take Profit Consigliato: " + parseFloat(result2[5]) + " \n\nPrevisioni delle " + startingTimeString + " tra " + endingTime + "\n\nCrescita: " + result2[0] + " Giusti: " + result2[1] + " Errori: " + result2[2] + " Pari: " + result2[3] + "\n\nMedia Aritmetica dei Quadrati degli Errori: " + result2[4][0] + " (dev'essere nell'ordine di 0.000X)");
+            /*$("#finalResult").html("Last Closed Price: " + result2[7] + 
+             "\n\n" + result2[6] + 
+             " Predicted Take Profit: " + parseFloat(result2[5]) + 
+             "\n\nTake Profit Percentual Gain: " + parseFloat(result2[8]).toFixed(2) + "% (x1) "
+             + (parseFloat(result2[8]) * 5).toFixed(2) + "% (x5) "
+             + (parseFloat(result2[8]) * 10).toFixed(2) + "% (x10) " 
+             + (parseFloat(result2[8]) * 20).toFixed(2) + "% (x20) "
+             + (parseFloat(result2[8]) * 30).toFixed(2) + "% (x30) ");*/
+            let date = new Date();
+
+            let readable_date = date.getDate() + '-' + date.getMonth() + '-' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes() + ":" + date.getSeconds();
+
+
+            $("#last_price").val(result2[7]);
+            $("#log").val($("#log").val() + 'Time: ' + readable_date + ' Last Price: ' + result2[7] + '\n');
+
+
+            $("#advice").val(result2[6]);
+            $("#take_profit").val(parseFloat(result2[5]));
+            $("#news_analysis").val(parseFloat(result2[9]));
+            $("#market_depth_status").val(result2[12]);
+            $("#price_rise_probability").val(parseFloat(result2[10]).toFixed(2));
+            $("#price_drop_probability").val(parseFloat(result2[11]).toFixed(2));
+
+            if (result2[6] === "BUY") {
+                buy();
+            } else if (result2[6] === "SELL") {
+                sell();
+            }
+
+            $("#log").val($("#log").val() + 'Time: ' + readable_date + ' R: ' + parseFloat(result2[10]).toFixed(2) + ' D: ' + parseFloat(result2[11]).toFixed(2) + ' Sup: ' + result2[13].support + ' Res: ' + result2[13].resistence + '\n');
+
+            $("#take_profit_percentual_x1").val(parseFloat(result2[8]).toFixed(2));
+            $("#take_profit_percentual_x5").val((parseFloat(result2[8]) * 5).toFixed(2));
+            $("#take_profit_percentual_x10").val((parseFloat(result2[8]) * 10).toFixed(2));
+            $("#take_profit_percentual_x20").val((parseFloat(result2[8]) * 20).toFixed(2));
+            $("#take_profit_percentual_x30").val((parseFloat(result2[8]) * 30).toFixed(2));
+            $("#support").val(result2[13].support);
+            $("#resistence").val(result2[13].resistence);
+
+            $("#whales_buying_num").val(result2[14].whales_buying_num);
+            $("#whales_selling_num").val(result2[14].whales_selling_num);
+            $("#poveraccis_buying_num").val(result2[14].poveraccis_buying_num);
+            $("#poveraccis_selling_num").val(result2[14].poveraccis_selling_num);
+            $("#whales_buying_vol").val(result2[14].whales_buying_vol);
+            $("#whales_selling_vol").val(result2[14].whales_selling_vol);
+            $("#poveraccis_buying_vol").val(result2[14].poveraccis_buying_vol);
+            $("#poveraccis_selling_vol").val(result2[14].poveraccis_selling_vol);
+
+            trainButton.disabled = false;
+            trainButton.textContent = "PREDICT";
+
+            /*predictButton.disabled = true;
+            predictButton.textContent = "ONLY PREDICT (AFTER TRAINING)";*/
+        });
+
+        function grafico(bi_array_json, titolo) {
+            let result = JSON.parse(bi_array_json);
+
+            tfvis.render.linechart({
+                name: titolo
+            }, {
+                values: [result[0], result[1]],
+                series: ['original', 'predicted']
+            }, {
+                xLabel: 'contatore',
+                yLabel: 'prezzo',
+                height: 300,
+                zoomToFit: true
+            });
+        }
+
+        function fillCurrencyPairs(market_name) {
+            switch (market_name) {
+                case "FOREX":
+                    $("#currency_pair_1").html("\
+                    <option>EUR</option>\n\
+                    <option>USD</option>\n\
+                    <option>GBP</option>");
+                    $("#currency_pair_2").html("\
+                <option>EUR</option>\n\
+                <option selected>USD</option>\n\
+                <option>GBP</option>");
+                    break;
+                case "CRYPTO":
+                    $("#currency_pair_1").html("\
+                    <option>BTC</option>\n\
+                    <option>DOGE</option>\n\
+                    <option>DOT</option>\n\
+                    <option>ADA</option>\n\
+                    <option>XRP</option>\n\
+                    <option>BNB</option>\n\
+                    <option>SHIB</option>");
+                    $("#currency_pair_2").html("<option>USD</option>");
+                    break;
+            }
+        }
+
+
+        //la prima volta parte al minuto 1, poi fa ogni minuto
+
+        let timeout;
+        let interval;
+
+        function autoOneMinute() {
+            $('#time_interval option[value="INTRADAY_1_MIN"]').prop('selected', true);
+
+            let next_minute_date = new Date();
+            next_minute_date.setMinutes(next_minute_date.getMinutes() + 1)
+            next_minute_date.setSeconds(1);
+            let next_minute = next_minute_date.getTime();
+
+            let current_date = Date.now();
+            let wait_fist_time = next_minute_date - current_date;
+
+            timeout = setTimeout(function() {
+                trainButton.click();
+                interval = setInterval(function() {
+                    trainButton.click();
+                }, 60000);
+            }, wait_fist_time);
+
+            console.log('wait_fist_time', wait_fist_time);
+        }
+
+        function clearAuto() {
+            clearTimeout(timeout);
+            clearInterval(interval);
+        }
+    </script>
+
+</body>
+
+</html>
