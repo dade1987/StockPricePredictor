@@ -128,9 +128,9 @@ function sendEmails(arrayPrevisioni) {
             html += '</li>';
 
         });
-        html += '</ul>';
+        html += '</ul><br>';
         html += '<h3>E\' sempre consigliato guardare le notizie, l\'order book, le resistenze/supporti, e fare le proprie valutazioni prima di investire.</h3>'
-        html += '<h2>Se questo servizio ti piace, consiglialo a un tuo amico, e comunicaci la sua email. Il servizio è esclusivo ed è accessibile solo tramite invito personale.</h2>';
+        html += '<h2>Se questo servizio ti piace, consiglialo a un tuo amico, e comunicaci la sua email.<br>Il servizio è esclusivo ed è accessibile solo tramite invito personale.</h2>';
 
         emails.forEach(email => {
             let mailOptions = {
@@ -261,133 +261,137 @@ async function bootstrap() {
 
             let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
 
-            let medianPercDifference = calculateMedian(calculateAbsPercVariation(askClosePrices, 14));
-            //console.log("MEDIAN", medianPercDifference);
+            console.log("PRICES LENGTH", askClosePrices.length);
 
-            /*let askHighPrices = rawPrices.map((v) => { return Number(v.high) });
-            let askLowPrices = rawPrices.map((v) => { return Number(v.low) });*/
-            //console.log(askClosePrices);
+            //se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
+            if (askClosePrices.length > 201) {
+                let medianPercDifference = calculateMedian(calculateAbsPercVariation(askClosePrices, 14));
+                //console.log("MEDIAN", medianPercDifference);
 
-            /*var period = 14
+                /*let askHighPrices = rawPrices.map((v) => { return Number(v.high) });
+                let askLowPrices = rawPrices.map((v) => { return Number(v.low) });*/
+                //console.log(askClosePrices);
 
-            var input = {
-                high: askHighPrices,
-                low: askLowPrices,
-                close: askClosePrices,
-                period: period
-            }*/
+                /*var period = 14
 
-            //average true range per mettere stop loss e take profit
-            //let AverageTrueRange = ATR.calculate(input);
+                var input = {
+                    high: askHighPrices,
+                    low: askLowPrices,
+                    close: askClosePrices,
+                    period: period
+                }*/
 
-            //console.log("ATR", AverageTrueRange[AverageTrueRange.length - 1], askClosePrices[askClosePrices.length - 1], ATR.reverseInputs());
+                //average true range per mettere stop loss e take profit
+                //let AverageTrueRange = ATR.calculate(input);
 
-
-            //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
-            //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
-
-            //TREND MINORE SMA50 RIBASSISTA
-            /*let smaMinore = SMA.calculate({
-                period: 50,
-                values: askClosePrices
-            });*/
-
-            //let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
-            //let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-            //console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
-            //console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
-
-            //TREND MAGGIORE RIALZISTA
-            let smaMaggiore = SMA.calculate({
-                period: 200,
-                values: askClosePrices
-            });
-
-            let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
-            let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
-
-            console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
-            //console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
+                //console.log("ATR", AverageTrueRange[AverageTrueRange.length - 1], askClosePrices[askClosePrices.length - 1], ATR.reverseInputs());
 
 
-            //CALCOLO RSI RIALZISTA (<30)
-            let rsi = RSI.calculate({
-                period: 14,
-                values: askClosePrices
-            });
+                //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
+                //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
 
-            let rsiRialzista = rsi[rsi.length - 1] < 30;
-            let rsiRibassista = rsi[rsi.length - 1] > 70;
+                //TREND MINORE SMA50 RIBASSISTA
+                /*let smaMinore = SMA.calculate({
+                    period: 50,
+                    values: askClosePrices
+                });*/
 
-            console.log("RSI", rsi[rsi.length - 1]);
-            console.log("RSI RIALZISTA", rsiRialzista);
-            console.log("RSI RIBASSISTA", rsiRibassista);
+                //let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
+                //let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
+                //console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                //console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
+
+                //TREND MAGGIORE RIALZISTA
+                let smaMaggiore = SMA.calculate({
+                    period: 200,
+                    values: askClosePrices
+                });
+
+                let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
+                let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
+
+                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                //console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
 
 
-            var macdInput = {
-                values: askClosePrices,
-                fastPeriod: 8,
-                slowPeriod: 21,
-                signalPeriod: 5,
-                //è giusto così
-                SimpleMAOscillator: false,
-                SimpleMASignal: false
-            }
+                //CALCOLO RSI RIALZISTA (<30)
+                let rsi = RSI.calculate({
+                    period: 14,
+                    values: askClosePrices
+                });
 
-            let macd = MACD.calculate(macdInput);
+                let rsiRialzista = rsi[rsi.length - 1] < 30;
+                let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-            //SUPERAMENTO MACD
-            let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
-            let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
+                console.log("RSI", rsi[rsi.length - 1]);
+                console.log("RSI RIALZISTA", rsiRialzista);
+                console.log("RSI RIBASSISTA", rsiRibassista);
 
-            console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
-            //console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
 
-            //INCROCIO MACD
-            //let segnaleSuperaIncrociaMACD = macd[macd.length - 2].signal < macd[macd.length - 2].MACD && macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
-            //console.log("SEGNALE INCROCIA MACD", segnaleSuperaIncrociaMACD);
+                var macdInput = {
+                    values: askClosePrices,
+                    fastPeriod: 8,
+                    slowPeriod: 21,
+                    signalPeriod: 5,
+                    //è giusto così
+                    SimpleMAOscillator: false,
+                    SimpleMASignal: false
+                }
 
-            let marketSentimentPeriod = '5m';
-            if (trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
+                let macd = MACD.calculate(macdInput);
 
-                //solo se si verificano le altre condizioni, altrimenti è troppo dispendioso di tempo
-                //fare una richiesta https
-                marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
+                //SUPERAMENTO MACD
+                let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
+                let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
-                console.log("MARKET SENTIMENT LONG", marketLongSentiment);
+                console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                //console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
 
-                if (marketLongSentiment === true) {
+                //INCROCIO MACD
+                //let segnaleSuperaIncrociaMACD = macd[macd.length - 2].signal < macd[macd.length - 2].MACD && macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
+                //console.log("SEGNALE INCROCIA MACD", segnaleSuperaIncrociaMACD);
+
+                let marketSentimentPeriod = '30m';
+                if (trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
+
+                    //solo se si verificano le altre condizioni, altrimenti è troppo dispendioso di tempo
+                    //fare una richiesta https
+                    marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
+
+                    console.log("MARKET SENTIMENT LONG", marketLongSentiment);
+
+                    if (marketLongSentiment === true) {
+                        //console.log(market.symbol);
+                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                        console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+
+                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
+                    } else if (marketLongSentiment === null) {
+                        console.log("COPPIA MANCANTE DI DATI FUTURES");
+                    }
+                    //console.log("\n");
+                } else if (trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
                     //console.log(market.symbol);
-                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
 
-                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
-                } else if (marketLongSentiment === null) {
-                    console.log("COPPIA MANCANTE DI DATI FUTURES");
+                    marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
+
+                    console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
+
+                    if (marketLongSentiment === false) {
+                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                        console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+
+
+                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
+                    } else if (marketLongSentiment === null) {
+                        console.log("COPPIA MANCANTE DI DATI FUTURES");
+                    }
+                } else {
+                    //console.log(market.symbol);
                 }
-                //console.log("\n");
-            } else if (trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
-                //console.log(market.symbol);
-
-                marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
-
-                console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
-
-                if (marketLongSentiment === false) {
-                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                    console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-
-
-                    arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
-                } else if (marketLongSentiment === null) {
-                    console.log("COPPIA MANCANTE DI DATI FUTURES");
-                }
-            } else {
-                //console.log(market.symbol);
             }
-
         }
 
     }
