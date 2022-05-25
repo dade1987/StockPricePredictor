@@ -368,7 +368,13 @@ async function bootstrap() {
 
                         arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
                     } else if (marketLongSentiment === null) {
-                        console.log("COPPIA MANCANTE DI DATI FUTURES");
+
+                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                        console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+
+                        arrayPrevisioni.push({ azione: "POSSIBILE LONG. VERIFICARE MARKET SENTIMENT.", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
+
                     }
                     //console.log("\n");
                 } else if (trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
@@ -382,11 +388,12 @@ async function bootstrap() {
                         let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                         console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                         console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-
-
                         arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
                     } else if (marketLongSentiment === null) {
-                        console.log("COPPIA MANCANTE DI DATI FUTURES");
+                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                        console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                        arrayPrevisioni.push({ azione: "POSSIBILE SHORT. VERIFICARE MARKET SENTIMENT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
                     }
                 } else {
                     //console.log(market.symbol);

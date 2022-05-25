@@ -432,6 +432,7 @@ function roundHundred(value) {
 }
 
 async function getMarketPrice(currency_pair_1) {
+
     let url = "https://api.cryptowat.ch/markets/binance/" + currency_pair_1 + "usdt/price";
 
     return new Promise((resolve, reject) => {
