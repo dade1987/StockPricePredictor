@@ -66,10 +66,10 @@ for (let i = numero_di_partenza; i < set_max_num; i += 2) {
 
 
 
-console.log("PUNTI GRAFICO CARTESIANO")
+console.log("\nPUNTI GRAFICO CARTESIANO")
 console.log("https://www.youmath.it/ym-tools-calcolatore-automatico/geometria-analitica/disegna-piano-cartesiano-online.html");
 console.log(array_numeri_primi.map((v, i) => "(" + (Number(i) + 2) + "," + v + ")").join(','));
-console.log("DISTANZA TRA I NUMERI");
+console.log("\nDISTANZA TRA I NUMERI");
 //console.log(array_numeri_primi.map((v, i, a) => "(" + Number(i) + "," + (v - a[i - 1]) + ")").join(','));
 //partendo da 0. da 0 a 2 2, da 2 a 3 1, da 3 a 5 2 ecc..
 //2-1-2-2-4-2-4-2-4-6-2-6-4-2-4-6-6-2-6-4-2-6-4-6-8
