@@ -65,7 +65,8 @@ for (let i = numero_di_partenza; i < set_max_num; i += 2) {
 }
 
 
-console.log("Punti per Grafico");
+
+console.log("PUNTI GRAFICO CARTESIANO")
 console.log("https://www.youmath.it/ym-tools-calcolatore-automatico/geometria-analitica/disegna-piano-cartesiano-online.html");
 console.log(array_numeri_primi.map((v, i) => "(" + (Number(i) + 2) + "," + v + ")").join(','));
 console.log("DISTANZA TRA I NUMERI");
