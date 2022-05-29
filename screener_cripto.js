@@ -316,7 +316,7 @@ async function calculateNVTRatio(symbol) {
                     });
 
                     if (!isNaN(NVT) && isFinite(NVT)) {
-                        console.log("NVT", NVT, "SMA", smaNVT[smaNVT.length - 1], "SMA TREND", smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2]);
+                        //console.log("NVT", NVT, "SMA", smaNVT[smaNVT.length - 1], "SMA TREND", smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2]);
 
                         /*if (NVT > 150) {
                             //vai short
@@ -373,7 +373,7 @@ async function bootstrap() {
 
             console.log("\nSIMBOLO", market.symbol);
 
-            let NVT_status = await calculateNVTRatio(market.symbol);
+            //let NVT_status = await calculateNVTRatio(market.symbol);
 
 
             console.log("ASSET SOTTOSTANTE", market.baseAsset);
@@ -504,6 +504,8 @@ async function bootstrap() {
 
                         let NVT_status = await calculateNVTRatio(market.symbol);
 
+                        console.log("NVT_status", NVT_status);
+
                         if (NVT_status === true || NVT_status === null) {
 
                             market_actual_stats = await client.dailyStats({ symbol: market.symbol });
@@ -539,6 +541,8 @@ async function bootstrap() {
                     if (marketLongSentiment === false) {
 
                         let NVT_status = await calculateNVTRatio(market.symbol);
+
+                        console.log("NVT_status", NVT_status);
 
                         if (NVT_status === false || NVT_status === null) {
 
