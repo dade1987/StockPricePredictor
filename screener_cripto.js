@@ -271,12 +271,15 @@ function isEmptyJson(obj) {
 
 async function calculateNVTRatio(symbol) {
     //Dato fondamentale On Chain per criptovalute
+
+    //NVT SIGNAL (DA FARE)
     //se sopra 150 ipercomprato
     //se sotto 45 ipervenduto
     //se intermedio bilanciato
 
     //CALCOLO NVT DOC=https://blog.cryptocompare.com/how-to-calculate-nvt-ratios-with-the-cryptocompare-api-870d6d6b3c86
     //https://steemit.com/ita/@grendelorr/nvt-ratio-e-nvt-signal-indicatori-per-la-blockchain-per-individuare-le-bolle-speculative-e-gli-alti-bassi
+    //https://min-api.cryptocompare.com/documentation?key=Blockchain&cat=blockchainDay
 
     let url = "https://min-api.cryptocompare.com/data/blockchain/histo/day?api_key=" + process.env.CRYPTO_COMPARE_API + "&limit=200&fsym=" + symbol.replace('USDT', '');
     console.log(url);
@@ -306,35 +309,35 @@ async function calculateNVTRatio(symbol) {
 
                     //console.log("NVT", NVT);
 
-                    //di solito si calcola in 30 giorni
+                    //di solito si calcola in 90 giorni
                     let smaNVT = SMA.calculate({
-                        period: 30,
+                        period: 90,
                         values: NVTArray
                     });
 
                     if (!isNaN(NVT) && isFinite(NVT)) {
                         console.log("NVT", NVT, "SMA", smaNVT[smaNVT.length - 1], "SMA TREND", smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2]);
 
-                        if (NVT > 150) {
+                        /*if (NVT > 150) {
                             //vai short
                             NVT = false;
                         } else if (NVT < 45) {
                             //vai long
                             NVT = true;
-                        } else {
-                            //equilibrato cioè null (vale per entrambe)
-                            //si può guardare il trend però del mese
+                        } else {*/
+                        //equilibrato cioè null (vale per entrambe)
+                        //si può guardare il trend però del mese
 
-                            if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] > 0) {
-                                //se è uptrend è false
-                                NVT = false;
-                            } else if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] < 0) {
-                                //se è downtrend è true
-                                NVT = true;
-                            } else {
-                                //sennò è equilibrato (null)
-                            }
+                        if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] > 0) {
+                            //se è uptrend è false
+                            NVT = false;
+                        } else if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] < 0) {
+                            //se è downtrend è true
+                            NVT = true;
+                        } else {
+                            //sennò è equilibrato (null)
                         }
+                        /*}*/
                     }
 
                 }
@@ -370,7 +373,7 @@ async function bootstrap() {
 
             console.log("\nSIMBOLO", market.symbol);
 
-            //let NVT_status = await calculateNVTRatio(market.symbol);
+            let NVT_status = await calculateNVTRatio(market.symbol);
 
 
             console.log("ASSET SOTTOSTANTE", market.baseAsset);
