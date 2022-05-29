@@ -276,6 +276,7 @@ async function calculateNVTRatio(symbol) {
     //se intermedio bilanciato
 
     //CALCOLO NVT DOC=https://blog.cryptocompare.com/how-to-calculate-nvt-ratios-with-the-cryptocompare-api-870d6d6b3c86
+    //https://steemit.com/ita/@grendelorr/nvt-ratio-e-nvt-signal-indicatori-per-la-blockchain-per-individuare-le-bolle-speculative-e-gli-alti-bassi
 
     let url = "https://min-api.cryptocompare.com/data/blockchain/histo/day?api_key=" + process.env.CRYPTO_COMPARE_API + "&limit=200&fsym=" + symbol.replace('USDT', '');
     console.log(url);
@@ -583,7 +584,7 @@ let wait_fist_time = next_minute_date - current_date;
 testEmail();
 
 //ABILITARE SOLO PER TEST
-bootstrap();
+//bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
