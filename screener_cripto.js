@@ -25,6 +25,9 @@ const client = Binance({
 
 //altro sito per sentiment
 //https://lunarcrush.com/coins/hard/hard-protocol
+//https://www.bittsanalytics.com/sentiment-index/ETC
+//https://it.investing.com/indices/investing.com-etc-usd-scoreboard
+
 async function accountLongInSalita(pair, period) {
     let url = "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=" + pair + "&period=" + period;
     //console.log(url);
@@ -122,13 +125,43 @@ function sendEmails(arrayPrevisioni) {
             html += '<li>';
             html += 'Azione:' + v.azione + '<br>';
             html += 'Coppia:' + v.simbolo + '<br>';
+            html += 'Base Asset: ' + v.base_asset + '<br>'
             html += 'Prezzo Attuale:' + v.price + '<br>';
             html += 'Prezzo Take Profit:' + v.tp + '<br>';
             html += 'Prezzo Stop Loss: ' + v.sl + ' <br> ';
-            html += '</li>';
+            html += 'Variazione Oggi: ' + v.var_perc + '%<br>'
+            html += 'RSI: ' + v.RSI + '<br>';
+            html += '</li><br>';
 
         });
         html += '</ul><br>';
+
+        html += '<h3>Cosa guardare per Analisi fondamentale:</h3>'
+        html += '<ul>';
+        html += '<li>INDICATORI DI ANALISI FONDAMENTALE</li>'
+        html += '<li>Rapporto NVT (> 150 O TREND IN CRESCITA IPERCOMPRATO, < 45 O TREND DIMINUZIONE IPERVENDUTO</li>';
+        html += '<li>Rapporto MVRV (> 3.5 LONG,< 1.0 SHORT):</li>'
+        html += '<li>Modello Stock To Flow (VEDERE COLORI)</li>';
+        html += '<br>';
+        html += '<li>ALTRE COSE POSSIBILI DA GUARDARE</li>';
+        html += '<li>Indicatori on-chain: Coinmarketcap (https://coinmarketcap.com/currencies/bitcoin/onchain-analysis/)</li>';
+        html += '<li>Numero  di trades da unico trader in un certo periodo</li>';
+        html += '<li>Valore totale dei trades in un certo periodo</li>'
+        html += '<li>Indirizzi attivi</li>';
+        html += '<li>Commissioni pagate (anche ai miners)</li>';
+        html += '<li>Hash rate che dev\'essere alto</li>';
+        html += '<li>Quatità di moneta in staking</li>';
+        html += '<li>Whitepaper e punti critici del progetto</li>';
+        html += '<li>Team, incluso il loro passato nel settore, esperienza, truffe, competenze</li>';
+        html += '<li>Capire se ci sono progetti concorrenti simili ma migliori</li>';
+        html += '<li>Distribuzione iniziale dei token, per capire se è troppo centralizzato il mercato</li>';
+        html += '<li>Vedere se vengono generati tokens inutilmente</li>';
+        html += '<li>Capitalizzazione di mercato stimata</li>';
+        html += '<li>Liquidità e relativo spread bid-ask</li>';
+        html += '<li>Offerta massima, offerta in circolazione e il tasso di inflazione</li>';
+
+        html += '</ul>';
+        html += '<br>';
         html += '<h3>E\' sempre consigliato guardare le notizie, l\'order book, le resistenze/supporti, e fare le proprie valutazioni prima di investire.</h3>'
         html += '<h2>Se questo servizio ti piace, consiglialo a un tuo amico, e comunicaci la sua email.<br>Il servizio è esclusivo ed è accessibile solo tramite invito personale.</h2>';
 
@@ -226,6 +259,14 @@ function calculateMedian(values) {
 
 }
 
+async function calculateNVTRatio(arrayPrices, marketCap, dailyTransferVolume) {
+    //Dato fondamentale On Chain per criptovalute
+
+    const NVT = arrayPrices.map(v => marketCap / dailyTransferVolume);
+
+
+}
+
 async function bootstrap() {
 
     let arrayPrevisioni = [];
@@ -240,8 +281,13 @@ async function bootstrap() {
     for (let market of symbols) {
 
         if (market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true) {
-            //console.log(market.permissions);
+
+            let market_actual_stats;
+            //console.log("\n\n", market_actual_stats);
+            //per diversificare gli investimenti
+
             console.log("\nSIMBOLO", market.symbol);
+            console.log("ASSET SOTTOSTANTE", market.baseAsset);
             //vedo se il sentiment degli ultimi 5 minuti è in long
             //valutare se è meglio un trend in salita nei 15 minuti o il fatto che sia in long in sentiment, o entrambe
             //che però diminuiscono le probabilità di condizione vera
@@ -291,15 +337,15 @@ async function bootstrap() {
                 //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
 
                 //TREND MINORE SMA50 RIBASSISTA
-                /*let smaMinore = SMA.calculate({
+                let smaMinore = SMA.calculate({
                     period: 50,
                     values: askClosePrices
-                });*/
+                });
 
-                //let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
-                //let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-                //console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
-                //console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
+                let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
+                let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
+                console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
 
                 //TREND MAGGIORE RIALZISTA
                 let smaMaggiore = SMA.calculate({
@@ -351,8 +397,9 @@ async function bootstrap() {
                 //let segnaleSuperaIncrociaMACD = macd[macd.length - 2].signal < macd[macd.length - 2].MACD && macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
                 //console.log("SEGNALE INCROCIA MACD", segnaleSuperaIncrociaMACD);
 
+                //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
                 let marketSentimentPeriod = '30m';
-                if (trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
+                if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
 
                     //solo se si verificano le altre condizioni, altrimenti è troppo dispendioso di tempo
                     //fare una richiesta https
@@ -361,40 +408,54 @@ async function bootstrap() {
                     console.log("MARKET SENTIMENT LONG", marketLongSentiment);
 
                     if (marketLongSentiment === true) {
+                        market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+                        console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
+
+                        console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+
+                        //if (market_actual_stats.priceChangePercent > 0) {
                         //console.log(market.symbol);
                         let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                         console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                         console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
 
-                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
-                    } else if (marketLongSentiment === null) {
+                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
+                        //}
+                    } //else if (marketLongSentiment === null) {
 
-                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                        console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                    /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
 
-                        arrayPrevisioni.push({ azione: "POSSIBILE LONG. VERIFICARE MARKET SENTIMENT.", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference) });
-
-                    }
+                    arrayPrevisioni.push({ azione: "POSSIBILE LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });*/
+                    //}
                     //console.log("\n");
-                } else if (trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
+                } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
                     //console.log(market.symbol);
 
                     marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
 
                     console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
 
+
+
                     if (marketLongSentiment === false) {
+                        market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+                        console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
+                        console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+
+                        //if (market_actual_stats.priceChangePercent < 0) {
                         let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                         console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                         console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
-                    } else if (marketLongSentiment === null) {
-                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                        console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-                        arrayPrevisioni.push({ azione: "POSSIBILE SHORT. VERIFICARE MARKET SENTIMENT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference) });
-                    }
+                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
+                        //}
+                    } //else if (marketLongSentiment === null) {
+                    /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                    arrayPrevisioni.push({ azione: "POSSIBILE SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });*/
+                    //}
                 } else {
                     //console.log(market.symbol);
                 }
