@@ -259,10 +259,91 @@ function calculateMedian(values) {
 
 }
 
-async function calculateNVTRatio(arrayPrices, marketCap, dailyTransferVolume) {
-    //Dato fondamentale On Chain per criptovalute
+function isEmptyJson(obj) {
+    for (var prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            return false;
+        }
+    }
 
-    const NVT = arrayPrices.map(v => marketCap / dailyTransferVolume);
+    return JSON.stringify(obj) === JSON.stringify({});
+}
+
+async function calculateNVTRatio(symbol) {
+    //Dato fondamentale On Chain per criptovalute
+    //se sopra 150 ipercomprato
+    //se sotto 45 ipervenduto
+    //se intermedio bilanciato
+
+    //CALCOLO NVT DOC=https://blog.cryptocompare.com/how-to-calculate-nvt-ratios-with-the-cryptocompare-api-870d6d6b3c86
+
+    let url = "https://min-api.cryptocompare.com/data/blockchain/histo/day?api_key=" + process.env.CRYPTO_COMPARE_API + "&limit=200&fsym=" + symbol.replace('USDT', '');
+    console.log(url);
+
+    return new Promise((resolve, reject) => {
+
+        let request = https.get(url, function(res) {
+            let data = '';
+            let json_data;
+            let NVT = null;
+
+            res.on('data', function(stream) {
+                data += stream;
+            });
+            res.on('end', function() {
+
+                json_data = JSON.parse(data);
+
+                //console.log(url);
+                if (isEmptyJson(json_data) === false && isEmptyJson(json_data.Data) === false && isEmptyJson(json_data.Data.Data) === false && json_data.Data.Data.length > 30) {
+
+                    let NVTArray = json_data.Data.Data.map(v => Number(v.current_supply) / Number(v.transaction_count) / Number(v.average_transaction_value));
+
+                    //console.log("NVTArray", NVTArray);
+
+                    NVT = NVTArray[NVTArray.length - 1];
+
+                    //console.log("NVT", NVT);
+
+                    //di solito si calcola in 30 giorni
+                    let smaNVT = SMA.calculate({
+                        period: 30,
+                        values: NVTArray
+                    });
+
+                    if (!isNaN(NVT) && isFinite(NVT)) {
+                        console.log("NVT", NVT, "SMA", smaNVT[smaNVT.length - 1], "SMA TREND", smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2]);
+
+                        if (NVT > 150) {
+                            //vai short
+                            NVT = false;
+                        } else if (NVT < 45) {
+                            //vai long
+                            NVT = true;
+                        } else {
+                            //equilibrato cioè null (vale per entrambe)
+                            //si può guardare il trend però del mese
+
+                            if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] > 0) {
+                                //se è uptrend è false
+                                NVT = false;
+                            } else if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] < 0) {
+                                //se è downtrend è true
+                                NVT = true;
+                            } else {
+                                //sennò è equilibrato (null)
+                            }
+                        }
+                    }
+
+                }
+
+                resolve(NVT);
+            });
+        });
+    });
+
+
 
 
 }
@@ -283,10 +364,14 @@ async function bootstrap() {
         if (market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true) {
 
             let market_actual_stats;
-            //console.log("\n\n", market_actual_stats);
+            //console.log("\n\n", market);
             //per diversificare gli investimenti
 
             console.log("\nSIMBOLO", market.symbol);
+
+            //let NVT_status = await calculateNVTRatio(market.symbol);
+
+
             console.log("ASSET SOTTOSTANTE", market.baseAsset);
             //vedo se il sentiment degli ultimi 5 minuti è in long
             //valutare se è meglio un trend in salita nei 15 minuti o il fatto che sia in long in sentiment, o entrambe
@@ -300,10 +385,14 @@ async function bootstrap() {
             //dev'essere almeno 200 altrimenti è impossibile calcolare la SMA200
             //senza limite sono 500 dati
             let rawPrices = await client.candles({ symbol: market.symbol, interval: '30m' /*, limit: 300 */ });
-            //console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
+            // console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
+            /* market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+             console.log(market_actual_stats);*/
             //è giusto. prende l'orario che ancora deve chiudere
             //testato col sito https://24timezones.com/fuso-orario/gmt
             //console.log("TEST", new Date(rawPrices.slice(-1)[0].openTime), new Date(rawPrices.slice(-1)[0].closeTime));
+
+
 
             let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
 
@@ -408,19 +497,25 @@ async function bootstrap() {
                     console.log("MARKET SENTIMENT LONG", marketLongSentiment);
 
                     if (marketLongSentiment === true) {
-                        market_actual_stats = await client.dailyStats({ symbol: market.symbol });
-                        console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
 
-                        console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+                        let NVT_status = await calculateNVTRatio(market.symbol);
 
-                        //if (market_actual_stats.priceChangePercent > 0) {
-                        //console.log(market.symbol);
-                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                        console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                        if (NVT_status === true || NVT_status === null) {
 
-                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
-                        //}
+                            market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+                            console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
+
+                            console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+
+                            //if (market_actual_stats.priceChangePercent > 0) {
+                            //console.log(market.symbol);
+                            let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                            console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                            console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+
+                            arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
+                            //}
+                        }
                     } //else if (marketLongSentiment === null) {
 
                     /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
@@ -437,19 +532,23 @@ async function bootstrap() {
 
                     console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
 
-
-
                     if (marketLongSentiment === false) {
-                        market_actual_stats = await client.dailyStats({ symbol: market.symbol });
-                        console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
-                        console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
 
-                        //if (market_actual_stats.priceChangePercent < 0) {
-                        let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                        console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                        console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
-                        //}
+                        let NVT_status = await calculateNVTRatio(market.symbol);
+
+                        if (NVT_status === false || NVT_status === null) {
+
+                            market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+                            console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
+                            console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+
+                            //if (market_actual_stats.priceChangePercent < 0) {
+                            let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                            console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                            console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                            arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
+                            //}
+                        }
                     } //else if (marketLongSentiment === null) {
                     /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                     console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
@@ -484,7 +583,7 @@ let wait_fist_time = next_minute_date - current_date;
 testEmail();
 
 //ABILITARE SOLO PER TEST
-//bootstrap();
+bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
