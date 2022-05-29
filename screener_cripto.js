@@ -282,7 +282,7 @@ async function calculateNVTRatio(symbol) {
     //https://min-api.cryptocompare.com/documentation?key=Blockchain&cat=blockchainDay
 
     let url = "https://min-api.cryptocompare.com/data/blockchain/histo/day?api_key=" + process.env.CRYPTO_COMPARE_API + "&limit=200&fsym=" + symbol.replace('USDT', '');
-    console.log(url);
+    //console.log(url);
 
     return new Promise((resolve, reject) => {
 
