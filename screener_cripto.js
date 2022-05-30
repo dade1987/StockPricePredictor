@@ -525,48 +525,37 @@ async function bootstrap() {
                             arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
                             //}
                         }
-                    } //else if (marketLongSentiment === null) {
+                    }
+                }
+                //ESCLUDIAMO GLI SHORT DI CUI CI INTERESSA POCO SE NON LAVORIAMO IN LEVA
+                /*else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
 
-                    /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                                   marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
 
-                    arrayPrevisioni.push({ azione: "POSSIBILE LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });*/
-                    //}
-                    //console.log("\n");
-                } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
-                    //console.log(market.symbol);
+                                   console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
 
-                    marketLongSentiment = await accountLongInSalita(market.symbol, marketSentimentPeriod);
+                                   if (marketLongSentiment === false) {
 
-                    console.log("MARKET SENTIMENT SHORT", marketLongSentiment);
+                                       let NVT_status = await calculateNVTRatio(market.symbol);
 
-                    if (marketLongSentiment === false) {
+                                       console.log("NVT_status", NVT_status);
 
-                        let NVT_status = await calculateNVTRatio(market.symbol);
+                                       if (NVT_status === 1 || NVT_status === 0) {
 
-                        console.log("NVT_status", NVT_status);
+                                           market_actual_stats = await client.dailyStats({ symbol: market.symbol });
+                                           console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
+                                           console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
 
-                        if (NVT_status === 1 || NVT_status === 0) {
 
-                            market_actual_stats = await client.dailyStats({ symbol: market.symbol });
-                            console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
-                            console.log("TYPEOF", typeof(market_actual_stats.priceChangePercent));
+                                           let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                                           console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                                           console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
+                                           arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
 
-                            //if (market_actual_stats.priceChangePercent < 0) {
-                            let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                            console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                            console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-                            arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });
-                            //}
-                        }
-                    } //else if (marketLongSentiment === null) {
-                    /*let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                    console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close);
-                    arrayPrevisioni.push({ azione: "POSSIBILE SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), base_asset: market.baseAsset, var_perc: market_actual_stats.priceChangePercent, RSI: rsi[rsi.length - 1] });*/
-                    //}
-                } else {
+                                       }
+                                   }
+                               }*/
+                else {
                     //console.log(market.symbol);
                 }
             }
