@@ -269,6 +269,7 @@ function isEmptyJson(obj) {
     return JSON.stringify(obj) === JSON.stringify({});
 }
 
+
 async function calculateNVTRatio(symbol) {
     //Dato fondamentale On Chain per criptovalute
 
@@ -305,17 +306,17 @@ async function calculateNVTRatio(symbol) {
 
                     //console.log("NVTArray", NVTArray);
 
-                    NVT = NVTArray[NVTArray.length - 1];
+                    //NVT = NVTArray[NVTArray.length - 1];
 
                     //console.log("NVT", NVT);
 
-                    //di solito si calcola in 90 giorni
+                    //di solito si calcola in 14 giorni come RSI
                     let smaNVT = SMA.calculate({
-                        period: 90,
+                        period: 14,
                         values: NVTArray
                     });
 
-                    if (!isNaN(NVT) && isFinite(NVT)) {
+                    if (!isNaN(smaNVT[smaNVT.length - 1]) && isFinite(smaNVT[smaNVT.length - 1])) {
                         //console.log("NVT", NVT, "SMA", smaNVT[smaNVT.length - 1], "SMA TREND", smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2]);
 
                         /*if (NVT > 150) {
@@ -330,12 +331,13 @@ async function calculateNVTRatio(symbol) {
 
                         if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] > 0) {
                             //se è uptrend è false
-                            NVT = false;
+                            NVT = -1;
                         } else if (smaNVT[smaNVT.length - 1] - smaNVT[smaNVT.length - 2] < 0) {
                             //se è downtrend è true
-                            NVT = true;
+                            NVT = 1;
                         } else {
                             //sennò è equilibrato (null)
+                            NVT = 0;
                         }
                         /*}*/
                     }
@@ -375,6 +377,7 @@ async function bootstrap() {
 
             //let NVT_status = await calculateNVTRatio(market.symbol);
 
+            //console.log("NVT", await calculateNVTRatio(market.symbol));
 
             console.log("ASSET SOTTOSTANTE", market.baseAsset);
             //vedo se il sentiment degli ultimi 5 minuti è in long
@@ -506,7 +509,7 @@ async function bootstrap() {
 
                         console.log("NVT_status", NVT_status);
 
-                        if (NVT_status === true || NVT_status === null) {
+                        if (NVT_status === -1 || NVT_status === 0) {
 
                             market_actual_stats = await client.dailyStats({ symbol: market.symbol });
                             console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
@@ -544,7 +547,7 @@ async function bootstrap() {
 
                         console.log("NVT_status", NVT_status);
 
-                        if (NVT_status === false || NVT_status === null) {
+                        if (NVT_status === 1 || NVT_status === 0) {
 
                             market_actual_stats = await client.dailyStats({ symbol: market.symbol });
                             console.log("ULTIMO PREZZO", market_actual_stats.lastPrice, "VARIAZIONE PERCENTUALE OGGI", market_actual_stats.priceChangePercent);
@@ -591,7 +594,7 @@ let wait_fist_time = next_minute_date - current_date;
 testEmail();
 
 //ABILITARE SOLO PER TEST
-//bootstrap();
+bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
