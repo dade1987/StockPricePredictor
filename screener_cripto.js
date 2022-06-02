@@ -453,7 +453,7 @@ async function bootstrap() {
                 let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
                 console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
-                //console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
+                console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
 
 
                 //CALCOLO RSI RIALZISTA (<30)
@@ -487,7 +487,7 @@ async function bootstrap() {
                 let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
                 console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
-                //console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
+                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
 
                 //INCROCIO MACD
                 //let segnaleSuperaIncrociaMACD = macd[macd.length - 2].signal < macd[macd.length - 2].MACD && macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
@@ -505,7 +505,7 @@ async function bootstrap() {
 
                     if (marketLongSentiment === true) {
 
-                        let NVT_status = await calculateNVTRatio(market.symbol);
+                        let NVT_status = await calculateNVTRatio(market.baseAsset);
 
                         console.log("NVT_status", NVT_status);
 
@@ -536,7 +536,7 @@ async function bootstrap() {
 
                                    if (marketLongSentiment === false) {
 
-                                       let NVT_status = await calculateNVTRatio(market.symbol);
+                                       let NVT_status = await calculateNVTRatio(market.baseAsset);
 
                                        console.log("NVT_status", NVT_status);
 
@@ -583,7 +583,7 @@ let wait_fist_time = next_minute_date - current_date;
 testEmail();
 
 //ABILITARE SOLO PER TEST
-bootstrap();
+//bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
