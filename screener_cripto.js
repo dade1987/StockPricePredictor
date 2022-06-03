@@ -580,9 +580,10 @@ let next_minute_date = roundUpTo30Minutes(new Date()) + 1000;
 let current_date = Date.now();
 let wait_fist_time = next_minute_date - current_date;
 
+//TESTA CHE LE EMAILS VENGANO INVIATE CORRETTAMENTE
 testEmail();
 
-//ABILITARE SOLO PER TEST
+//ABILITARE SOLO PER TESTARE 
 //bootstrap();
 
 let timeout = setTimeout(function() {
