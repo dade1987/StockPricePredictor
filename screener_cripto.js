@@ -43,6 +43,7 @@ async function autoInvestiLong(arrayPrevisioni) {
     maxQty = maxQty.toPrecision(arrayPrevisioni.baseAssetPrecision);
 
     //L'ask price è il prezzo minore a cui ti vendono la moneta
+    //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
     if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
         await client.order({
             symbol: arrayPrevisioni.simbolo,
