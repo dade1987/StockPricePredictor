@@ -64,10 +64,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 side: 'SELL',
                 quantity: maxQty,
                 //take profit
-                price: arrayPrevisioni.tp,
+                price: arrayPrevisioni.tp.toPrecision(2),
                 //stop loss trigger and limit
-                stopPrice: arrayPrevisioni.sl,
-                stopLimitPrice: arrayPrevisioni.sl,
+                stopPrice: arrayPrevisioni.sl.toPrecision(2),
+                stopLimitPrice: arrayPrevisioni.sl.toPrecision(2),
             });
         }
     };
@@ -917,6 +917,10 @@ async function bootstrap() {
 
                     //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                     arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                    //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                    await autoInvestiLong(arrayPrevisioni);
+                    arrayPrevisioni = [];
+
                     ultima_previsione = 1;
                 }
 
@@ -924,7 +928,7 @@ async function bootstrap() {
         }
     }
 
-    arrayPrevisioni = arrayPrevisioni.sort((a, b) => {
+    /*arrayPrevisioni = arrayPrevisioni.sort((a, b) => {
         return getPercentageChange(b.price, b.tp) - getPercentageChange(a.price, a.tp);
     });
 
@@ -933,7 +937,7 @@ async function bootstrap() {
         await autoInvestiLong(arrayPrevisioni);
 
         console.log("PREVISIONI", arrayPrevisioni);
-    }
+    }*/
 
 
     console.log("Fine del Giro");
@@ -977,7 +981,7 @@ console.log(arrayMigliorePrevisione.azione);*/
 
 
 
-bootstrap();
+//bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
