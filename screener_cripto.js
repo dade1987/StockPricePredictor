@@ -20,6 +20,49 @@ const client = Binance({
 });
 
 
+async function autoInvestiLong(arrayPrevisioni) {
+
+
+    //prima deve chiudere tutti i trade in corso
+    //per ora lasciamo stare questa parte tanto comunque c'è lo stop loss
+    /*await client.order({
+        symbol: arrayPrevisioni.simbolo,
+        type: 'MARKET',
+        side: 'SELL',
+        quantity: '100',
+    });*/
+
+    let accountInfo = await client.accountInfo();
+    let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free;
+    console.log("USDT Amount", UsdtAmount);
+    let symbolPrice = await client.dailyStats({ symbol: 'BTCUSDT' });
+    console.log("Symbol Price", symbolPrice.lastPrice);
+    let maxQty = Number(UsdtAmount) / Number(symbolPrice.lastPrice);
+    console.log("Max Qty", maxQty);
+
+    maxQty = maxQty.toPrecision(arrayPrevisioni.baseAssetPrecision);
+
+
+    if (UsdtAmount >= 30) {
+        await client.order({
+            symbol: arrayPrevisioni.simbolo,
+            side: 'BUY',
+            type: 'MARKET',
+            quantity: maxQty,
+        });
+
+        await client.orderOco({
+            symbol: arrayPrevisioni.simbolo,
+            side: 'SELL',
+            quantity: maxQty,
+            //take profit
+            price: arrayPrevisioni.tp,
+            //stop loss trigger and limit
+            stopPrice: arrayPrevisioni.sl,
+            stopLimitPrice: arrayPrevisioni.sl,
+        });
+    }
+}
 //per avviare
 //NODE_TLS_REJECT_UNAUTHORIZED='0' node screener_cripto.js
 
@@ -226,7 +269,17 @@ function testEmail() {
 
 }
 
-function calculateAbsPercVariation(values, period) {
+/*function calculateAbsPercVariationIntegers(value1, value2) {
+    return 100 * Math.abs((value1 - value2) / ((value1 + value2) / 2));
+}*/
+
+function getPercentageChange(newNumber, oldNumber) {
+    var decreaseValue = oldNumber - newNumber;
+
+    return Math.abs((decreaseValue / oldNumber) * 100);
+}
+
+function calculateAbsPercVariationArray(values, period) {
 
     if (values.length < 2) throw new Error("No sufficient inputs");
 
@@ -235,7 +288,7 @@ function calculateAbsPercVariation(values, period) {
     let percentageArray = [];
 
     for (let i = 1; i < values.length; i++) {
-        percentageArray.push(100 * Math.abs((values[i] - values[i - 1]) / ((values[i] + values[i - 1]) / 2)));
+        percentageArray.push(getPercentageChange(values[i], values[i - 1]));
     }
 
     return percentageArray;
@@ -354,7 +407,7 @@ async function calculateNVTRatio(symbol) {
 
 }
 
-async function bootstrap() {
+async function bootstrap_07062022() {
 
     let arrayPrevisioni = [];
 
@@ -364,6 +417,8 @@ async function bootstrap() {
     let info = await client.exchangeInfo();
 
     let symbols = info.symbols;
+
+    console.log(symbols);
 
     for (let market of symbols) {
 
@@ -407,7 +462,7 @@ async function bootstrap() {
 
             //se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
             if (askClosePrices.length > 201) {
-                let medianPercDifference = calculateMedian(calculateAbsPercVariation(askClosePrices, 14));
+                let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
                 //console.log("MEDIAN", medianPercDifference);
 
                 /*let askHighPrices = rawPrices.map((v) => { return Number(v.high) });
@@ -572,6 +627,8 @@ async function bootstrap() {
 async function backtesting() {
 
     let previsioni_giuste = 0;
+    let previsioni_sbagliate = 0;
+    let saldo = 1000;
 
     console.log("---------------------------------------------------------------------------");
     console.log(new Date());
@@ -589,7 +646,7 @@ async function backtesting() {
 
             //dev'essere almeno 200 altrimenti è impossibile calcolare la SMA200
             //senza limite sono 500 dati
-            let rawPricesFull = await client.candles({ symbol: market.symbol, interval: '30m' /*, limit: 300 */ });
+            let rawPricesFull = await client.candles({ symbol: market.symbol, interval: '30m', limit: 1000 });
             // console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
 
 
@@ -611,7 +668,7 @@ async function backtesting() {
                 //se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
                 if (askClosePrices.length > 201) {
 
-                    let medianPercDifference = calculateMedian(calculateAbsPercVariation(askClosePrices, 14));
+                    //let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
 
                     //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
                     //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
@@ -673,17 +730,41 @@ async function backtesting() {
                     // console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
                     //console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
 
+                    //FINGIAMO CHE LO STOP LOSS SIA A -1% E IL TAKE PROFIT ALLA CHIUSURA DELLA MEZZ'ORA
+
                     if (rawPrices[rawPrices.length - 1].close > rawPrices[rawPrices.length - 2].close && ultima_previsione === 1) {
+                        differenza_percentuale = getPercentageChange(rawPrices[rawPrices.length - 1].close, rawPrices[rawPrices.length - 2].close);
+                        saldo = saldo / 100 * (100 + differenza_percentuale);
                         previsioni_giuste++;
+                        ultima_previsione = 0;
                     } else if (rawPrices[rawPrices.length - 1].close < rawPrices[rawPrices.length - 2].close && ultima_previsione === -1) {
+                        differenza_percentuale = getPercentageChange(rawPrices[rawPrices.length - 1].close, rawPrices[rawPrices.length - 2].close);
+                        saldo = saldo / 100 * (100 + differenza_percentuale);
                         previsioni_giuste++;
+                        ultima_previsione = 0;
                     } else if (rawPrices[rawPrices.length - 1].close === rawPrices[rawPrices.length - 2].close && ultima_previsione !== 0) {
                         //neutra
                     } else if (ultima_previsione !== 0) {
                         //sbagliata
-                        previsioni_giuste--;
+                        differenza_percentuale = getPercentageChange(rawPrices[rawPrices.length - 1].close, rawPrices[rawPrices.length - 2].close);
+                        if (differenza_percentuale > 1) {
+                            saldo = saldo / 100 * 99;
+                        } else {
+                            saldo = saldo / 100 * (100 - differenza_percentuale);
+                        }
+
+                        previsioni_sbagliate++;
+                        ultima_previsione = 0;
                     }
-                    ultima_previsione = 0;
+
+                    if (saldo <= 0) {
+                        console.log("SALDO A ZERO");
+                        process.exit();
+                    } else {
+                        console.log("SALDO", saldo);
+                    }
+
+
 
                     //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
                     if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
@@ -698,7 +779,7 @@ async function backtesting() {
 
 
                     //POSSIAMO ESCLUDERE GLI SHORT DI CUI CI INTERESSA POCO SE NON LAVORIAMO IN LEVA
-                    else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
+                    /*else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
 
                         let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                         console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
@@ -706,14 +787,145 @@ async function backtesting() {
 
                         ultima_previsione = -1;
 
-                    }
+                    }*/
                 }
             }
         }
 
     }
 
-    console.log("PREVISIONI GIUSTE", previsioni_giuste);
+    console.log("PREVISIONI GIUSTE", previsioni_giuste, "PREVISIONI SBAGLIATE", previsioni_sbagliate);
+    console.log("Fine del Giro");
+
+    process.exit();
+}
+
+//QUESTA SEMBRA UNA STRATEGIA STORICAMENTE MOLTO PROMETTENTE
+async function bootstrap() {
+
+    let arrayPrevisioni = [];
+
+    console.log("---------------------------------------------------------------------------");
+    console.log(new Date());
+
+    let info = await client.exchangeInfo();
+
+    let symbols = info.symbols;
+
+    //console.log(symbols);
+
+    for (let market of symbols) {
+
+        if (market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true) {
+
+            let ultima_previsione = 0;
+
+            //dev'essere almeno 200 altrimenti è impossibile calcolare la SMA200
+            //senza limite sono 500 dati
+            let rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 1000 });
+            // console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
+
+            let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
+
+            console.log("\nSIMBOLO", market.symbol);
+
+            console.log("ASSET SOTTOSTANTE", market.baseAsset);
+
+            //console.log("PRICES LENGTH", askClosePrices.length);
+
+            //se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
+            if (askClosePrices.length > 201) {
+
+                let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
+
+                //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
+                //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
+
+                //TREND MINORE SMA50 RIBASSISTA
+                let smaMinore = SMA.calculate({
+                    period: 50,
+                    values: askClosePrices
+                });
+
+                let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
+                let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
+                console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
+
+                //TREND MAGGIORE RIALZISTA
+                let smaMaggiore = SMA.calculate({
+                    period: 200,
+                    values: askClosePrices
+                });
+
+                let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
+                let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
+
+                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
+
+
+                //CALCOLO RSI RIALZISTA (<30)
+                let rsi = RSI.calculate({
+                    period: 14,
+                    values: askClosePrices
+                });
+
+                let rsiRialzista = rsi[rsi.length - 1] < 30;
+                let rsiRibassista = rsi[rsi.length - 1] > 70;
+
+                console.log("RSI", rsi[rsi.length - 1]);
+                console.log("RSI RIALZISTA", rsiRialzista);
+                console.log("RSI RIBASSISTA", rsiRibassista);
+
+
+                var macdInput = {
+                    values: askClosePrices,
+                    fastPeriod: 8,
+                    slowPeriod: 21,
+                    signalPeriod: 5,
+                    //è giusto così
+                    SimpleMAOscillator: false,
+                    SimpleMASignal: false
+                }
+
+                let macd = MACD.calculate(macdInput);
+
+                //SUPERAMENTO MACD
+                let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
+                let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
+
+                console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
+
+                //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
+                if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
+
+                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
+
+                    //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision });
+                    ultima_previsione = 1;
+                }
+
+            }
+        }
+    }
+
+    arrayPrevisioni = arrayPrevisioni.sort((a, b) => {
+        return getPercentageChange(b.price, b.tp) - getPercentageChange(a.price, a.tp);
+    });
+
+    if (arrayPrevisioni.length > 0) {
+        arrayPrevisioni = arrayPrevisioni[0];
+        await autoInvestiLong(arrayPrevisioni);
+
+        console.log("PREVISIONI", arrayPrevisioni);
+    }
+
+
     console.log("Fine del Giro");
 
     process.exit();
@@ -734,7 +946,28 @@ let wait_fist_time = next_minute_date - current_date;
 //testEmail();
 
 //ABILITARE SOLO PER TESTARE 
+//giusto. old è il secondo numero, mentre il primo è quello nuovo
+//console.log(getPercentageChange(1, 2));
+//console.log(getPercentageChange(2, 1));
 //backtesting();
+//TEST
+/*let arrayPrevisioni = [];
+arrayPrevisioni.push({ azione: "LONG", simbolo: "BTCUSDT", price: 100, tp: 108, sl: 100, base_asset: "BTC", RSI: 12, date: new Date() });
+arrayPrevisioni.push({ azione: "LONG", simbolo: "MUMUSDT", price: 100, tp: 110, sl: 100, base_asset: "MUM", RSI: 11, date: new Date() });
+arrayPrevisioni.push({ azione: "LONG", simbolo: "CIAOUSDT", price: 100, tp: 105, sl: 100, base_asset: "CIAO", RSI: 14, date: new Date() });
+
+arrayMigliorePrevisione = arrayPrevisioni.sort((a, b) => {
+    return getPercentageChange(b.price, b.tp) - getPercentageChange(a.price, a.tp);
+});
+
+if (arrayMigliorePrevisione.length > 0) {
+    arrayMigliorePrevisione = arrayMigliorePrevisione[0];
+}
+
+console.log(arrayMigliorePrevisione.azione);*/
+
+
+
 //bootstrap();
 
 let timeout = setTimeout(function() {
