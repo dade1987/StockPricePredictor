@@ -36,14 +36,14 @@ async function autoInvestiLong(arrayPrevisioni) {
     let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free;
     console.log("USDT Amount", UsdtAmount);
     let symbolPrice = await client.dailyStats({ symbol: 'BTCUSDT' });
-    console.log("Symbol Price", symbolPrice.lastPrice);
-    let maxQty = Number(UsdtAmount) / Number(symbolPrice.lastPrice);
+    console.log("Symbol Price", symbolPrice.askPrice);
+    let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
     console.log("Max Qty", maxQty);
 
     maxQty = maxQty.toPrecision(arrayPrevisioni.baseAssetPrecision);
 
-
-    if (UsdtAmount >= 30) {
+    //L'ask price è il prezzo minore a cui ti vendono la moneta
+    if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
         await client.order({
             symbol: arrayPrevisioni.simbolo,
             side: 'BUY',
