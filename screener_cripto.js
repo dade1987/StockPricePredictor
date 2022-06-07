@@ -19,8 +19,13 @@ const client = Binance({
     apiSecret: process.env.BINANCE_SPOT_SECRET
 });
 
+function roundByLotSize(value, step) {
+    step || (step = 1.0);
+    var inv = 1.0 / step;
+    return Math.round(value * inv) / inv;
+}
 
-async function autoInvestiLong(arrayPrevisioni) {
+async function autoInvestiLong(arrayPrevisioniFull) {
 
 
     //prima deve chiudere tutti i trade in corso
@@ -32,37 +37,40 @@ async function autoInvestiLong(arrayPrevisioni) {
         quantity: '100',
     });*/
 
-    let accountInfo = await client.accountInfo();
-    let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free;
-    console.log("USDT Amount", UsdtAmount);
-    let symbolPrice = await client.dailyStats({ symbol: 'BTCUSDT' });
-    console.log("Symbol Price", symbolPrice.askPrice);
-    let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
-    console.log("Max Qty", maxQty);
+    for (let arrayPrevisioni of arrayPrevisioniFull) {
+        let accountInfo = await client.accountInfo();
+        //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 90;
+        console.log("USDT Amount", UsdtAmount);
+        let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
+        console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
+        let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
+        console.log("Max Qty", maxQty);
 
-    maxQty = maxQty.toPrecision(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
 
-    //L'ask price è il prezzo minore a cui ti vendono la moneta
-    //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
-    if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
-        await client.order({
-            symbol: arrayPrevisioni.simbolo,
-            side: 'BUY',
-            type: 'MARKET',
-            quantity: maxQty,
-        });
+        //L'ask price è il prezzo minore a cui ti vendono la moneta
+        //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+        if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
+            await client.order({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'BUY',
+                type: 'MARKET',
+                quantity: maxQty,
+            });
 
-        await client.orderOco({
-            symbol: arrayPrevisioni.simbolo,
-            side: 'SELL',
-            quantity: maxQty,
-            //take profit
-            price: arrayPrevisioni.tp,
-            //stop loss trigger and limit
-            stopPrice: arrayPrevisioni.sl,
-            stopLimitPrice: arrayPrevisioni.sl,
-        });
-    }
+            await client.orderOco({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'SELL',
+                quantity: maxQty,
+                //take profit
+                price: arrayPrevisioni.tp,
+                //stop loss trigger and limit
+                stopPrice: arrayPrevisioni.sl,
+                stopLimitPrice: arrayPrevisioni.sl,
+            });
+        }
+    };
 }
 //per avviare
 //NODE_TLS_REJECT_UNAUTHORIZED='0' node screener_cripto.js
@@ -819,11 +827,8 @@ async function bootstrap() {
 
         if (market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true) {
 
-            let ultima_previsione = 0;
-
-            //dev'essere almeno 200 altrimenti è impossibile calcolare la SMA200
-            //senza limite sono 500 dati
-            let rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 1000 });
+            //meglio mettere 210 nel reale altrimenti ci mette una vita a fare il ciclo
+            let rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 210 });
             // console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
 
             let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
@@ -831,6 +836,10 @@ async function bootstrap() {
             console.log("\nSIMBOLO", market.symbol);
 
             console.log("ASSET SOTTOSTANTE", market.baseAsset);
+
+            let lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
+
+            console.log("LOT_SIZE", lotSize);
 
             //console.log("PRICES LENGTH", askClosePrices.length);
 
@@ -907,7 +916,7 @@ async function bootstrap() {
                     console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
                     //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
-                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision });
+                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
                     ultima_previsione = 1;
                 }
 
@@ -920,7 +929,7 @@ async function bootstrap() {
     });
 
     if (arrayPrevisioni.length > 0) {
-        arrayPrevisioni = arrayPrevisioni[0];
+        //arrayPrevisioni = arrayPrevisioni[0];
         await autoInvestiLong(arrayPrevisioni);
 
         console.log("PREVISIONI", arrayPrevisioni);
@@ -929,7 +938,6 @@ async function bootstrap() {
 
     console.log("Fine del Giro");
 
-    process.exit();
 }
 
 
@@ -969,7 +977,7 @@ console.log(arrayMigliorePrevisione.azione);*/
 
 
 
-//bootstrap();
+bootstrap();
 
 let timeout = setTimeout(function() {
     bootstrap();
