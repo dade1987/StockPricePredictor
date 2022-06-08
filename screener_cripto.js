@@ -40,7 +40,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
     for (let arrayPrevisioni of arrayPrevisioniFull) {
         let accountInfo = await client.accountInfo();
         //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 90;
+        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
         console.log("USDT Amount", UsdtAmount);
         let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
         console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
