@@ -14,6 +14,7 @@ const ATR = require('technicalindicators').ATR;
 
 const Binance = require('binance-api-node').default
 const Kucoin = require('kucoin-node-api');
+const { raw } = require('express');
 
 const client = Binance({
     apiKey: process.env.BINANCE_SPOT_KEY,
@@ -958,27 +959,59 @@ async function bootstrap() {
     console.log("---------------------------------------------------------------------------");
     console.log(new Date());
 
-    let info = await client.exchangeInfo();
+    let exchangeName = "binance";
 
-    let symbols = info.symbols;
+    let info;
+
+    if (exchangeName === "binance") {
+        info = await client.exchangeInfo();
+        symbols = info.symbols;
+    } else if (exchangeName === "kucoin") {
+        info = await Kucoin.getSymbols();
+        symbols = info.data;
+    }
 
     //console.log(symbols);
 
     for (let market of symbols) {
 
-        if (market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true) {
+        let condizioneVerificata;
+        if (exchangeName === "binance") {
+            condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+        } else if (exchangeName === "kucoin") {
+            condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
+        }
+
+        if (condizioneVerificata === true) {
 
             //meglio mettere 210 nel reale altrimenti ci mette una vita a fare il ciclo
-            let rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 210 });
-            // console.log("TEST", rawPrices.slice(-1), rawPrices.slice(-1), new Date(rawPrices.slice(-1)[0].closeTime));
+            let rawPrices;
+            let askClosePrices;
+            let lotSize;
 
-            let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
+            //SE CHIEDI LE CANDELE A KUCOIN TOO MANY REQUESTS
+            //SE LE CHIEDI A BINANCE A VOLTE MANCANO DEI SIMBOLI DI KUCOIN
+            //BISOGNEREBBE VEDERE QUELLI IN COMUNE TRA I DUE
+            //E COMUNQUE NON E' DETTO CHE SIANO IDENTICI
+            if (exchangeName === "binance") {
+                rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 210 });
+                askClosePrices = rawPrices.map((v) => { return Number(v.close) });
+                lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
+            } else if (exchangeName === "kucoin") {
+                //da 1 mese fa
+                var d = new Date();
+                d.setDate(d.getDate() - 10);
+                d.setHours(0, 0, 0, 0);
+                rawPrices = await Kucoin.getKlines({ symbol: market.symbol, type: '30min', startAt: (d / 1000 | 0) });
+                rawPrices = rawPrices.data;
+                askClosePrices = rawPrices.map((v) => { return Number(v[2]) });
+                lotSize = market.baseIncrement;
+            }
 
-            /*console.log("\nSIMBOLO", market.symbol);*/
+
+            console.log("\nSIMBOLO", market.symbol);
 
             /*console.log("ASSET SOTTOSTANTE", market.baseAsset);*/
-
-            let lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
 
             /*console.log("LOT_SIZE", lotSize);*/
 
@@ -1000,8 +1033,8 @@ async function bootstrap() {
 
                 let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
                 let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-                /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
-                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
+                /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);*/
+                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
 
                 //TREND MAGGIORE RIALZISTA
                 let smaMaggiore = SMA.calculate({
@@ -1012,9 +1045,8 @@ async function bootstrap() {
                 let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
                 let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
-                /*console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
-                console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
-
+                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                /*console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
 
                 //CALCOLO RSI RIALZISTA (<30)
                 let rsi = RSI.calculate({
@@ -1025,9 +1057,9 @@ async function bootstrap() {
                 let rsiRialzista = rsi[rsi.length - 1] < 30;
                 let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-                /*console.log("RSI", rsi[rsi.length - 1]);
+                console.log("RSI", rsi[rsi.length - 1]);
                 console.log("RSI RIALZISTA", rsiRialzista);
-                console.log("RSI RIBASSISTA", rsiRibassista);*/
+                /*console.log("RSI RIBASSISTA", rsiRibassista);*/
 
 
                 var macdInput = {
@@ -1078,7 +1110,7 @@ async function bootstrap() {
                         //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                         arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
                         //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                        await autoInvestiShort(arrayPrevisioni);
+                        //await autoInvestiShort(arrayPrevisioni);
                         arrayPrevisioni = [];
                     }
 
