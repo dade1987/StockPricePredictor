@@ -833,13 +833,13 @@ async function bootstrap() {
 
             let askClosePrices = rawPrices.map((v) => { return Number(v.close) });
 
-            console.log("\nSIMBOLO", market.symbol);
+            /*console.log("\nSIMBOLO", market.symbol);*/
 
-            console.log("ASSET SOTTOSTANTE", market.baseAsset);
+            /*console.log("ASSET SOTTOSTANTE", market.baseAsset);*/
 
             let lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
 
-            console.log("LOT_SIZE", lotSize);
+            /*console.log("LOT_SIZE", lotSize);*/
 
             //console.log("PRICES LENGTH", askClosePrices.length);
 
@@ -859,8 +859,8 @@ async function bootstrap() {
 
                 let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
                 let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-                console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
-                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
+                /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
 
                 //TREND MAGGIORE RIALZISTA
                 let smaMaggiore = SMA.calculate({
@@ -871,8 +871,8 @@ async function bootstrap() {
                 let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
                 let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
-                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
-                console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);
+                /*console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
 
 
                 //CALCOLO RSI RIALZISTA (<30)
@@ -884,9 +884,9 @@ async function bootstrap() {
                 let rsiRialzista = rsi[rsi.length - 1] < 30;
                 let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-                console.log("RSI", rsi[rsi.length - 1]);
+                /*console.log("RSI", rsi[rsi.length - 1]);
                 console.log("RSI RIALZISTA", rsiRialzista);
-                console.log("RSI RIBASSISTA", rsiRibassista);
+                console.log("RSI RIBASSISTA", rsiRibassista);*/
 
 
                 var macdInput = {
@@ -905,8 +905,8 @@ async function bootstrap() {
                 let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
                 let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
-                console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
-                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
+                /*console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);*/
 
                 //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
                 if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
@@ -949,8 +949,10 @@ async function bootstrap() {
 //ogni mezz'ora
 const roundTo = roundTo => x => Math.round(x / roundTo) * roundTo;
 const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo;
+const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5);
 const roundUpTo30Minutes = roundUpTo(1000 * 60 * 30);
-let next_minute_date = roundUpTo30Minutes(new Date()) + 1000;
+//let next_minute_date = roundUpTo30Minutes(new Date()) + 1000;
+let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
 
 let current_date = Date.now();
 let wait_fist_time = next_minute_date - current_date;
@@ -987,5 +989,5 @@ let timeout = setTimeout(function() {
     bootstrap();
     interval = setInterval(function() {
         bootstrap();
-    }, 1800000);
+    }, /*1800000*/ 300000);
 }, wait_fist_time);
