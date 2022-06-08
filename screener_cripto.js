@@ -1009,7 +1009,7 @@ async function bootstrap() {
             }
 
 
-            console.log("\nSIMBOLO", market.symbol);
+            /* console.log("\nSIMBOLO", market.symbol);*/
 
             /*console.log("ASSET SOTTOSTANTE", market.baseAsset);*/
 
@@ -1034,7 +1034,7 @@ async function bootstrap() {
                 let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
                 let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
                 /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);*/
-                console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);
+                /*console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
 
                 //TREND MAGGIORE RIALZISTA
                 let smaMaggiore = SMA.calculate({
@@ -1045,7 +1045,7 @@ async function bootstrap() {
                 let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
                 let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
-                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                /*console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);*/
                 /*console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
 
                 //CALCOLO RSI RIALZISTA (<30)
@@ -1057,8 +1057,8 @@ async function bootstrap() {
                 let rsiRialzista = rsi[rsi.length - 1] < 30;
                 let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-                console.log("RSI", rsi[rsi.length - 1]);
-                console.log("RSI RIALZISTA", rsiRialzista);
+                /*console.log("RSI", rsi[rsi.length - 1]);
+                console.log("RSI RIALZISTA", rsiRialzista);*/
                 /*console.log("RSI RIBASSISTA", rsiRibassista);*/
 
 
