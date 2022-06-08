@@ -13,16 +13,157 @@ const SMA = require('technicalindicators').SMA;
 const ATR = require('technicalindicators').ATR;
 
 const Binance = require('binance-api-node').default
+const Kucoin = require('kucoin-node-api');
 
 const client = Binance({
     apiKey: process.env.BINANCE_SPOT_KEY,
     apiSecret: process.env.BINANCE_SPOT_SECRET
 });
 
+const kucoinConfig = {
+    apiKey: process.env.KUCOIN_KEY,
+    secretKey: process.env.KUCOIN_SECRET,
+    passphrase: process.env.KUCOIN_PASS,
+    environment: 'live'
+}
+
+Kucoin.init(kucoinConfig);
+
 function roundByLotSize(value, step) {
     step || (step = 1.0);
     var inv = 1.0 / step;
     return Math.round(value * inv) / inv;
+}
+
+async function autoInvestiShortKucoin(arrayPrevisioniFull) {
+
+    for (let arrayPrevisioni of arrayPrevisioniFull) {
+        let accountInfo = await Kucoin.getMarginAccount();
+        //console.log(accountInfo.data.accounts);
+        //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+        let UsdtAmount = accountInfo.data.accounts.filter(v => v.currency === 'USDT')[0].availableBalance;
+        console.log("USDT Amount", UsdtAmount);
+        let symbolPrice = await Kucoin.getTicker(arrayPrevisioni.simbolo);
+        console.log("Symbol Price", symbolPrice.data.bestBid, symbolPrice.data.price);
+        let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestBid);
+        console.log("Max Qty", maxQty);
+
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+
+        //L'ask price è il prezzo minore a cui ti vendono la moneta
+        //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+        if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.data.bestBid && arrayPrevisioni.sl < symbolPrice.data.bestBid) {
+            await Kucoin.placeMarginOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'buy',
+                type: 'market',
+                size: maxQty,
+            });
+
+            await Kucoin.placeMarginOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'sell',
+                type: 'limit',
+                price: arrayPrevisioni.tp.toPrecision(2),
+                size: maxQty
+            });
+
+            await Kucoin.placeMarginStopOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'sell',
+                type: 'limit',
+                price: arrayPrevisioni.sl.toPrecision(2),
+                size: maxQty,
+                tradeType: 'MARGIN_TRADE'
+            });
+        }
+    };
+}
+
+async function autoInvestiLongKucoin(arrayPrevisioniFull) {
+
+    for (let arrayPrevisioni of arrayPrevisioniFull) {
+        let accountInfo = await Kucoin.getMarginAccount();
+        //console.log(accountInfo.data.accounts);
+        //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+        let UsdtAmount = accountInfo.data.accounts.filter(v => v.currency === 'USDT')[0].availableBalance;
+        console.log("USDT Amount", UsdtAmount);
+        let symbolPrice = await Kucoin.getTicker(arrayPrevisioni.simbolo);
+        console.log("Symbol Price", symbolPrice.data.bestAsk, symbolPrice.data.price);
+        let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestAsk);
+        console.log("Max Qty", maxQty);
+
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+
+        //L'ask price è il prezzo minore a cui ti vendono la moneta
+        //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+        if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.data.bestAsk && arrayPrevisioni.sl < symbolPrice.data.bestAsk) {
+            await Kucoin.placeMarginOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'buy',
+                type: 'market',
+                size: maxQty,
+            });
+
+            await Kucoin.placeMarginOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'sell',
+                type: 'limit',
+                price: arrayPrevisioni.tp.toPrecision(2),
+                size: maxQty
+            });
+
+            await Kucoin.placeMarginStopOrder({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'sell',
+                type: 'limit',
+                price: arrayPrevisioni.sl.toPrecision(2),
+                size: maxQty,
+                tradeType: 'MARGIN_TRADE'
+            });
+        }
+    };
+}
+
+async function autoInvestiShort(arrayPrevisioniFull) {
+
+    //In short si compra con il bid Price, perchè è in discesa
+
+    for (let arrayPrevisioni of arrayPrevisioniFull) {
+        let accountInfo = await client.accountInfo();
+        //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+        console.log("USDT Amount", UsdtAmount);
+        let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
+        console.log("Symbol Price", symbolPrice.bidPrice, symbolPrice);
+        let maxQty = Number(UsdtAmount) / Number(symbolPrice.bidPrice);
+        console.log("Max Qty", maxQty);
+
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+
+        //L'ask price è il prezzo minore a cui ti vendono la moneta
+        //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+        if (UsdtAmount >= 25 && arrayPrevisioni.tp < symbolPrice.bidPrice && arrayPrevisioni.sl > symbolPrice.bidPrice) {
+            await client.order({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'BUY',
+                type: 'MARKET',
+                quantity: maxQty,
+            });
+
+            await client.orderOco({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'SELL',
+                quantity: maxQty,
+                //take profit
+                price: arrayPrevisioni.tp.toPrecision(2),
+                //stop loss trigger and limit
+                stopPrice: arrayPrevisioni.sl.toPrecision(2),
+                stopLimitPrice: arrayPrevisioni.sl.toPrecision(2),
+            });
+        }
+    };
+
 }
 
 async function autoInvestiLong(arrayPrevisioniFull) {
@@ -925,6 +1066,22 @@ async function bootstrap() {
                         arrayPrevisioni = [];
                     }
 
+                } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
+
+                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
+
+                    //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
+                    let stopLoss = 1;
+                    if (medianPercDifference > stopLoss) {
+                        //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                        //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                        await autoInvestiShort(arrayPrevisioni);
+                        arrayPrevisioni = [];
+                    }
+
                 }
 
             }
@@ -985,7 +1142,7 @@ if (arrayMigliorePrevisione.length > 0) {
 console.log(arrayMigliorePrevisione.azione);*/
 
 
-
+autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
 
 let timeout = setTimeout(function() {
