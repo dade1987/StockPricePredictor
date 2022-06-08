@@ -957,7 +957,8 @@ async function bootstrap() {
     let arrayPrevisioni = [];
 
     console.log("---------------------------------------------------------------------------");
-    console.log(new Date());
+    let binanceDate = new Date().toLocaleString();
+    console.log("DATA", binanceDate);
 
     let exchangeName = "binance";
 
@@ -1085,33 +1086,35 @@ async function bootstrap() {
                 if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
 
                     let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    //console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                     console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
                     //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
                     let stopLoss = 1;
                     if (medianPercDifference > stopLoss) {
+                        let arrayInvestimento = [];
                         //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                         arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                        arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
                         //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                        await autoInvestiLong(arrayPrevisioni);
-                        arrayPrevisioni = [];
+                        await autoInvestiLong(arrayInvestimento);
                     }
 
                 } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
 
                     let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                    console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+                    //console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                     console.log("AZIONE SHORT", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
                     //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
                     let stopLoss = 1;
                     if (medianPercDifference > stopLoss) {
+                        let arrayInvestimento = [];
                         //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                         arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                        arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
                         //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
                         //await autoInvestiShort(arrayPrevisioni);
-                        arrayPrevisioni = [];
                     }
 
                 }
@@ -1119,6 +1122,8 @@ async function bootstrap() {
             }
         }
     }
+
+    sendEmails(arrayPrevisioni);
 
     /*arrayPrevisioni = arrayPrevisioni.sort((a, b) => {
         return getPercentageChange(b.price, b.tp) - getPercentageChange(a.price, a.tp);
