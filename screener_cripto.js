@@ -915,13 +915,15 @@ async function bootstrap() {
                     console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
                     console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
-                    //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
-                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                    //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                    await autoInvestiLong(arrayPrevisioni);
-                    arrayPrevisioni = [];
+                    //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
+                    if (medianPercDifference > 1) {
+                        //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - 1), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                        //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                        await autoInvestiLong(arrayPrevisioni);
+                        arrayPrevisioni = [];
+                    }
 
-                    ultima_previsione = 1;
                 }
 
             }
