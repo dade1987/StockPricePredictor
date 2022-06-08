@@ -1142,7 +1142,7 @@ if (arrayMigliorePrevisione.length > 0) {
 console.log(arrayMigliorePrevisione.azione);*/
 
 
-autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
+//autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
 
 let timeout = setTimeout(function() {
