@@ -2,6 +2,8 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
+const sound = require("sound-play");
+
 const https = require('https');
 
 const nodemailer = require('nodemailer');
@@ -29,6 +31,8 @@ const kucoinConfig = {
 }
 
 Kucoin.init(kucoinConfig);
+
+let sound_disabled = false;
 
 function roundByLotSize(value, step) {
     step || (step = 1.0);
@@ -133,14 +137,15 @@ async function autoInvestiShort(arrayPrevisioniFull) {
     for (let arrayPrevisioni of arrayPrevisioniFull) {
         let accountInfo = await client.accountInfo();
         //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 98;
         console.log("USDT Amount", UsdtAmount);
         let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
         console.log("Symbol Price", symbolPrice.bidPrice, symbolPrice);
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.bidPrice);
-        console.log("Max Qty", maxQty);
 
         maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+
+        console.log("Max Qty", maxQty);
 
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
@@ -167,8 +172,19 @@ async function autoInvestiShort(arrayPrevisioniFull) {
 
 }
 
+async function playBullSentiment() {
+    if (sound_disabled === false) {
+        const path = require("path");
+        const filePath = path.join(__dirname, "bull_sentiment.mp3");
+        //console.log(filePath);
+        sound.play(filePath);
+    }
+}
+
 async function autoInvestiLong(arrayPrevisioniFull) {
 
+
+    playBullSentiment();
 
     //prima deve chiudere tutti i trade in corso
     //per ora lasciamo stare questa parte tanto comunque c'è lo stop loss
@@ -194,14 +210,14 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
-            await client.order({
+            console.log(await client.order({
                 symbol: arrayPrevisioni.simbolo,
                 side: 'BUY',
                 type: 'MARKET',
                 quantity: maxQty,
-            });
+            }));
 
-            await client.orderOco({
+            console.log(await client.orderOco({
                 symbol: arrayPrevisioni.simbolo,
                 side: 'SELL',
                 quantity: maxQty,
@@ -210,7 +226,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 //stop loss trigger and limit
                 stopPrice: arrayPrevisioni.sl.toPrecision(2),
                 stopLimitPrice: arrayPrevisioni.sl.toPrecision(2),
-            });
+            }));
         }
     };
 }
@@ -323,7 +339,7 @@ function sendEmails(arrayPrevisioni) {
             html += 'Prezzo Attuale:' + v.price + '<br>';
             html += 'Prezzo Take Profit:' + v.tp + '<br>';
             html += 'Prezzo Stop Loss: ' + v.sl + ' <br> ';
-            html += 'Variazione Oggi: ' + v.var_perc + '%<br>'
+            //html += 'Variazione Oggi: ' + v.var_perc + '%<br>'
             html += 'RSI: ' + v.RSI + '<br>';
             html += '</li><br>';
 
@@ -1091,14 +1107,14 @@ async function bootstrap() {
 
                     //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
                     let stopLoss = 1;
-                    if (medianPercDifference > stopLoss) {
-                        let arrayInvestimento = [];
-                        //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
-                        arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                        arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                        //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                        await autoInvestiLong(arrayInvestimento);
-                    }
+                    //if (medianPercDifference > stopLoss) {
+                    let arrayInvestimento = [];
+                    //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                    arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                    arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                    //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                    await autoInvestiLong(arrayInvestimento);
+                    //}
 
                 } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
 
@@ -1108,14 +1124,14 @@ async function bootstrap() {
 
                     //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
                     let stopLoss = 1;
-                    if (medianPercDifference > stopLoss) {
-                        let arrayInvestimento = [];
-                        //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
-                        arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                        arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                        //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                        //await autoInvestiShort(arrayPrevisioni);
-                    }
+                    //if (medianPercDifference > stopLoss) {
+                    let arrayInvestimento = [];
+                    //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                    arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                    arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
+                    //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                    //await autoInvestiShort(arrayPrevisioni);
+                    //}
 
                 }
 
@@ -1181,6 +1197,7 @@ console.log(arrayMigliorePrevisione.azione);*/
 
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
+playBullSentiment()
 
 let timeout = setTimeout(function() {
     bootstrap();
