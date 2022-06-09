@@ -33,6 +33,7 @@ const kucoinConfig = {
 Kucoin.init(kucoinConfig);
 
 let sound_disabled = false;
+let emails_disabled = true;
 
 function roundByLotSize(value, step) {
     step || (step = 1.0);
@@ -173,6 +174,11 @@ async function autoInvestiShort(arrayPrevisioniFull) {
 }
 
 async function playBullSentiment() {
+    //di notte non deve riprodurre suoni sennò fai un infarto
+    let ora = new Date().getHours();
+    if (ora >= 22 && ora <= 9) {
+        sound_disabled = true;
+    }
     if (sound_disabled === false) {
         const path = require("path");
         const filePath = path.join(__dirname, "bull_sentiment.mp3");
@@ -182,7 +188,6 @@ async function playBullSentiment() {
 }
 
 async function autoInvestiLong(arrayPrevisioniFull) {
-
 
     playBullSentiment();
 
@@ -310,90 +315,92 @@ async function accountLongInSalita(pair, period) {
 //client.time().then(time => console.log(time));
 function sendEmails(arrayPrevisioni) {
 
-    if (arrayPrevisioni.length >= 1) {
-        //https://accounts.google.com/b/0/DisplayUnlockCaptcha
-        //https://myaccount.google.com/lesssecureapps?pli=1&rapt=AEjHL4NYr5y8RROZO7eLBzjF2f8PGfg126pf9yTndhB2KH-wTgTt78naKJmbWEKuwOr87fBT4CafM8fnOTL1OJYgv5MqVShOWQ
+    if (emails_disabled === false) {
 
-        //li metterò in MySql in futuro, se ci sarà un futuro
-        let emails = process.env.EMAIL_LIST.split(',');
+        if (arrayPrevisioni.length >= 1) {
+            //https://accounts.google.com/b/0/DisplayUnlockCaptcha
+            //https://myaccount.google.com/lesssecureapps?pli=1&rapt=AEjHL4NYr5y8RROZO7eLBzjF2f8PGfg126pf9yTndhB2KH-wTgTt78naKJmbWEKuwOr87fBT4CafM8fnOTL1OJYgv5MqVShOWQ
 
-        var transporter = nodemailer.createTransport(smtpTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
-            auth: {
-                user: process.env.EMAIL_USERNAME,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        }));
+            //li metterò in MySql in futuro, se ci sarà un futuro
+            let emails = process.env.EMAIL_LIST.split(',');
 
-
-        let html = '<h1>Previsioni:</h1>';
-        html += '<ul>';
-        arrayPrevisioni.forEach(v => {
-            //arrayPrevisioni.push({ azione: "COMPRA", simbolo: market.symbol, tp: AverageTrueRange[AverageTrueRange.length - 1] + 1.5, sl: AverageTrueRange[AverageTrueRange.length - 1] - 1.5 });
-
-            html += '<li>';
-            html += 'Azione:' + v.azione + '<br>';
-            html += 'Coppia:' + v.simbolo + '<br>';
-            html += 'Base Asset: ' + v.base_asset + '<br>'
-            html += 'Prezzo Attuale:' + v.price + '<br>';
-            html += 'Prezzo Take Profit:' + v.tp + '<br>';
-            html += 'Prezzo Stop Loss: ' + v.sl + ' <br> ';
-            //html += 'Variazione Oggi: ' + v.var_perc + '%<br>'
-            html += 'RSI: ' + v.RSI + '<br>';
-            html += '</li><br>';
-
-        });
-        html += '</ul><br>';
-
-        html += '<h3>Cosa guardare per Analisi fondamentale:</h3>'
-        html += '<ul>';
-        html += '<li>INDICATORI DI ANALISI FONDAMENTALE</li>'
-        html += '<li>Rapporto NVT (> 150 O TREND IN CRESCITA IPERCOMPRATO, < 45 O TREND DIMINUZIONE IPERVENDUTO</li>';
-        html += '<li>Rapporto MVRV (> 3.5 LONG,< 1.0 SHORT):</li>'
-        html += '<li>Modello Stock To Flow (VEDERE COLORI)</li>';
-        html += '<br>';
-        html += '<li>ALTRE COSE POSSIBILI DA GUARDARE</li>';
-        html += '<li>Indicatori on-chain: Coinmarketcap (https://coinmarketcap.com/currencies/bitcoin/onchain-analysis/)</li>';
-        html += '<li>Numero  di trades da unico trader in un certo periodo</li>';
-        html += '<li>Valore totale dei trades in un certo periodo</li>'
-        html += '<li>Indirizzi attivi</li>';
-        html += '<li>Commissioni pagate (anche ai miners)</li>';
-        html += '<li>Hash rate che dev\'essere alto</li>';
-        html += '<li>Quatità di moneta in staking</li>';
-        html += '<li>Whitepaper e punti critici del progetto</li>';
-        html += '<li>Team, incluso il loro passato nel settore, esperienza, truffe, competenze</li>';
-        html += '<li>Capire se ci sono progetti concorrenti simili ma migliori</li>';
-        html += '<li>Distribuzione iniziale dei token, per capire se è troppo centralizzato il mercato</li>';
-        html += '<li>Vedere se vengono generati tokens inutilmente</li>';
-        html += '<li>Capitalizzazione di mercato stimata</li>';
-        html += '<li>Liquidità e relativo spread bid-ask</li>';
-        html += '<li>Offerta massima, offerta in circolazione e il tasso di inflazione</li>';
-
-        html += '</ul>';
-        html += '<br>';
-        html += '<h3>E\' sempre consigliato guardare le notizie, l\'order book, le resistenze/supporti, e fare le proprie valutazioni prima di investire.</h3>'
-        html += '<h2>Se questo servizio ti piace, consiglialo a un tuo amico, e comunicaci la sua email.<br>Il servizio è esclusivo ed è accessibile solo tramite invito personale.</h2>';
-
-        emails.forEach(email => {
-            let mailOptions = {
-                from: process.env.EMAIL_FROM,
-                to: email,
-                subject: 'Previsioni di Mercato da Davide Cavallini',
-                html: html
-            }
-
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    console.log('Email Inviata: ' + info.response);
+            var transporter = nodemailer.createTransport(smtpTransport({
+                service: 'gmail',
+                host: 'smtp.gmail.com',
+                auth: {
+                    user: process.env.EMAIL_USERNAME,
+                    pass: process.env.EMAIL_PASSWORD
                 }
+            }));
+
+
+            let html = '<h1>Previsioni:</h1>';
+            html += '<ul>';
+            arrayPrevisioni.forEach(v => {
+                //arrayPrevisioni.push({ azione: "COMPRA", simbolo: market.symbol, tp: AverageTrueRange[AverageTrueRange.length - 1] + 1.5, sl: AverageTrueRange[AverageTrueRange.length - 1] - 1.5 });
+
+                html += '<li>';
+                html += 'Azione:' + v.azione + '<br>';
+                html += 'Coppia:' + v.simbolo + '<br>';
+                html += 'Base Asset: ' + v.base_asset + '<br>'
+                html += 'Prezzo Attuale:' + v.price + '<br>';
+                html += 'Prezzo Take Profit:' + v.tp + '<br>';
+                html += 'Prezzo Stop Loss: ' + v.sl + ' <br> ';
+                //html += 'Variazione Oggi: ' + v.var_perc + '%<br>'
+                html += 'RSI: ' + v.RSI + '<br>';
+                html += '</li><br>';
+
             });
-        });
+            html += '</ul><br>';
 
+            html += '<h3>Cosa guardare per Analisi fondamentale:</h3>'
+            html += '<ul>';
+            html += '<li>INDICATORI DI ANALISI FONDAMENTALE</li>'
+            html += '<li>Rapporto NVT (> 150 O TREND IN CRESCITA IPERCOMPRATO, < 45 O TREND DIMINUZIONE IPERVENDUTO</li>';
+            html += '<li>Rapporto MVRV (> 3.5 LONG,< 1.0 SHORT):</li>'
+            html += '<li>Modello Stock To Flow (VEDERE COLORI)</li>';
+            html += '<br>';
+            html += '<li>ALTRE COSE POSSIBILI DA GUARDARE</li>';
+            html += '<li>Indicatori on-chain: Coinmarketcap (https://coinmarketcap.com/currencies/bitcoin/onchain-analysis/)</li>';
+            html += '<li>Numero  di trades da unico trader in un certo periodo</li>';
+            html += '<li>Valore totale dei trades in un certo periodo</li>'
+            html += '<li>Indirizzi attivi</li>';
+            html += '<li>Commissioni pagate (anche ai miners)</li>';
+            html += '<li>Hash rate che dev\'essere alto</li>';
+            html += '<li>Quatità di moneta in staking</li>';
+            html += '<li>Whitepaper e punti critici del progetto</li>';
+            html += '<li>Team, incluso il loro passato nel settore, esperienza, truffe, competenze</li>';
+            html += '<li>Capire se ci sono progetti concorrenti simili ma migliori</li>';
+            html += '<li>Distribuzione iniziale dei token, per capire se è troppo centralizzato il mercato</li>';
+            html += '<li>Vedere se vengono generati tokens inutilmente</li>';
+            html += '<li>Capitalizzazione di mercato stimata</li>';
+            html += '<li>Liquidità e relativo spread bid-ask</li>';
+            html += '<li>Offerta massima, offerta in circolazione e il tasso di inflazione</li>';
+
+            html += '</ul>';
+            html += '<br>';
+            html += '<h3>E\' sempre consigliato guardare le notizie, l\'order book, le resistenze/supporti, e fare le proprie valutazioni prima di investire.</h3>'
+            html += '<h2>Se questo servizio ti piace, consiglialo a un tuo amico, e comunicaci la sua email.<br>Il servizio è esclusivo ed è accessibile solo tramite invito personale.</h2>';
+
+            emails.forEach(email => {
+                let mailOptions = {
+                    from: process.env.EMAIL_FROM,
+                    to: email,
+                    subject: 'Previsioni di Mercato da Davide Cavallini',
+                    html: html
+                }
+
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        console.log('Email Inviata: ' + info.response);
+                    }
+                });
+            });
+
+        }
     }
-
 }
 
 function testEmail() {
