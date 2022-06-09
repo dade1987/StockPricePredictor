@@ -181,7 +181,7 @@ async function playBullSentiment() {
     let minuti = new Date().getMinutes();
 
     if (!(ora >= 22 && ora <= 9)) {
-        if (minuti === 30) {
+        if (minuti >= 30 && minuti <= 34) {
             if (sound_disabled === false) {
                 const path = require("path");
                 const filePath = path.join(__dirname, "bull_sentiment.mp3");
