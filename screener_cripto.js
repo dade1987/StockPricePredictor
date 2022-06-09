@@ -180,17 +180,14 @@ async function playBullSentiment() {
     //solo ai minuti 30 fa il verso del toro
     let minuti = new Date().getMinutes();
 
-    if (ora >= 22 && ora <= 9) {
-        sound_disabled = true;
-    }
-
-    if (minuti === 30) {
-
-        if (sound_disabled === false) {
-            const path = require("path");
-            const filePath = path.join(__dirname, "bull_sentiment.mp3");
-            //console.log(filePath);
-            sound.play(filePath);
+    if (!(ora >= 22 && ora <= 9)) {
+        if (minuti === 30) {
+            if (sound_disabled === false) {
+                const path = require("path");
+                const filePath = path.join(__dirname, "bull_sentiment.mp3");
+                //console.log(filePath);
+                sound.play(filePath);
+            }
         }
     }
 }
