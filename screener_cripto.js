@@ -231,7 +231,8 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
-        if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
+        let stop_loss_perc = 1;
+        if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.5) {
 
             await client.order({
                 symbol: arrayPrevisioni.simbolo,
@@ -250,8 +251,8 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
                 price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2),
                 //stop loss trigger and limit
-                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
-                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
+                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), 2),
+                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), 2),
             });
         }
     };
@@ -1023,7 +1024,7 @@ async function bootstrap() {
         let condizioneVerificata;
         if (exchangeName === "binance") {
             //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
-            //ad esempio nel caso di MTL è stata esclusa perchè l'export era molto in calo
+            //ad esempio nel caso di MTL è stata esclusa perchè l'export dimetalli era molto in calo
             condizioneVerificata = /*market.symbol.slice(0, 3) !== "MTL" &&*/ market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
