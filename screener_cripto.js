@@ -228,30 +228,31 @@ async function autoInvestiLong(arrayPrevisioniFull) {
 
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
-        console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
+        //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
         console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
 
-            console.log(await client.order({
+            await client.order({
                 symbol: arrayPrevisioni.simbolo,
                 side: 'BUY',
                 type: 'MARKET',
                 quantity: maxQty,
-            }));
+            });
 
-            console.log(await client.orderOco({
+            await client.orderOco({
                 symbol: arrayPrevisioni.simbolo,
                 side: 'SELL',
                 quantity: maxQty,
                 //take profit
-                //potrei calcolarlo anche su bidprice ma per ora provo così
-                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2),
+                //si può calcolare su bidprice o lastprice
+                //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                price: roundByDecimals((symbolPrice.lastPrice / 100 * (100 + arrayPrevisioni.median)), 2),
                 //stop loss trigger and limit
                 stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
                 stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
-            }));
+            });
         }
     };
 }
