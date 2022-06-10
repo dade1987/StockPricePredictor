@@ -219,7 +219,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
 
         console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
         console.log('SYMBOL', arrayPrevisioni.simbolo, 'QTY', maxQty, 'TAKE PROFIT', arrayPrevisioni.tp.toPrecision(2), 'STOP LOSS', arrayPrevisioni.sl.toPrecision(2));
-
+        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toPrecision(2), 'STOP LOSS', (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
@@ -237,10 +237,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 quantity: maxQty,
                 //take profit
                 //potrei calcolarlo anche su bidprice ma per ora provo così
-                price: (symbolPrice.bidPrice / 100 + (100 + arrayPrevisioni.median)).toPrecision(2),
+                price: (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toPrecision(2),
                 //stop loss trigger and limit
-                stopPrice: (symbolPrice.askPrice / 100 + (100 - 1)).toPrecision(2),
-                stopLimitPrice: (symbolPrice.askPrice / 100 + (100 - 1)).toPrecision(2),
+                stopPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2),
+                stopLimitPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2),
             }));
         }
     };
