@@ -41,6 +41,10 @@ function roundByLotSize(value, step) {
     return Math.round(value * inv) / inv;
 }
 
+function roundByDecimals(value, decimals) {
+    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+}
+
 async function autoInvestiShortKucoin(arrayPrevisioniFull) {
 
     for (let arrayPrevisioni of arrayPrevisioniFull) {
@@ -54,7 +58,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestBid);
         console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
@@ -70,7 +74,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.tp.toFixed(2),
+                price: roundByDecimals(arrayPrevisioni.tp, 2),
                 size: maxQty
             });
 
@@ -78,7 +82,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.sl.toFixed(2),
+                price: roundByDecimals(arrayPrevisioni.sl, 2),
                 size: maxQty,
                 tradeType: 'MARGIN_TRADE'
             });
@@ -99,7 +103,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestAsk);
         console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
@@ -115,7 +119,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.tp.toFixed(2),
+                price: roundByDecimals(arrayPrevisioni.tp, 2),
                 size: maxQty
             });
 
@@ -123,7 +127,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.sl.toFixed(2),
+                price: roundByDecimals(arrayPrevisioni.sl, 2),
                 size: maxQty,
                 tradeType: 'MARGIN_TRADE'
             });
@@ -144,7 +148,7 @@ async function autoInvestiShort(arrayPrevisioniFull) {
         console.log("Symbol Price", symbolPrice.bidPrice, symbolPrice);
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.bidPrice);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         console.log("Max Qty", maxQty);
 
@@ -163,31 +167,38 @@ async function autoInvestiShort(arrayPrevisioniFull) {
                 side: 'SELL',
                 quantity: maxQty,
                 //take profit
-                price: arrayPrevisioni.tp.toFixed(2),
+                price: roundByDecimals(arrayPrevisioni.tp, 2),
                 //stop loss trigger and limit
-                stopPrice: arrayPrevisioni.sl.toFixed(2),
-                stopLimitPrice: arrayPrevisioni.sl.toFixed(2),
+                stopPrice: roundByDecimals(arrayPrevisioni.sl, 2),
+                stopLimitPrice: roundByDecimals(arrayPrevisioni.sl, 2),
             });
         }
     };
 
 }
 
-async function playBullSentiment() {
+async function playBullSentiment(bypass) {
     //di notte non deve riprodurre suoni sennò fai un infarto
     let ora = new Date().getHours();
 
     //solo ai minuti 30 fa il verso del toro
     let minuti = new Date().getMinutes();
 
-    if (!(ora >= 22 && ora <= 9)) {
+    if (bypass === true) {
+        if (sound_disabled === false) {
+            const path = require("path");
+            const filePath = path.join(__dirname, "bull_sentiment.mp3");
+            //console.log(filePath);
+            sound.play(filePath);
+        }
+    } else if ((ora >= 22 && ora <= 9)) {
         if (minuti >= 30 && minuti <= 34) {
-            if (sound_disabled === false) {
-                const path = require("path");
-                const filePath = path.join(__dirname, "bull_sentiment.mp3");
-                //console.log(filePath);
-                sound.play(filePath);
-            }
+            //if (sound_disabled === false) {
+            const path = require("path");
+            const filePath = path.join(__dirname, "bull_sentiment.mp3");
+            //console.log(filePath);
+            sound.play(filePath);
+            //}
         }
     }
 }
@@ -215,11 +226,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
         //console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('SYMBOL', arrayPrevisioni.simbolo, 'QTY', maxQty, 'TAKE PROFIT', arrayPrevisioni.tp.toFixed(2), 'STOP LOSS', arrayPrevisioni.sl.toFixed(2));
-        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toFixed(2), 'STOP LOSS', (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2));
+        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
@@ -237,10 +247,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 quantity: maxQty,
                 //take profit
                 //potrei calcolarlo anche su bidprice ma per ora provo così
-                price: (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toFixed(2),
+                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2),
                 //stop loss trigger and limit
-                stopPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2),
-                stopLimitPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2),
+                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
+                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
             }));
         }
     };
@@ -1208,6 +1218,8 @@ console.log(arrayMigliorePrevisione.azione);*/
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
 playBullSentiment()
+
+//console.log(roundByDecimals((7.62000000 / 100 * (100 + 0.48)), 2));
 
 let timeout = setTimeout(function() {
     bootstrap();
