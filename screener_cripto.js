@@ -54,7 +54,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestBid);
         console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
 
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
@@ -70,7 +70,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.tp.toPrecision(2),
+                price: arrayPrevisioni.tp.toFixed(2),
                 size: maxQty
             });
 
@@ -78,7 +78,7 @@ async function autoInvestiShortKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.sl.toPrecision(2),
+                price: arrayPrevisioni.sl.toFixed(2),
                 size: maxQty,
                 tradeType: 'MARGIN_TRADE'
             });
@@ -99,7 +99,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.data.bestAsk);
         console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
 
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
@@ -115,7 +115,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.tp.toPrecision(2),
+                price: arrayPrevisioni.tp.toFixed(2),
                 size: maxQty
             });
 
@@ -123,7 +123,7 @@ async function autoInvestiLongKucoin(arrayPrevisioniFull) {
                 symbol: arrayPrevisioni.simbolo,
                 side: 'sell',
                 type: 'limit',
-                price: arrayPrevisioni.sl.toPrecision(2),
+                price: arrayPrevisioni.sl.toFixed(2),
                 size: maxQty,
                 tradeType: 'MARGIN_TRADE'
             });
@@ -144,7 +144,7 @@ async function autoInvestiShort(arrayPrevisioniFull) {
         console.log("Symbol Price", symbolPrice.bidPrice, symbolPrice);
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.bidPrice);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
 
         console.log("Max Qty", maxQty);
 
@@ -163,10 +163,10 @@ async function autoInvestiShort(arrayPrevisioniFull) {
                 side: 'SELL',
                 quantity: maxQty,
                 //take profit
-                price: arrayPrevisioni.tp.toPrecision(2),
+                price: arrayPrevisioni.tp.toFixed(2),
                 //stop loss trigger and limit
-                stopPrice: arrayPrevisioni.sl.toPrecision(2),
-                stopLimitPrice: arrayPrevisioni.sl.toPrecision(2),
+                stopPrice: arrayPrevisioni.sl.toFixed(2),
+                stopLimitPrice: arrayPrevisioni.sl.toFixed(2),
             });
         }
     };
@@ -215,11 +215,11 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
         //console.log("Max Qty", maxQty);
 
-        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toPrecision(arrayPrevisioni.baseAssetPrecision);
+        maxQty = roundByLotSize(maxQty, arrayPrevisioni.lotSize).toFixed(arrayPrevisioni.baseAssetPrecision);
 
         console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('SYMBOL', arrayPrevisioni.simbolo, 'QTY', maxQty, 'TAKE PROFIT', arrayPrevisioni.tp.toPrecision(2), 'STOP LOSS', arrayPrevisioni.sl.toPrecision(2));
-        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toPrecision(2), 'STOP LOSS', (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2));
+        console.log('SYMBOL', arrayPrevisioni.simbolo, 'QTY', maxQty, 'TAKE PROFIT', arrayPrevisioni.tp.toFixed(2), 'STOP LOSS', arrayPrevisioni.sl.toFixed(2));
+        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toFixed(2), 'STOP LOSS', (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         if (UsdtAmount >= 25 && arrayPrevisioni.tp > symbolPrice.askPrice && arrayPrevisioni.sl < symbolPrice.askPrice) {
@@ -237,10 +237,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 quantity: maxQty,
                 //take profit
                 //potrei calcolarlo anche su bidprice ma per ora provo così
-                price: (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toPrecision(2),
+                price: (symbolPrice.askPrice / 100 + (100 + arrayPrevisioni.median)).toFixed(2),
                 //stop loss trigger and limit
-                stopPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2),
-                stopLimitPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toPrecision(2),
+                stopPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2),
+                stopLimitPrice: (symbolPrice.bidPrice / 100 + (100 - 1)).toFixed(2),
             }));
         }
     };
