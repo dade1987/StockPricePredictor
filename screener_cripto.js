@@ -192,14 +192,14 @@ async function playBullSentiment(bypass) {
             sound.play(filePath);
         }
     } else if ((ora >= 22 && ora <= 9)) {
-        if (minuti >= 30 && minuti <= 34) {
-            //if (sound_disabled === false) {
+        //if (minuti >= 30 && minuti <= 34) {
+        if (sound_disabled === false) {
             const path = require("path");
             const filePath = path.join(__dirname, "bull_sentiment.mp3");
             //console.log(filePath);
             sound.play(filePath);
-            //}
         }
+        //}
     }
 }
 
@@ -1217,7 +1217,7 @@ console.log(arrayMigliorePrevisione.azione);*/
 
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
-playBullSentiment()
+playBullSentiment(true)
 
 //console.log(roundByDecimals((7.62000000 / 100 * (100 + 0.48)), 2));
 
