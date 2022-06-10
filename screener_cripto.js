@@ -178,6 +178,9 @@ async function autoInvestiShort(arrayPrevisioniFull) {
 }
 
 async function playBullSentiment(bypass) {
+    const path = require("path");
+    const filePath = path.join(__dirname, "bull_sentiment.mp3");
+
     //di notte non deve riprodurre suoni sennò fai un infarto
     let ora = new Date().getHours();
 
@@ -186,16 +189,12 @@ async function playBullSentiment(bypass) {
 
     if (bypass === true) {
         if (sound_disabled === false) {
-            const path = require("path");
-            const filePath = path.join(__dirname, "bull_sentiment.mp3");
             //console.log(filePath);
             sound.play(filePath);
         }
-    } else if ((ora >= 22 && ora <= 9)) {
+    } else if (ora < 22 && ora > 9) {
         //if (minuti >= 30 && minuti <= 34) {
         if (sound_disabled === false) {
-            const path = require("path");
-            const filePath = path.join(__dirname, "bull_sentiment.mp3");
             //console.log(filePath);
             sound.play(filePath);
         }
@@ -246,9 +245,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 side: 'SELL',
                 quantity: maxQty,
                 //take profit
-                //si può calcolare su bidprice o lastprice
+                //si può calcolare su askprice o lastprice
+                //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
                 //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                price: roundByDecimals((symbolPrice.lastPrice / 100 * (100 + arrayPrevisioni.median)), 2),
+                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2),
                 //stop loss trigger and limit
                 stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
                 stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2),
@@ -1022,7 +1022,9 @@ async function bootstrap() {
 
         let condizioneVerificata;
         if (exchangeName === "binance") {
-            condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+            //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
+            //ad esempio nel caso di MTL è stata esclusa perchè l'export era molto in calo
+            condizioneVerificata = /*market.symbol.slice(0, 3) !== "MTL" &&*/ market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
         }
