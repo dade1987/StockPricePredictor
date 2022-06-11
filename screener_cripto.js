@@ -238,14 +238,14 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals));
+        console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
         //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
         if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.1) {
 
-            console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals));
+            console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
             playBullSentiment();
 
             await client.order({
@@ -1039,7 +1039,8 @@ async function bootstrap() {
         if (exchangeName === "binance") {
             //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
             //ad esempio nel caso di MTL è stata esclusa perchè l'export dimetalli era molto in calo
-            condizioneVerificata = /*market.symbol.slice(0, 3) !== "MTL" &&*/ market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+            //escludo i BNB perchè mi servono per pagare le fees (commissioni)
+            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
         }
@@ -1059,7 +1060,7 @@ async function bootstrap() {
                 rawPrices = await client.candles({ symbol: market.symbol, interval: '30m', limit: 210 });
                 askClosePrices = rawPrices.map((v) => { return Number(v.close) });
                 lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
-                tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'BTSUSDT')[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
+                tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === market.symbol)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
                 tickSizeDecimals = Number(tickSize).countDecimals();
             } else if (exchangeName === "kucoin") {
                 //da 1 mese fa
@@ -1162,7 +1163,7 @@ async function bootstrap() {
 
                     //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                     arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                    arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, tickSizeDecimals: tickSizeDecimals });
+                    arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, tickSize: tickSize, tickSizeDecimals: tickSizeDecimals });
                     //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
                     await autoInvestiLong(arrayInvestimento);
                     //}
@@ -1174,7 +1175,7 @@ async function bootstrap() {
                     let stopLoss = 1;
                     let arrayInvestimento = [];
                     arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                    arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, tickSizeDecimals: tickSizeDecimals });
+                    arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, tickSize: tickSize, tickSizeDecimals: tickSizeDecimals });
 
 
                 }
@@ -1237,15 +1238,17 @@ if (arrayMigliorePrevisione.length > 0) {
 }
 
 console.log(arrayMigliorePrevisione.azione);*/
-
 /*async function test() {
     //console.log(await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'BTCUSDT')[0].filters));
-    let tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'BTSUSDT')[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
+    let tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'LINKUSDT')[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
     let tickSizeDecimals = Number(tickSize).countDecimals();
-    console.log(tickSizeDecimals);
+
+    console.log(roundByDecimals((7.66000000 / 100 * (100 + 0.8536585365853694)), tickSizeDecimals));
+
     process.exit();
 }
 test();*/
+
 
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 //bootstrap();
