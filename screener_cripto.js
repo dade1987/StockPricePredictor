@@ -242,7 +242,8 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
-        if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.5) {
+        //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
+        if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.1) {
 
             console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals));
 

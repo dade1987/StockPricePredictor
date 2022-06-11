@@ -13,4 +13,4 @@ C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js
 
 Error: The relationship of the prices for the orders is not correct.
 
-DEVE USARE IL QUOTE ASSET PRECISION PER QUESTO CALCOLO
+DEVE USARE NON IL QUOTE ASSET PRECISION, MA PROPRIO LA TICK SIZE, PER QUESTO CALCOLO, COME FAI SULLA QTY
