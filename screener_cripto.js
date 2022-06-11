@@ -57,9 +57,28 @@ Number.prototype.countDecimals = function() {
 }
 
 String.prototype.countDecimals = function() {
+    //calcola decimali nella tickSize
     try {
-        if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
-        return this.split(".")[1].length || 0;
+        //console.log("\n");
+
+        let splittedNum = this.split(".");
+        //console.log(splittedNum);
+        if (splittedNum[1] !== undefined) {
+            let text = splittedNum[1];
+            let length = text.length;
+            for (let i = length - 1; i >= 0; i--) {
+                console.log(i, text[i]);
+                if (text[i] === "0") {
+                    text = text.slice(0, i);
+                } else {
+                    break;
+                }
+            }
+            return text.length;
+        } else {
+            return 0;
+        }
+
     } catch (exception) {
         console.log("Exception", exception, "This", this);
     }
@@ -1252,21 +1271,28 @@ if (arrayMigliorePrevisione.length > 0) {
 }
 
 console.log(arrayMigliorePrevisione.azione);*/
-/*async function test() {
+/*async function testTickSize() {
     //console.log(await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'BTCUSDT')[0].filters));
     let tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === 'LINKUSDT')[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
     let tickSizeDecimals = Number(tickSize).countDecimals();
 
-    console.log(roundByDecimals((7.66000000 / 100 * (100 + 0.8536585365853694)), tickSizeDecimals));
+    //console.log(roundByDecimals((7.66000000 / 100 * (100 + 0.8536585365853694)), tickSizeDecimals));
 
     console.log(Number(10).countDecimals());
 
     //console.log((0.00000001).countDecimals());
+
     console.log("0.00000001".countDecimals());
+
+    console.log("0".countDecimals());
+
+    console.log("0.0".countDecimals());
+
+    console.log("0.0000000100".countDecimals());
 
     process.exit();
 }
-test();*/
+testTickSize();*/
 
 
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
