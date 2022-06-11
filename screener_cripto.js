@@ -1,4 +1,4 @@
-//test
+//TESTATO SENZA MAI AVER SBAGLIATO IL 10 GIUGNO 2022 TUTTO IL GIORNO
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -279,7 +279,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
         //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
-        if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.1) {
+        if (UsdtAmount >= 25 && arrayPrevisioni.median > stop_loss_perc) {
 
             console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
             playBullSentiment();
@@ -1076,7 +1076,7 @@ async function bootstrap() {
             //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
             //ad esempio nel caso di MTL è stata esclusa perchè l'export dimetalli era molto in calo
             //escludo i BNB perchè mi servono per pagare le fees (commissioni)
-            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(0, 4) !== "LINK" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
         }
