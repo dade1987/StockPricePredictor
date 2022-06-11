@@ -45,6 +45,9 @@ function roundByDecimals(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
+/*
+DA RISCRIVERE BENE (AD ESEMPIO I CALCOLI CON QUOTE ASSET PRECISION)
+
 async function autoInvestiShortKucoin(arrayPrevisioniFull) {
 
     for (let arrayPrevisioni of arrayPrevisioniFull) {
@@ -175,7 +178,7 @@ async function autoInvestiShort(arrayPrevisioniFull) {
         }
     };
 
-}
+}*/
 
 async function playBullSentiment(bypass) {
     const path = require("path");
@@ -228,7 +231,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), 2));
+        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.quoteAssetPrecision), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.quoteAssetPrecision));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
@@ -249,10 +252,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 //si può calcolare su askprice o lastprice
                 //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
                 //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), 2),
+                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.quoteAssetPrecision),
                 //stop loss trigger and limit
-                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), 2),
-                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), 2),
+                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.quoteAssetPrecision),
+                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.quoteAssetPrecision),
             });
         }
     };
@@ -1142,7 +1145,7 @@ async function bootstrap() {
                     let arrayInvestimento = [];
                     //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
                     arrayPrevisioni.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                    arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
+                    arrayInvestimento.push({ azione: "LONG", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, quoteAssetPrecision: market.quoteAssetPrecision });
                     //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
                     await autoInvestiLong(arrayInvestimento);
                     //}
@@ -1154,7 +1157,7 @@ async function bootstrap() {
                     let stopLoss = 1;
                     let arrayInvestimento = [];
                     arrayPrevisioni.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize });
-                    arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
+                    arrayInvestimento.push({ azione: "SHORT", simbolo: market.symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: market.baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: market.baseAssetPrecision, lotSize: lotSize, median: medianPercDifference, quoteAssetPrecision: market.quoteAssetPrecision });
 
 
                 }

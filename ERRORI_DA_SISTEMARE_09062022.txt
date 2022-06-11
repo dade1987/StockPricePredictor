@@ -2,3 +2,15 @@ Error: The relationship of the prices for the orders is not correct.
 
 Illegal characters found in parameter 'quantity'; legal range is '^([0-9]{1,20})(\.[0-9]{1,20})?$
 
+
+
+DATA 10/6/2022, 18:30:01
+AZIONE LONG LTOUSDT PREZZO 0.09740000 SIMBOLO LTOUSDT
+APERTURA ORDINE SIMBOLO LTOUSDT QUANTITA 879 TAKE PROFIT 0.1 STOP LOSS 0.1
+C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100
+        error = new Error(json.msg || "".concat(res.status, " ").concat(res.statusText));
+                ^
+
+Error: The relationship of the prices for the orders is not correct.
+
+DEVE USARE IL QUOTE ASSET PRECISION PER QUESTO CALCOLO
