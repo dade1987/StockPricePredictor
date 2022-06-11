@@ -279,6 +279,8 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
         //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
+        //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
+        //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
         if (UsdtAmount >= 25 && arrayPrevisioni.median > stop_loss_perc) {
 
             console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
