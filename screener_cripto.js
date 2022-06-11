@@ -48,8 +48,21 @@ function roundByDecimals(value, decimals) {
 
 //per contare i decimali della tick size
 Number.prototype.countDecimals = function() {
-    if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
-    return this.toString().split(".")[1].length || 0;
+    try {
+        if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
+        return this.toString().split(".")[1].length || 0;
+    } catch (exception) {
+        console.log("Exception", exception, "This", this);
+    }
+}
+
+String.prototype.countDecimals = function() {
+    try {
+        if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
+        return this.split(".")[1].length || 0;
+    } catch (exception) {
+        console.log("Exception", exception, "This", this);
+    }
 }
 
 /*
@@ -1040,7 +1053,7 @@ async function bootstrap() {
             //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
             //ad esempio nel caso di MTL è stata esclusa perchè l'export dimetalli era molto in calo
             //escludo i BNB perchè mi servono per pagare le fees (commissioni)
-            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(0, 4) !== "LINK" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
         }
@@ -1061,7 +1074,8 @@ async function bootstrap() {
                 askClosePrices = rawPrices.map((v) => { return Number(v.close) });
                 lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize;
                 tickSize = await client.exchangeInfo().then(e => e.symbols.filter(v => v.symbol === market.symbol)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize);
-                tickSizeDecimals = Number(tickSize).countDecimals();
+                //anche se è già una stringa è per capire
+                tickSizeDecimals = tickSize.toString().countDecimals();
             } else if (exchangeName === "kucoin") {
                 //da 1 mese fa
                 var d = new Date();
@@ -1244,6 +1258,11 @@ console.log(arrayMigliorePrevisione.azione);*/
     let tickSizeDecimals = Number(tickSize).countDecimals();
 
     console.log(roundByDecimals((7.66000000 / 100 * (100 + 0.8536585365853694)), tickSizeDecimals));
+
+    console.log(Number(10).countDecimals());
+
+    //console.log((0.00000001).countDecimals());
+    console.log("0.00000001".countDecimals());
 
     process.exit();
 }

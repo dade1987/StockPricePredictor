@@ -2,7 +2,7 @@ Error: The relationship of the prices for the orders is not correct.
 
 Illegal characters found in parameter 'quantity'; legal range is '^([0-9]{1,20})(\.[0-9]{1,20})?$
 
-
+[RISOLTO] USARE SIZE
 
 DATA 10/6/2022, 18:30:01
 AZIONE LONG LTOUSDT PREZZO 0.09740000 SIMBOLO LTOUSDT
@@ -13,10 +13,27 @@ C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js
 
 Error: The relationship of the prices for the orders is not correct.
 
-DEVE USARE NON IL QUOTE ASSET PRECISION, MA PROPRIO LA TICK SIZE, PER QUESTO CALCOLO, COME FAI SULLA QTY
+[RISOLTO] DEVE USARE NON IL QUOTE ASSET PRECISION, MA PROPRIO LA TICK SIZE, PER QUESTO CALCOLO, COME FAI SULLA QTY
 
 
 DATA 11/6/2022, 12:55:01
 AZIONE LONG LINKUSDT PREZZO 7.66000000 SIMBOLO LINKUSDT
 VALUTAZIONE ORDINE SALDO USDT 85.06215435749999 SIMBOLO LINKUSDT QUANTITA 11.1 MEDIANA 0.8536585365853694 TAKE PROFIT 7.72539 STOP LOSS 7.5735 TICK SIZE 0.00001000 TICK SIZE DECIMALS 5
 APERTURA ORDINE SIMBOLO LINKUSDT QUANTITA 11.1 MEDIANA 0.8536585365853694 TAKE PROFIT 7.72539 STOP LOSS 7.5735 TICK SIZE 0.00001000 TICK SIZE DECIMALS 5
+[RISOLTO]
+
+DATA 11/6/2022, 13:10:01
+AZIONE LONG LINKUSDT PREZZO 7.66000000 SIMBOLO LINKUSDT
+VALUTAZIONE ORDINE SALDO USDT 84.11310435749999 SIMBOLO LINKUSDT QUANTITA 10.97 MEDIANA 0.8536585365853694 TAKE PROFIT 7.74 STOP LOSS 7.58 TICK SIZE 0.01000000 TICK SIZE DECIMALS 2
+APERTURA ORDINE SIMBOLO LINKUSDT QUANTITA 10.97 MEDIANA 0.8536585365853694 TAKE PROFIT 7.74 STOP LOSS 7.58 TICK SIZE 0.01000000 TICK SIZE DECIMALS 2
+C:\var\www\StockPricePredictor\screener_cripto.js:52
+    return this.toString().split(".")[1].length || 0;
+                                        ^
+
+TypeError: Cannot read properties of undefined (reading 'length')
+    at Number.countDecimals (C:\var\www\StockPricePredictor\screener_cripto.js:52:41)
+    at bootstrap (C:\var\www\StockPricePredictor\screener_cripto.js:1064:53)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+
+[RISOLTO] number=ie-7 bisogna evitare la trasformazione di stringa in Number() con notazione scientifica
+
