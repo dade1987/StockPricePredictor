@@ -262,13 +262,13 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
         //meglio differenziare perchè almeno se perdi su una magari su un altra sale
         //quindi meglio settare un importo che sia 1/3 del totale che si possiede
-        let UsdtAmount = 25;
-        //però eventualmente c'è anche questo calcolo automatico
-        //let UsdtAmount =accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+
+
+        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
         //console.log("USDT Amount", UsdtAmount);
         let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
         //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
-        let maxQty = Number(UsdtAmount) / Number(symbolPrice.askPrice);
+        let maxQty = 25 / Number(symbolPrice.askPrice);
         //console.log("Max Qty", maxQty);
 
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
