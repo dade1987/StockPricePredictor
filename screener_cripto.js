@@ -67,7 +67,7 @@ String.prototype.countDecimals = function() {
             let text = splittedNum[1];
             let length = text.length;
             for (let i = length - 1; i >= 0; i--) {
-                console.log(i, text[i]);
+                //console.log(i, text[i]);
                 if (text[i] === "0") {
                     text = text.slice(0, i);
                 } else {
@@ -260,7 +260,11 @@ async function autoInvestiLong(arrayPrevisioniFull) {
     for (let arrayPrevisioni of arrayPrevisioniFull) {
         let accountInfo = await client.accountInfo();
         //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+        //meglio differenziare perchè almeno se perdi su una magari su un altra sale
+        //quindi meglio settare un importo che sia 1/3 del totale che si possiede
+        let UsdtAmount = 25;
+        //però eventualmente c'è anche questo calcolo automatico
+        //let UsdtAmount =accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
         //console.log("USDT Amount", UsdtAmount);
         let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
         //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
