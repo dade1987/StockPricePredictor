@@ -214,7 +214,7 @@ async function playBullSentiment(bypass) {
 
 async function autoInvestiLong(arrayPrevisioniFull) {
 
-    playBullSentiment();
+
 
     //prima deve chiudere tutti i trade in corso
     //per ora lasciamo stare questa parte tanto comunque c'è lo stop loss
@@ -246,6 +246,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.1) {
 
             console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals));
+            playBullSentiment();
 
             await client.order({
                 symbol: arrayPrevisioni.simbolo,
