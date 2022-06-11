@@ -231,11 +231,13 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
         //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.quoteAssetPrecision), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.quoteAssetPrecision));
+        //console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.quoteAssetPrecision), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.quoteAssetPrecision));
         //L'ask price è il prezzo minore a cui ti vendono la moneta
         //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
         let stop_loss_perc = 1;
         if (UsdtAmount >= 25 && arrayPrevisioni.median >= 0.5) {
+
+            console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.quoteAssetPrecision), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.quoteAssetPrecision));
 
             await client.order({
                 symbol: arrayPrevisioni.simbolo,
