@@ -37,3 +37,5 @@ TypeError: Cannot read properties of undefined (reading 'length')
 
 [RISOLTO] number=ie-7 bisogna evitare la trasformazione di stringa in Number() con notazione scientifica
 
+ERRORE. SE APRI UN OCO NON NE PUOI APRIRE SOPRA UN ALTRO Immagine 2022-06-11 162921.png
+

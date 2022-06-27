@@ -246,8 +246,7 @@ async function playBullSentiment(bypass) {
 
 async function autoInvestiLong(arrayPrevisioniFull) {
 
-    //BISOGNA CORREGGERE
-    //SE CI SONO GIA' ORDINI OCO APERTI SU UN SIMBOLO NON DEVE CREARNE SOPRA
+
 
     //prima deve chiudere tutti i trade in corso
     //per ora lasciamo stare questa parte tanto comunque c'è lo stop loss
@@ -269,7 +268,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //console.log("USDT Amount", UsdtAmount);
         let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
         //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
-        let maxQty = UsdtAmount / Number(symbolPrice.askPrice);
+        let maxQty = 25 / Number(symbolPrice.askPrice);
         //console.log("Max Qty", maxQty);
 
         maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
@@ -283,38 +282,31 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
         //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
         //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
-        if (UsdtAmount >= 25 && arrayPrevisioni.median > (stop_loss_perc / 2)) {
+        if (UsdtAmount >= 25 && arrayPrevisioni.median > stop_loss_perc) {
 
-            let openOrders = client.openOrders({ symbol: arrayPrevisioni.simbolo });
+            console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
+            playBullSentiment();
 
-            console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders);
+            await client.order({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'BUY',
+                type: 'MARKET',
+                quantity: maxQty,
+            });
 
-            if (openOrders.length === 0) {
-
-                console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
-                playBullSentiment();
-
-                await client.order({
-                    symbol: arrayPrevisioni.simbolo,
-                    side: 'BUY',
-                    type: 'MARKET',
-                    quantity: maxQty,
-                });
-
-                await client.orderOco({
-                    symbol: arrayPrevisioni.simbolo,
-                    side: 'SELL',
-                    quantity: maxQty,
-                    //take profit
-                    //si può calcolare su askprice o lastprice
-                    //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-                    //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                    price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
-                    //stop loss trigger and limit
-                    stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                    stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                });
-            }
+            await client.orderOco({
+                symbol: arrayPrevisioni.simbolo,
+                side: 'SELL',
+                quantity: maxQty,
+                //take profit
+                //si può calcolare su askprice o lastprice
+                //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+                //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
+                //stop loss trigger and limit
+                stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
+                stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
+            });
         }
     };
 }
@@ -1123,7 +1115,7 @@ async function bootstrap() {
             }
 
 
-            console.log("\nSIMBOLO", market.symbol);
+            /* console.log("\nSIMBOLO", market.symbol);*/
 
             /*console.log("ASSET SOTTOSTANTE", market.baseAsset);*/
 
