@@ -18,10 +18,17 @@ const Binance = require('binance-api-node').default
 const Kucoin = require('kucoin-node-api');
 const { raw } = require('express');
 
-const client = Binance({
-    apiKey: process.env.BINANCE_SPOT_KEY,
-    apiSecret: process.env.BINANCE_SPOT_SECRET
+let clients = [];
+process.env.BINANCE_SPOT_KEY.split(",").forEach((v, i) => {
+    clients.push(Binance({
+        apiKey: process.env.BINANCE_SPOT_KEY.split(",")[i],
+        apiSecret: process.env.BINANCE_SPOT_SECRET.split(",")[i]
+    }));
 });
+
+//client principale
+const client = clients[0];
+
 
 const kucoinConfig = {
     apiKey: process.env.KUCOIN_KEY,
@@ -258,65 +265,70 @@ async function autoInvestiLong(arrayPrevisioniFull) {
         quantity: '100',
     });*/
 
-    for (let arrayPrevisioni of arrayPrevisioniFull) {
-        let accountInfo = await client.accountInfo();
-        //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-        //meglio differenziare perchè almeno se perdi su una magari su un altra sale
-        //quindi meglio settare un importo che sia 1/3 del totale che si possiede
+    for (let single_client of clients) {
+
+        for (let arrayPrevisioni of arrayPrevisioniFull) {
+            let accountInfo = await single_client.accountInfo();
+            //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+            //meglio differenziare perchè almeno se perdi su una magari su un altra sale
+            //quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
 
-        let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
-        //console.log("USDT Amount", UsdtAmount);
-        let symbolPrice = await client.dailyStats({ symbol: arrayPrevisioni.simbolo });
-        //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
-        let maxQty = UsdtAmount / Number(symbolPrice.askPrice);
-        //console.log("Max Qty", maxQty);
+            let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+            //console.log("USDT Amount", UsdtAmount);
+            let symbolPrice = await single_client.dailyStats({ symbol: arrayPrevisioni.simbolo });
+            //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
+            let maxQty = UsdtAmount / Number(symbolPrice.askPrice);
+            //console.log("Max Qty", maxQty);
 
-        maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
+            maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
-        //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-        console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
-        //L'ask price è il prezzo minore a cui ti vendono la moneta
-        //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
-        let stop_loss_perc = 1;
-        //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
-        //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
-        //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
-        //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
-        if (UsdtAmount >= 25 && arrayPrevisioni.median > (stop_loss_perc / 2)) {
+            //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
+            console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
+            //L'ask price è il prezzo minore a cui ti vendono la moneta
+            //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+            let stop_loss_perc = 1;
+            //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
+            //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
+            //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
+            //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
+            if (UsdtAmount >= 25 && arrayPrevisioni.median >= (stop_loss_perc / 2)) {
 
-            let openOrders = client.openOrders({ symbol: arrayPrevisioni.simbolo });
+                let openOrders = single_client.openOrders({ symbol: arrayPrevisioni.simbolo });
 
-            console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders);
+                console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders);
 
-            if (openOrders.length === 0) {
+                if (openOrders.length === 0) {
 
-                console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
-                playBullSentiment();
+                    console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
+                    playBullSentiment();
 
-                await client.order({
-                    symbol: arrayPrevisioni.simbolo,
-                    side: 'BUY',
-                    type: 'MARKET',
-                    quantity: maxQty,
-                });
+                    await single_client.order({
+                        symbol: arrayPrevisioni.simbolo,
+                        side: 'BUY',
+                        type: 'MARKET',
+                        quantity: maxQty,
+                    });
 
-                await client.orderOco({
-                    symbol: arrayPrevisioni.simbolo,
-                    side: 'SELL',
-                    quantity: maxQty,
-                    //take profit
-                    //si può calcolare su askprice o lastprice
-                    //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-                    //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                    price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
-                    //stop loss trigger and limit
-                    stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                    stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                });
+                    await single_client.orderOco({
+                        symbol: arrayPrevisioni.simbolo,
+                        side: 'SELL',
+                        quantity: maxQty,
+                        //take profit
+                        //si può calcolare su askprice o lastprice
+                        //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+                        //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                        price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
+                        //stop loss trigger and limit
+                        stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
+                        stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
+                    });
+                }
             }
-        }
+        };
+
     };
+
 }
 //per avviare
 //NODE_TLS_REJECT_UNAUTHORIZED='0' node screener_cripto.js
@@ -1070,15 +1082,21 @@ async function bootstrap() {
 
     let info;
 
+    let symbols_whitelist = [];
+
     if (exchangeName === "binance") {
+        //https://www.binance.com/en/markets/spot-USDT top volume and > 50 MILLIONS MARKET CAP AND INCREMENT 24 HOURS > 1 E < 5
+        symbols_whitelist = ['AUCTIONUSDT', 'UTKUSDT', 'XEMUSDT', 'BTCSTUSDT', 'PLAUSDT', 'CKBUSDT', 'UMAUSDT', 'SCUSDT', 'ELFUSDT', 'TUSDT'];
         info = await client.exchangeInfo();
         symbols = info.symbols;
     } else if (exchangeName === "kucoin") {
+        symbols_whitelist = [];
         info = await Kucoin.getSymbols();
         symbols = info.data;
     }
 
-    //console.log(symbols);
+    //console.log(info);
+    //process.exit();
 
     for (let market of symbols) {
 
@@ -1087,7 +1105,7 @@ async function bootstrap() {
             //inserire qui le coin da escludere (magari per notizie poco promettenti ecc)
             //ad esempio nel caso di MTL è stata esclusa perchè l'export dimetalli era molto in calo
             //escludo i BNB perchè mi servono per pagare le fees (commissioni)
-            condizioneVerificata = market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
+            condizioneVerificata = /*symbols_whitelist.indexOf(market.symbol) !== -1 &&*/ market.symbol.slice(0, 3) !== "BNB" && market.symbol.slice(-4) === "USDT" && market.status === "TRADING" && market.isSpotTradingAllowed === true;
         } else if (exchangeName === "kucoin") {
             condizioneVerificata = market.symbol.slice(-4) === "USDT" && market.enableTrading === true && market.isMarginEnabled === true;
         }
@@ -1256,9 +1274,12 @@ async function bootstrap() {
 const roundTo = roundTo => x => Math.round(x / roundTo) * roundTo;
 const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo;
 const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5);
+const roundUpTo10Minutes = roundUpTo(1000 * 60 * 10);
 const roundUpTo30Minutes = roundUpTo(1000 * 60 * 30);
 //let next_minute_date = roundUpTo30Minutes(new Date()) + 1000;
-let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+//let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+let next_minute_date = roundUpTo10Minutes(new Date()) + 1000;
+
 
 let current_date = Date.now();
 let wait_fist_time = next_minute_date - current_date;
@@ -1320,5 +1341,5 @@ let timeout = setTimeout(function() {
     bootstrap();
     interval = setInterval(function() {
         bootstrap();
-    }, /*1800000*/ 300000);
+    }, /*1800000*/ /*300000*/ 600000);
 }, wait_fist_time);
