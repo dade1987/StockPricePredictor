@@ -310,21 +310,21 @@ async function autoInvestiLong(arrayPrevisioniFull) {
 
                 let openOrders = await single_client.openOrders({ symbol: arrayPrevisioni.simbolo });
 
-                console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders);
+                console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders, openOrders.length);
 
                 if (openOrders.length === 0) {
 
                     console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
                     playBullSentiment();
 
-                    await single_client.order({
+                    console.log(await single_client.order({
                         symbol: arrayPrevisioni.simbolo,
                         side: 'BUY',
                         type: 'MARKET',
                         quantity: maxQty,
-                    });
+                    }));
 
-                    await single_client.orderOco({
+                    console.log(await single_client.orderOco({
                         symbol: arrayPrevisioni.simbolo,
                         side: 'SELL',
                         quantity: maxQty,
@@ -336,7 +336,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         //stop loss trigger and limit
                         stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
                         stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                    });
+                    }));
                 }
             }
         };
@@ -1154,8 +1154,8 @@ async function bootstrap() {
                 //DA AGGIUNGERE tickSizeDecimals
             }
 
-
-            console.log("\nSIMBOLO", market.symbol);
+            //tolto. serve solo per test, altrimenti non si capisce niente
+            //console.log("\nSIMBOLO", market.symbol);
 
             /*console.log("ASSET SOTTOSTANTE", market.baseAsset);*/
 
