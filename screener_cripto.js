@@ -267,14 +267,28 @@ async function autoInvestiLong(arrayPrevisioniFull) {
 
     for (let single_client of clients) {
 
+        //console.log(single_client);
+
         for (let arrayPrevisioni of arrayPrevisioniFull) {
+
+            //qui da il seguente errore
+            /*Error: Timestamp for this request was 1000ms ahead of the server's time.
+                at C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100:17
+                at processTicksAndRejections (node:internal/process/task_queues:96:5)
+                at async autoInvestiLong (C:\var\www\StockPricePredictor\screener_cripto.js:273:31)
+                at async bootstrap (C:\var\www\StockPricePredictor\screener_cripto.js:1239:21) {
+                code: -1021,
+                url: 'https://api.binance.com/api/v3/account?timestamp=1657010501523&signature=c592cb5f1cf44864b11e4960c2077c0b41ae926b81def834bb36e66598dfaf58'
+                }*/
             let accountInfo = await single_client.accountInfo();
+
+            //console.log(accountInfo);
             //meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
             //meglio differenziare perchè almeno se perdi su una magari su un altra sale
             //quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
 
-            let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95;
+            let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 90;
             //console.log("USDT Amount", UsdtAmount);
             let symbolPrice = await single_client.dailyStats({ symbol: arrayPrevisioni.simbolo });
             //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
@@ -294,7 +308,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
             //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
             if (UsdtAmount >= 25 && arrayPrevisioni.median >= (stop_loss_perc / 2)) {
 
-                let openOrders = single_client.openOrders({ symbol: arrayPrevisioni.simbolo });
+                let openOrders = await single_client.openOrders({ symbol: arrayPrevisioni.simbolo });
 
                 console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders);
 
@@ -1218,13 +1232,13 @@ async function bootstrap() {
 
                     let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                     //console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
                     //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
                     let stopLoss = 1;
                     //if (medianPercDifference > stopLoss) {
                     let arrayInvestimento = [];
 
+                    console.log("AZIONE LONG", market.symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", market.symbol);
 
 
                     //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
@@ -1332,11 +1346,14 @@ testTickSize();*/
 
 
 //autoInvestiLongKucoin([{ azione: "LONG", simbolo: 'BTC-USDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
-//bootstrap();
+
 playBullSentiment(true)
 
 //console.log(roundByDecimals((7.62000000 / 100 * (100 + 0.48)), 2));
 
+//bootstrap();
+//test
+//autoInvestiLong([{ azione: "LONG", simbolo: 'BTCUSDT', price: 29000, tp: 30000, date: new Date(), baseAssetPrecision: 8, lotSize: 1 }]);
 let timeout = setTimeout(function() {
     bootstrap();
     interval = setInterval(function() {
