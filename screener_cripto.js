@@ -306,7 +306,15 @@ async function autoInvestiLong(arrayPrevisioniFull) {
             //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
             //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
             //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
-            if (UsdtAmount >= 25 && arrayPrevisioni.median >= (stop_loss_perc / 2)) {
+
+            let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
+            let takeProfit = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
+
+            let condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 2) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5);
+
+            console.log('VALUTAZIONE ORDINE 2', "SL", stopLoss, "TP", takeProfit, "DIFF TP", (takeProfit - symbolPrice.askPrice), "DIFF SL", (symbolPrice.askPrice - stopLoss), "DIFF SL/2", ((symbolPrice.askPrice - stopLoss) / 2), "DIFF SL*1.5", ((symbolPrice.askPrice - stopLoss) * 1.5), "CONDITION", condition);
+
+            if (UsdtAmount >= 25 && condition === true) {
 
                 let openOrders = await single_client.openOrders({ symbol: arrayPrevisioni.simbolo });
 
@@ -334,8 +342,8 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
                         price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
                         //stop loss trigger and limit
-                        stopPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
-                        stopLimitPrice: roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals),
+                        stopPrice: stopLoss,
+                        stopLimitPrice: takeProfit,
                     }));
                 }
             }
