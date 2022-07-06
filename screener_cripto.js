@@ -301,19 +301,29 @@ async function autoInvestiLong(arrayPrevisioniFull) {
             console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), arrayPrevisioni.tickSizeDecimals), 'TICK SIZE', arrayPrevisioni.tickSize, 'TICK SIZE DECIMALS', arrayPrevisioni.tickSizeDecimals);
             //L'ask price è il prezzo minore a cui ti vendono la moneta
             //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
-            let stop_loss_perc = 1;
+
+            //stop loss perc è -1.2% massimo. meglio seguire la regola del 2%
+            //ovvero mai mettere a rischio più del 2% del capitale investito, per ogni operazione
+
+            //rif. https://www.cmegroup.com/education/courses/trade-and-risk-management/the-2-percent-rule.html
+            //rif. One popular method is the 2% Rule, which means you never put more than 2% of your account equity at risk (Table 1). For example, if you are trading a $50,000 account, and you choose a risk management stop loss of 2%, you could risk up to $1,000 on any given trade.
+            let stop_loss_trigger_perc = 1;
+            let stop_loss_perc = 1.2;
             //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
             //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
             //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
             //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
 
-            //stop loss perc è -1% massimo
-            let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
+
+
             let takeProfit = roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals);
+
+            let stopLossTrigger = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_trigger_perc)), arrayPrevisioni.tickSizeDecimals);
+            let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
 
             let condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 2) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5);
 
-            console.log('VALUTAZIONE ORDINE 2', "SL", stopLoss, "TP", takeProfit, "DIFF TP", (takeProfit - symbolPrice.askPrice), "DIFF SL", (symbolPrice.askPrice - stopLoss), "DIFF SL/2", ((symbolPrice.askPrice - stopLoss) / 2), "DIFF SL*1.5", ((symbolPrice.askPrice - stopLoss) * 1.5), "CONDITION", condition);
+            console.log('VALUTAZIONE ORDINE 2', "SL", stopLoss, "SL Trigger", stopLossTrigger, "TP", takeProfit, "DIFF TP", (takeProfit - symbolPrice.askPrice), "DIFF SL", (symbolPrice.askPrice - stopLoss), "DIFF SL/2", ((symbolPrice.askPrice - stopLoss) / 2), "DIFF SL*1.5", ((symbolPrice.askPrice - stopLoss) * 1.5), "CONDITION", condition);
 
             if (UsdtAmount >= 25 && condition === true) {
 
@@ -343,7 +353,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
                         price: takeProfit,
                         //stop loss trigger and limit
-                        stopPrice: stopLoss,
+                        stopPrice: stopLossTrigger,
                         //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
                         stopLimitPrice: stopLoss,
                     }));
