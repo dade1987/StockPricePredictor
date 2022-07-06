@@ -307,8 +307,9 @@ async function autoInvestiLong(arrayPrevisioniFull) {
             //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
             //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
 
+            //stop loss perc è -1% massimo
             let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
-            let takeProfit = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), arrayPrevisioni.tickSizeDecimals);
+            let takeProfit = roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals);
 
             let condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 2) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5);
 
@@ -340,10 +341,11 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         //si può calcolare su askprice o lastprice
                         //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
                         //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                        price: roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), arrayPrevisioni.tickSizeDecimals),
+                        price: takeProfit,
                         //stop loss trigger and limit
                         stopPrice: stopLoss,
-                        stopLimitPrice: takeProfit,
+                        //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
+                        stopLimitPrice: stopLoss,
                     }));
                 }
             }
