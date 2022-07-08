@@ -164,99 +164,115 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         let UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 90;
                         //console.log("USDT Amount", UsdtAmount);
                         single_client.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
-                            //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
-                            let maxQty = UsdtAmount / Number(symbolPrice.askPrice);
-                            //console.log("Max Qty", maxQty);
 
-                            maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
+                            //segno di inversione rialzista
+                            single_client.candles({ symbol: arrayPrevisioni.simbolo, interval: '1m', limit: 2 }).then((ultimeDueCandele1Min) => {
 
-                            //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
-                            console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals);
-                            //L'ask price è il prezzo minore a cui ti vendono la moneta
-                            //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+                                //segno di inversione rialzista a 1 minuto
+                                let ultimeDueCandele1MinArray = ultimeDueCandele1Min.map((v) => { return Number(v.close) > Number(v.open) });
 
-                            //stop loss perc è -1.2% massimo. meglio seguire la regola del 2%
-                            //ovvero mai mettere a rischio più del 2% del capitale investito, per ogni operazione
+                                console.log(symbol, "ultime2candele", ultimeDueCandele1MinArray, askClosePrices[askClosePrices.length - 1]);
 
-                            //rif. https://www.cmegroup.com/education/courses/trade-and-risk-management/the-2-percent-rule.html
-                            //rif. One popular method is the 2% Rule, which means you never put more than 2% of your account equity at risk (Table 1). For example, if you are trading a $50,000 account, and you choose a risk management stop loss of 2%, you could risk up to $1,000 on any given trade.
-                            let stop_loss_trigger_perc = 1;
-                            let stop_loss_perc = 1.2;
-                            //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
-                            //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
-                            //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
-                            //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
+                                if (ultimeDueCandele1MinArray[0] === true && ultimeDueCandele1MinArray[1] === true) {
 
 
+                                    //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
+                                    let maxQty = UsdtAmount / Number(symbolPrice.askPrice);
+                                    //console.log("Max Qty", maxQty);
 
-                            let takeProfit = roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals);
+                                    maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision);
 
-                            let stopLossTrigger = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_trigger_perc)), tickSizeDecimals);
-                            let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), tickSizeDecimals);
+                                    //console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
+                                    console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals);
+                                    //L'ask price è il prezzo minore a cui ti vendono la moneta
+                                    //in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
 
-                            //per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
-                            let condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 3) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5);
+                                    //stop loss perc è -1.2% massimo. meglio seguire la regola del 2%
+                                    //ovvero mai mettere a rischio più del 2% del capitale investito, per ogni operazione
 
-                            console.log('VALUTAZIONE ORDINE 2', "SL", stopLoss, "SL Trigger", stopLossTrigger, "TP", takeProfit, "DIFF TP", (takeProfit - symbolPrice.askPrice), "DIFF SL", (symbolPrice.askPrice - stopLoss), "DIFF SL/2", ((symbolPrice.askPrice - stopLoss) / 2), "DIFF SL*1.5", ((symbolPrice.askPrice - stopLoss) * 1.5), "CONDITION", condition);
+                                    //rif. https://www.cmegroup.com/education/courses/trade-and-risk-management/the-2-percent-rule.html
+                                    //rif. One popular method is the 2% Rule, which means you never put more than 2% of your account equity at risk (Table 1). For example, if you are trading a $50,000 account, and you choose a risk management stop loss of 2%, you could risk up to $1,000 on any given trade.
+                                    let stop_loss_trigger_perc = 1;
+                                    let stop_loss_perc = 1.2;
+                                    //dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
+                                    //APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
+                                    //COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
+                                    //E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
 
-                            if (UsdtAmount >= 25 && condition === true) {
 
-                                single_client.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
 
-                                    console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders, openOrders.length);
+                                    let takeProfit = roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals);
 
-                                    if (openOrders.length === 0) {
+                                    let stopLossTrigger = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_trigger_perc)), tickSizeDecimals);
+                                    let stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), tickSizeDecimals);
 
-                                        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals);
-                                        playBullSentiment();
+                                    //per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
+                                    let condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 3) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5);
 
-                                        single_client.order({
-                                            symbol: arrayPrevisioni.simbolo,
-                                            side: 'BUY',
-                                            type: 'MARKET',
-                                            quantity: maxQty,
-                                        }).then(response => {
-                                            console.log(response)
+                                    console.log('VALUTAZIONE ORDINE 2', "SL", stopLoss, "SL Trigger", stopLossTrigger, "TP", takeProfit, "DIFF TP", (takeProfit - symbolPrice.askPrice), "DIFF SL", (symbolPrice.askPrice - stopLoss), "DIFF SL/2", ((symbolPrice.askPrice - stopLoss) / 2), "DIFF SL*1.5", ((symbolPrice.askPrice - stopLoss) * 1.5), "CONDITION", condition);
 
-                                            single_client.orderOco({
+                                    if (UsdtAmount >= 25 && condition === true) {
+
+                                        single_client.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
+
+                                            console.log("ORDINI APERTI PER " + arrayPrevisioni.simbolo, openOrders, openOrders.length);
+
+                                            if (openOrders.length === 0) {
+
+                                                console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals);
+                                                playBullSentiment();
+
+                                                single_client.order({
                                                     symbol: arrayPrevisioni.simbolo,
-                                                    side: 'SELL',
+                                                    side: 'BUY',
+                                                    type: 'MARKET',
                                                     quantity: maxQty,
-                                                    //take profit
-                                                    //si può calcolare su askprice o lastprice
-                                                    //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-                                                    //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                                                    price: takeProfit,
-                                                    //stop loss trigger and limit
-                                                    stopPrice: stopLossTrigger,
-                                                    //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
-                                                    stopLimitPrice: stopLoss,
-                                                }).then(response2 => { console.log(response2) })
-                                                .catch((reason) => {
-                                                    console.log("no1", market.symbol, reason);
-                                                    callback([false, reason]);
-                                                });
-                                        }).catch((reason) => {
-                                            console.log("no2", market.symbol, reason);
-                                            callback([false, reason]);
-                                        });;
-                                    }
-                                }).catch((reason) => {
-                                    console.log("no3", market.symbol, reason);
-                                    callback([false, reason]);
-                                });
-                            }
+                                                }).then(response => {
+                                                    console.log(response)
 
+                                                    single_client.orderOco({
+                                                            symbol: arrayPrevisioni.simbolo,
+                                                            side: 'SELL',
+                                                            quantity: maxQty,
+                                                            //take profit
+                                                            //si può calcolare su askprice o lastprice
+                                                            //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+                                                            //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                                                            price: takeProfit,
+                                                            //stop loss trigger and limit
+                                                            stopPrice: stopLossTrigger,
+                                                            //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
+                                                            stopLimitPrice: stopLoss,
+                                                        }).then(response2 => { console.log(response2) })
+                                                        .catch((reason) => {
+                                                            console.log("no1", market.symbol, reason);
+                                                            callback([false, reason]);
+                                                        });
+                                                }).catch((reason) => {
+                                                    console.log("no2", market.symbol, reason);
+                                                    callback([false, reason]);
+                                                });;
+                                            }
+                                        }).catch((reason) => {
+                                            console.log("no3", market.symbol, reason);
+                                            callback([false, reason]);
+                                        });
+                                    }
+                                }
+                            }).catch(reason => {
+                                console.log("no4", market.symbol, reason);
+                                callback([false, reason]);
+                            });
                         }).catch((reason) => {
-                            console.log("no4", market.symbol, reason);
+                            console.log("no5", market.symbol, reason);
                             callback([false, reason]);
                         });
                     }).catch((reason) => {
-                        console.log("no5", market.symbol, reason);
+                        console.log("no6", market.symbol, reason);
                         callback([false, reason]);
                     });
                 }).catch((reason) => {
-                    console.log("no6", market.symbol, reason);
+                    console.log("no7", market.symbol, reason);
                     callback([false, reason]);
                 });
             };
@@ -595,7 +611,7 @@ function promessa(market, exchangeName, callback) {
                     callback([true, { 'symbol': market.symbol, 'baseAsset': market.baseAsset, 'baseAssetPrecision': market.baseAssetPrecision, 'rawPrices': rawPrices, 'askClosePrices': askClosePrices, 'lotSize': lotSize }]);
                     //console.log("qui");
                 }).catch((reason) => {
-                    console.log("no2", market.symbol, reason);
+                    console.log("no1", market.symbol, reason);
                     simultaneousConnections--;
                     callback([false, reason]);
                 });
@@ -709,117 +725,104 @@ async function bootstrap() {
             //se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
             if (askClosePrices.length > 201) {
 
-                //segno di inversione rialzista
-                client.candles({ symbol: market.symbol, interval: '1m', limit: 2 }).then((ultimeDueCandele1Min) => {
+                let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
 
-                    //segno di inversione rialzista a 1 minuto
-                    let ultimeDueCandele1MinArray = ultimeDueCandele1Min.map((v) => { return Number(v.close) > Number(v.open) });
+                //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
+                //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
 
-                    console.log(symbol, "ultime2candele", ultimeDueCandele1MinArray, askClosePrices[askClosePrices.length - 1]);
+                //TREND MINORE SMA50 RIBASSISTA
+                let smaMinore = SMA.calculate({
+                    period: 50,
+                    values: askClosePrices
+                });
 
-                    if (ultimeDueCandele1MinArray[0] === true && ultimeDueCandele1MinArray[1] === true) {
+                let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
+                let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
+                /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);*/
+                /*console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
 
-                        let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
+                //TREND MAGGIORE RIALZISTA
+                let smaMaggiore = SMA.calculate({
+                    period: 200,
+                    values: askClosePrices
+                });
 
-                        //attenzione. nel caso cripto i mercati devono essere liquidi quindi devono avere volumi scambiati alti
-                        //altrimenti si rischia che lo spread tra ask e bid sia troppo alto
+                let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
+                let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
-                        //TREND MINORE SMA50 RIBASSISTA
-                        let smaMinore = SMA.calculate({
-                            period: 50,
-                            values: askClosePrices
-                        });
+                /*console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);*/
+                /*console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
 
-                        let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
-                        let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-                        /*console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);*/
-                        /*console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
+                //CALCOLO RSI RIALZISTA (<30)
+                let rsi = RSI.calculate({
+                    period: 14,
+                    values: askClosePrices
+                });
 
-                        //TREND MAGGIORE RIALZISTA
-                        let smaMaggiore = SMA.calculate({
-                            period: 200,
-                            values: askClosePrices
-                        });
+                let rsiRialzista = rsi[rsi.length - 1] < 30;
+                let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-                        let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
-                        let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
-
-                        /*console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);*/
-                        /*console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
-
-                        //CALCOLO RSI RIALZISTA (<30)
-                        let rsi = RSI.calculate({
-                            period: 14,
-                            values: askClosePrices
-                        });
-
-                        let rsiRialzista = rsi[rsi.length - 1] < 30;
-                        let rsiRibassista = rsi[rsi.length - 1] > 70;
-
-                        /*console.log("RSI", rsi[rsi.length - 1]);
-                        console.log("RSI RIALZISTA", rsiRialzista);*/
-                        /*console.log("RSI RIBASSISTA", rsiRibassista);*/
+                /*console.log("RSI", rsi[rsi.length - 1]);
+                console.log("RSI RIALZISTA", rsiRialzista);*/
+                /*console.log("RSI RIBASSISTA", rsiRibassista);*/
 
 
-                        var macdInput = {
-                            values: askClosePrices,
-                            fastPeriod: 8,
-                            slowPeriod: 21,
-                            signalPeriod: 5,
-                            //è giusto così
-                            SimpleMAOscillator: false,
-                            SimpleMASignal: false
-                        }
+                var macdInput = {
+                    values: askClosePrices,
+                    fastPeriod: 8,
+                    slowPeriod: 21,
+                    signalPeriod: 5,
+                    //è giusto così
+                    SimpleMAOscillator: false,
+                    SimpleMASignal: false
+                }
 
-                        let macd = MACD.calculate(macdInput);
+                let macd = MACD.calculate(macdInput);
 
-                        //SUPERAMENTO MACD
-                        let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
-                        let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
+                //SUPERAMENTO MACD
+                let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
+                let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
-                        /*console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
-                        console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);*/
+                /*console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);*/
 
-                        //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
-                        if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
-
-
-                            let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                            //console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
-
-                            //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
-                            let stopLoss = 1;
-                            //if (medianPercDifference > stopLoss) {
-                            let arrayInvestimento = [];
-
-                            console.log("AZIONE LONG", symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", symbol);
+                //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
+                if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
 
 
-                            //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
-                            arrayPrevisioni.push({ azione: "LONG", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize });
-                            arrayInvestimento.push({ azione: "LONG", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
-                            //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
-                            //provo a togliere l'await dato che è dentro una Promise e speriamo bene
-                            autoInvestiLong(arrayInvestimento);
-                            //}
+                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    //console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+
+                    //non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
+                    let stopLoss = 1;
+                    //if (medianPercDifference > stopLoss) {
+                    let arrayInvestimento = [];
+
+                    console.log("AZIONE LONG", symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", symbol);
+
+
+                    //stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
+                    arrayPrevisioni.push({ azione: "LONG", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize });
+                    arrayInvestimento.push({ azione: "LONG", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
+                    //meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
+                    //provo a togliere l'await dato che è dentro una Promise e speriamo bene
+                    autoInvestiLong(arrayInvestimento);
+                    //}
 
 
 
-                        } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
+                } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
 
-                            let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
-                            console.log("AZIONE SHORT", symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", symbol);
-                            let stopLoss = 1;
-                            let arrayInvestimento = [];
-                            arrayPrevisioni.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize });
-                            arrayInvestimento.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
+                    let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
+                    console.log("AZIONE SHORT", symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", symbol);
+                    let stopLoss = 1;
+                    let arrayInvestimento = [];
+                    arrayPrevisioni.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize });
+                    arrayInvestimento.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
 
 
-                        }
-                    }
-                }).catch(reason => {
-                    console.log(reason);
-                });;
+
+                }
             }
         }).catch(reason => {
             //niente
