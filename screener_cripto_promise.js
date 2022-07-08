@@ -134,10 +134,10 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 client.exchangeInfo().then((e) => {
 
                     //console.log("ok1",  arrayPrevisioni.simbolo);
-                    tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize;
+                    let tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize;
 
                     //anche se è già una stringa è per capire
-                    tickSizeDecimals = tickSize.toString().countDecimals();
+                    let tickSizeDecimals = tickSize.toString().countDecimals();
 
                     //console.log("ok2",  arrayPrevisioni.simbolo);
 
@@ -250,30 +250,24 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                         });
                                                 }).catch((reason) => {
                                                     console.log("no2", arrayPrevisioni.simbolo, reason);
-                                                    callback([false, reason]);
-                                                });;
+                                                });
                                             }
                                         }).catch((reason) => {
                                             console.log("no3", arrayPrevisioni.simbolo, reason);
-                                            callback([false, reason]);
                                         });
                                     }
                                 }
                             }).catch(reason => {
                                 console.log("no4", arrayPrevisioni.simbolo, reason);
-                                callback([false, reason]);
                             });
                         }).catch((reason) => {
                             console.log("no5", arrayPrevisioni.simbolo, reason);
-                            callback([false, reason]);
                         });
                     }).catch((reason) => {
                         console.log("no6", arrayPrevisioni.simbolo, reason);
-                        callback([false, reason]);
                     });
                 }).catch((reason) => {
                     console.log("no7", arrayPrevisioni.simbolo, reason);
-                    callback([false, reason]);
                 });
             };
 
