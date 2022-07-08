@@ -241,7 +241,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                 }).then(response => {
                                                     //proviamo così a vedere se lo esegue
                                                     setTimeout(function() {
-                                                        console.log(response)
+                                                        //console.log(response)
 
                                                         single_client.orderOco({
                                                                 symbol: arrayPrevisioni.simbolo,
@@ -256,7 +256,9 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                                 stopPrice: stopLossTrigger,
                                                                 //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
                                                                 stopLimitPrice: stopLoss
-                                                            }).then(response2 => { console.log(response2) })
+                                                            }).then(response2 => {
+                                                                //console.log(response2);
+                                                            })
                                                             .catch((reason) => {
                                                                 console.log("no1", arrayPrevisioni.simbolo, reason);
                                                             });
@@ -873,10 +875,10 @@ let interval;
     autoInvestiLong(arrayInvestimento);
 }, 5000)*/
 
-/*bootstrap();
+bootstrap();
 let timeout = setTimeout(function() {
     bootstrap();
     interval = setInterval(function() {
         bootstrap();
-    },  300000  );
-}, wait_fist_time);*/
+    }, 300000);
+}, wait_fist_time);
