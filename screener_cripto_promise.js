@@ -171,7 +171,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                 //segno di inversione rialzista a 1 minuto
                                 let ultimeDueCandele1MinArray = ultimeDueCandele1Min.map((v) => { return Number(v.close) > Number(v.open) });
 
-                                console.log(symbol, "ultime2candele", ultimeDueCandele1MinArray, askClosePrices[askClosePrices.length - 1]);
+                                console.log(arrayPrevisioni.simbolo, "ultime2candele", ultimeDueCandele1MinArray, askClosePrices[askClosePrices.length - 1]);
 
                                 if (ultimeDueCandele1MinArray[0] === true && ultimeDueCandele1MinArray[1] === true) {
 
