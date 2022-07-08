@@ -121,7 +121,6 @@ async function playBullSentiment(bypass) {
 
 async function autoInvestiLong(arrayPrevisioniFull) {
 
-
     try {
 
         for (let single_client of clients) {
@@ -130,8 +129,11 @@ async function autoInvestiLong(arrayPrevisioniFull) {
 
             for (let arrayPrevisioni of arrayPrevisioniFull) {
 
+
                 //questo serve solo in caso di conferma di tutte le altre condizioni
                 client.exchangeInfo().then((e) => {
+
+                    console.log("QUI");
 
                     //console.log("ok1",  arrayPrevisioni.simbolo);
                     let tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize;
@@ -139,7 +141,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                     //anche se è già una stringa è per capire
                     let tickSizeDecimals = tickSize.toString().countDecimals();
 
-                    //console.log("ok2",  arrayPrevisioni.simbolo);
+                    //console.log("ok2", arrayPrevisioni.simbolo);
 
 
 
@@ -166,14 +168,23 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                         single_client.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
 
                             //segno di inversione rialzista
-                            single_client.candles({ symbol: arrayPrevisioni.simbolo, interval: '1m', limit: 2 }).then((ultimeDueCandele1Min) => {
+                            single_client.candles({ symbol: arrayPrevisioni.simbolo, interval: '1m', limit: 5 }).then((ultimeCandele) => {
 
                                 //segno di inversione rialzista a 1 minuto
-                                let ultimeDueCandele1MinArray = ultimeDueCandele1Min.map((v) => { return Number(v.close) > Number(v.open) });
+                                let ultimeCandeleArray = ultimeCandele.map((v) => { return Number(v.close) > Number(v.open) });
 
-                                console.log(arrayPrevisioni.simbolo, "ultime2candele", ultimeDueCandele1MinArray);
 
-                                if (ultimeDueCandele1MinArray[0] === true && ultimeDueCandele1MinArray[1] === true) {
+                                ultimeCandeleArray = ultimeCandeleArray.filter((v, i, a) => {
+
+                                    return i > 0 && a[i] === true && a[i - 1] === true;
+
+                                });
+
+                                //TEST
+                                //ultimeCandeleArray = [true];
+                                console.log(arrayPrevisioni.simbolo, "ultimeCandele", ultimeCandeleArray);
+
+                                if (ultimeCandeleArray.length > 0) {
 
 
                                     //console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
@@ -226,28 +237,30 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                     symbol: arrayPrevisioni.simbolo,
                                                     side: 'BUY',
                                                     type: 'MARKET',
-                                                    quantity: maxQty,
+                                                    quantity: maxQty
                                                 }).then(response => {
-                                                    console.log(response)
+                                                    //proviamo così a vedere se lo esegue
+                                                    setTimeout(function() {
+                                                        console.log(response)
 
-                                                    single_client.orderOco({
-                                                            symbol: arrayPrevisioni.simbolo,
-                                                            side: 'SELL',
-                                                            quantity: maxQty,
-                                                            //take profit
-                                                            //si può calcolare su askprice o lastprice
-                                                            //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-                                                            //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                                                            price: takeProfit,
-                                                            //stop loss trigger and limit
-                                                            stopPrice: stopLossTrigger,
-                                                            //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
-                                                            stopLimitPrice: stopLoss,
-                                                        }).then(response2 => { console.log(response2) })
-                                                        .catch((reason) => {
-                                                            console.log("no1", arrayPrevisioni.simbolo, reason);
-                                                            callback([false, reason]);
-                                                        });
+                                                        single_client.orderOco({
+                                                                symbol: arrayPrevisioni.simbolo,
+                                                                side: 'SELL',
+                                                                quantity: maxQty,
+                                                                //take profit
+                                                                //si può calcolare su askprice o lastprice
+                                                                //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+                                                                //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                                                                price: takeProfit,
+                                                                //stop loss trigger and limit
+                                                                stopPrice: stopLossTrigger,
+                                                                //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
+                                                                stopLimitPrice: stopLoss
+                                                            }).then(response2 => { console.log(response2) })
+                                                            .catch((reason) => {
+                                                                console.log("no1", arrayPrevisioni.simbolo, reason);
+                                                            });
+                                                    }, 1000);
                                                 }).catch((reason) => {
                                                     console.log("no2", arrayPrevisioni.simbolo, reason);
                                                 });
@@ -853,10 +866,17 @@ playBullSentiment(true)
 
 let interval;
 
-bootstrap();
+//testing
+/*setTimeout(function() {
+    let arrayInvestimento = [];
+    arrayInvestimento.push({ azione: "LONG", simbolo: 'SOLUSDT', price: 38.7, tp: 40, sl: 35, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 });
+    autoInvestiLong(arrayInvestimento);
+}, 5000)*/
+
+/*bootstrap();
 let timeout = setTimeout(function() {
     bootstrap();
     interval = setInterval(function() {
         bootstrap();
-    }, /*1800000*/ 300000 /* 600000*/ );
-}, wait_fist_time);
+    },  300000  );
+}, wait_fist_time);*/
