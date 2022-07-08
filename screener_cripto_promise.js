@@ -584,7 +584,7 @@ function promessa(market, exchangeName, callback) {
                 //una connessione è per le candele e un altra connessioone è per exchangeInfo
                 connectionLimit += 1;
 
-                console.log(market.symbol);
+                //console.log(market.symbol);
 
                 client.candles({ symbol: market.symbol, interval: '30m', limit: 210 }).then((rawPrices) => {
 
@@ -714,6 +714,9 @@ async function bootstrap() {
 
                     //segno di inversione rialzista a 1 minuto
                     let ultimeDueCandele1MinArray = ultimeDueCandele1Min.map((v) => { return Number(v.close) > Number(v.open) });
+
+                    console.log(symbol, "ultime2candele", ultimeDueCandele1MinArray, askClosePrices[askClosePrices.length - 1]);
+
                     if (ultimeDueCandele1MinArray[0] === true && ultimeDueCandele1MinArray[1] === true) {
 
                         let medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14));
@@ -779,9 +782,6 @@ async function bootstrap() {
 
                         //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
                         if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
-
-
-
 
 
                             let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
