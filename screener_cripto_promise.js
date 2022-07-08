@@ -245,34 +245,34 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                             stopLimitPrice: stopLoss,
                                                         }).then(response2 => { console.log(response2) })
                                                         .catch((reason) => {
-                                                            console.log("no1", market.symbol, reason);
+                                                            console.log("no1", arrayPrevisioni.simbolo, reason);
                                                             callback([false, reason]);
                                                         });
                                                 }).catch((reason) => {
-                                                    console.log("no2", market.symbol, reason);
+                                                    console.log("no2", arrayPrevisioni.simbolo, reason);
                                                     callback([false, reason]);
                                                 });;
                                             }
                                         }).catch((reason) => {
-                                            console.log("no3", market.symbol, reason);
+                                            console.log("no3", arrayPrevisioni.simbolo, reason);
                                             callback([false, reason]);
                                         });
                                     }
                                 }
                             }).catch(reason => {
-                                console.log("no4", market.symbol, reason);
+                                console.log("no4", arrayPrevisioni.simbolo, reason);
                                 callback([false, reason]);
                             });
                         }).catch((reason) => {
-                            console.log("no5", market.symbol, reason);
+                            console.log("no5", arrayPrevisioni.simbolo, reason);
                             callback([false, reason]);
                         });
                     }).catch((reason) => {
-                        console.log("no6", market.symbol, reason);
+                        console.log("no6", arrayPrevisioni.simbolo, reason);
                         callback([false, reason]);
                     });
                 }).catch((reason) => {
-                    console.log("no7", market.symbol, reason);
+                    console.log("no7", arrayPrevisioni.simbolo, reason);
                     callback([false, reason]);
                 });
             };
