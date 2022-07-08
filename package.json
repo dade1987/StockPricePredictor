@@ -1,6 +1,6 @@
 {
     "name": "price-predictor-eu",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "",
     "dependencies": {
         "@oanda/v20": "^3.0.25-0",
@@ -30,7 +30,7 @@
         "technicalindicators": "^3.1.0"
     },
     "scripts": {
-        "start": "node screener_cripto.js"
+        "start": "node screener_cripto_promise.js"
     },
     "author": "",
     "license": "MIT"
