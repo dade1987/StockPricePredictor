@@ -264,6 +264,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                             console.log("no5", arrayPrevisioni.simbolo, reason);
                         });
                     }).catch((reason) => {
+                        //SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
                         console.log("no6", arrayPrevisioni.simbolo, reason);
                     });
                 }).catch((reason) => {
