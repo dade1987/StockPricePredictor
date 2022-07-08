@@ -133,13 +133,13 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                 //questo serve solo in caso di conferma di tutte le altre condizioni
                 client.exchangeInfo().then((e) => {
 
-                    //console.log("ok1", market.symbol);
-                    tickSize = e.symbols.filter(v => v.symbol === market.symbol)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize;
+                    //console.log("ok1",  arrayPrevisioni.simbolo);
+                    tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize;
 
                     //anche se è già una stringa è per capire
                     tickSizeDecimals = tickSize.toString().countDecimals();
 
-                    //console.log("ok2", market.symbol);
+                    //console.log("ok2",  arrayPrevisioni.simbolo);
 
 
 
