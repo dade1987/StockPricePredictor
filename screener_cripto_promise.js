@@ -714,7 +714,7 @@ async function bootstrap() {
 
 
             //tolto. serve solo per test, altrimenti non si capisce niente
-            console.log(symbol);
+            console.log("\n", symbol);
 
             /*console.log("ASSET SOTTOSTANTE", baseAsset);*/
 
@@ -784,7 +784,7 @@ async function bootstrap() {
                 let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
                 console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
-                console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);
+                /*console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);*/
 
                 //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
                 if (trendMinoreRibassista === true && trendMaggioreRialzista === true && rsiRialzista === true && segnaleSuperaMACD === true) {
