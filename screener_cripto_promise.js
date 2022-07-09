@@ -122,7 +122,7 @@ async function playBullSentiment(bypass) {
 
 
 
-function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, ocoAttemps, callback) {
+function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, ocoAttemps, single_client, callback) {
     //proviamo così a vedere se lo esegue
     /*Non sempre lo esegue giusto
         Bisogna sistemare questo errore:
@@ -170,7 +170,7 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
             if (ocoAttemps < 10) {
                 ocoAttemps++;
                 setTimeout(function() {
-                    piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, callback);
+                    piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback);
                 }, 1000);
 
             } else {
@@ -302,7 +302,7 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                     quantity: maxQty
                                                 }).then(response => {
                                                     //console.log(response)
-                                                    piazzaOrdineOco(piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, 0, function(cb) {
+                                                    piazzaOrdineOco(piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, 0, single_client, function(cb) {
                                                         if (cb[0] === true) {
                                                             console.log("ORDINE OCO PIAZZATO");
                                                         } else {
