@@ -184,7 +184,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           callback([true, response])
         })
           .catch((reason) => {
-            console.log('single_client.orderOco', arrayPrevisioni.simbolo, reason, ocoAttemps)
+            console.log('single_client.orderOco', simbolo, reason, ocoAttemps)
             if (ocoAttemps < 10) {
               ocoAttemps++
               setTimeout(function () {
