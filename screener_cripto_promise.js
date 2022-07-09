@@ -43,6 +43,7 @@ Kucoin.init(kucoinConfig);
 
 let sound_disabled = false;
 let emails_disabled = true;
+let trade_debug_enabled = false;
 
 function roundByLotSize(value, step) {
     step || (step = 1.0);
@@ -240,6 +241,26 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                     quantity: maxQty
                                                 }).then(response => {
                                                     //proviamo così a vedere se lo esegue
+                                                    /*Non sempre lo esegue giusto
+                                                        Bisogna sistemare questo errore:
+
+                                                        VALUTAZIONE ORDINE SALDO USDT 182.316578292 SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
+                                                        
+                                                        VALUTAZIONE ORDINE 2 SL 1.562 SL Trigger 1.565 TP 1.602 DIFF TP 0.018000000000000016 DIFF SL 0.02200000000000002 DIFF SL/2 0.01100000000000001 DIFF SL*1.5 0.03300000000000003 CONDITION true
+
+                                                        BURGERUSDT ultimeCandele [ true, true, true, true ]
+
+                                                        APERTURA ORDINE SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
+
+                                                        ORDINI APERTI PER BURGERUSDT [] 0
+
+                                                        no1 BURGERUSDT Error: Account has insufficient balance for requested action.
+                                                        at C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100:17
+                                                        at processTicksAndRejections (node:internal/process/task_queues:96:5) {
+                                                        code: -2010,
+                                                        url: 'https://api.binance.com/api/v3/order/oco?stopLimitTimeInForce=GTC&symbol=BURGERUSDT&side=SELL&quantity=115.1&price=1.602&stopPrice=1.565&stopLimitPrice=1.562&timestamp=1657341088171&signature=9e743dfbe432fb8caae6d75accedacaaf088f6bc016393cf5f0f4a1826b1283b'
+                                                        }
+                                                    */
                                                     setTimeout(function() {
                                                         //console.log(response)
 
@@ -723,8 +744,9 @@ async function bootstrap() {
             let lotSize = promiseModel.value.lotSize;
 
 
-            //tolto. serve solo per test, altrimenti non si capisce niente
-            console.log("\n", symbol);
+            if (trade_debug_enabled === true) {
+                console.log("\n", symbol);
+            }
 
             /*console.log("ASSET SOTTOSTANTE", baseAsset);*/
 
@@ -748,7 +770,9 @@ async function bootstrap() {
 
                 let trendMinoreRibassista = smaMinore[smaMinore.length - 1] < smaMinore[smaMinore.length - 2];
                 let trendMinoreRialzista = smaMinore[smaMinore.length - 1] > smaMinore[smaMinore.length - 2];
-                console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                if (trade_debug_enabled === true) {
+                    console.log("TREND MINORE RIBASSISTA", trendMinoreRibassista);
+                }
                 /*console.log("TREND MINORE RIALZISTA", trendMinoreRialzista);*/
 
                 //TREND MAGGIORE RIALZISTA
@@ -760,7 +784,9 @@ async function bootstrap() {
                 let trendMaggioreRialzista = smaMaggiore[smaMaggiore.length - 1] > smaMaggiore[smaMaggiore.length - 2];
                 let trendMaggioreRibassista = smaMaggiore[smaMaggiore.length - 1] < smaMaggiore[smaMaggiore.length - 2];
 
-                console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                if (trade_debug_enabled === true) {
+                    console.log("TREND MAGGIORE RIALZISTA", trendMaggioreRialzista);
+                }
                 /*console.log("TREND MAGGIORE RIBASSISTA", trendMaggioreRibassista);*/
 
                 //CALCOLO RSI RIALZISTA (<30)
@@ -772,8 +798,10 @@ async function bootstrap() {
                 let rsiRialzista = rsi[rsi.length - 1] < 30;
                 let rsiRibassista = rsi[rsi.length - 1] > 70;
 
-                console.log("RSI", rsi[rsi.length - 1]);
-                console.log("RSI RIALZISTA", rsiRialzista);
+                if (trade_debug_enabled === true) {
+                    console.log("RSI", rsi[rsi.length - 1]);
+                    console.log("RSI RIALZISTA", rsiRialzista);
+                }
                 /*console.log("RSI RIBASSISTA", rsiRibassista);*/
 
 
@@ -793,7 +821,9 @@ async function bootstrap() {
                 let segnaleSuperaMACD = macd[macd.length - 1].signal > macd[macd.length - 1].MACD;
                 let segnaleSuperaMACDBasso = macd[macd.length - 1].signal < macd[macd.length - 1].MACD;
 
-                console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                if (trade_debug_enabled === true) {
+                    console.log("SEGNALE SUPERA MACD", segnaleSuperaMACD);
+                }
                 /*console.log("SEGNALE SUPERA MACD BASSO", segnaleSuperaMACDBasso);*/
 
                 //è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
