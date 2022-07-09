@@ -12,4 +12,4 @@ How to use:
 
 - type "npm start"
 
-PS Don't worry if you'll listen the bull ;)
+PS Don't be alfraid of the bull ;)
