@@ -6,6 +6,6 @@
 	],
 	"settings": {
 		"deepscan.enable": true,
-		"deepscan.serverEmbedded.eslint.enable":true,
+		"deepscan.fileSuffixes": [".js"]
 	}
 }
