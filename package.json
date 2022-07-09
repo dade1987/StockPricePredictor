@@ -30,8 +30,15 @@
         "technicalindicators": "^3.1.0"
     },
     "scripts": {
-        "start": "node screener_cripto_promise.js"
+        "start": "node screener_cripto_promise_lint.js"
     },
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "eslint": "^8.19.0",
+        "eslint-config-standard": "^17.0.0",
+        "eslint-plugin-import": "^2.26.0",
+        "eslint-plugin-n": "^15.2.4",
+        "eslint-plugin-promise": "^6.0.0"
+    }
 }
