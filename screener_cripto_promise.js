@@ -120,6 +120,67 @@ async function playBullSentiment(bypass) {
     }
 }
 
+
+
+function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, ocoAttemps, callback) {
+    //proviamo così a vedere se lo esegue
+    /*Non sempre lo esegue giusto
+        Bisogna sistemare questo errore:
+
+        VALUTAZIONE ORDINE SALDO USDT 182.316578292 SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
+        
+        VALUTAZIONE ORDINE 2 SL 1.562 SL Trigger 1.565 TP 1.602 DIFF TP 0.018000000000000016 DIFF SL 0.02200000000000002 DIFF SL/2 0.01100000000000001 DIFF SL*1.5 0.03300000000000003 CONDITION true
+
+        BURGERUSDT ultimeCandele [ true, true, true, true ]
+
+        APERTURA ORDINE SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
+
+        ORDINI APERTI PER BURGERUSDT [] 0
+
+        no1 BURGERUSDT Error: Account has insufficient balance for requested action.
+        at C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100:17
+        at processTicksAndRejections (node:internal/process/task_queues:96:5) {
+        code: -2010,
+        url: 'https://api.binance.com/api/v3/order/oco?stopLimitTimeInForce=GTC&symbol=BURGERUSDT&side=SELL&quantity=115.1&price=1.602&stopPrice=1.565&stopLimitPrice=1.562&timestamp=1657341088171&signature=9e743dfbe432fb8caae6d75accedacaaf088f6bc016393cf5f0f4a1826b1283b'
+        }
+    */
+    console.log("trying placing OCO", symbol, quantity);
+
+    single_client.orderOco({
+            symbol: simbolo,
+            side: 'SELL',
+            quantity: quantity,
+            //take profit
+            //si può calcolare su askprice o lastprice
+            //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+            //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+            price: takeProfit,
+            //stop loss trigger and limit
+            stopPrice: stopLossTrigger,
+            //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
+            stopLimitPrice: stopLoss
+        }).then(response2 => {
+            //console.log(response2);
+            OCOattemps = 0;
+            callback([true, response2])
+        })
+        .catch((reason) => {
+
+            console.log("error. trying replacing OCO", arrayPrevisioni.simbolo, reason, OCOattemps);
+            if (OCOattemps < 10) {
+                OCOattemps++;
+                setTimeout(function() {
+                    piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, callback);
+                }, 1000);
+
+            } else {
+                OCOattemps = 0;
+                callback([false, "maxOCOattempts reached"])
+            }
+
+        });
+}
+
 async function autoInvestiLong(arrayPrevisioniFull) {
 
     try {
@@ -240,50 +301,14 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                     type: 'MARKET',
                                                     quantity: maxQty
                                                 }).then(response => {
-                                                    //proviamo così a vedere se lo esegue
-                                                    /*Non sempre lo esegue giusto
-                                                        Bisogna sistemare questo errore:
-
-                                                        VALUTAZIONE ORDINE SALDO USDT 182.316578292 SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
-                                                        
-                                                        VALUTAZIONE ORDINE 2 SL 1.562 SL Trigger 1.565 TP 1.602 DIFF TP 0.018000000000000016 DIFF SL 0.02200000000000002 DIFF SL/2 0.01100000000000001 DIFF SL*1.5 0.03300000000000003 CONDITION true
-
-                                                        BURGERUSDT ultimeCandele [ true, true, true, true ]
-
-                                                        APERTURA ORDINE SIMBOLO BURGERUSDT QUANTITA 115.1 MEDIANA 1.1117287381878833 TAKE PROFIT 1.602 STOP LOSS 1.565 TICK SIZE 0.00100000 TICK SIZE DECIMALS 3
-
-                                                        ORDINI APERTI PER BURGERUSDT [] 0
-
-                                                        no1 BURGERUSDT Error: Account has insufficient balance for requested action.
-                                                        at C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100:17
-                                                        at processTicksAndRejections (node:internal/process/task_queues:96:5) {
-                                                        code: -2010,
-                                                        url: 'https://api.binance.com/api/v3/order/oco?stopLimitTimeInForce=GTC&symbol=BURGERUSDT&side=SELL&quantity=115.1&price=1.602&stopPrice=1.565&stopLimitPrice=1.562&timestamp=1657341088171&signature=9e743dfbe432fb8caae6d75accedacaaf088f6bc016393cf5f0f4a1826b1283b'
+                                                    //console.log(response)
+                                                    piazzaOrdineOco(piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, 0, function(cb) {
+                                                        if (cb[0] === true) {
+                                                            console.log("ORDINE OCO PIAZZATO");
+                                                        } else {
+                                                            console.log("no1", cb[1]);
                                                         }
-                                                    */
-                                                    setTimeout(function() {
-                                                        //console.log(response)
-
-                                                        single_client.orderOco({
-                                                                symbol: arrayPrevisioni.simbolo,
-                                                                side: 'SELL',
-                                                                quantity: maxQty,
-                                                                //take profit
-                                                                //si può calcolare su askprice o lastprice
-                                                                //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-                                                                //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-                                                                price: takeProfit,
-                                                                //stop loss trigger and limit
-                                                                stopPrice: stopLossTrigger,
-                                                                //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
-                                                                stopLimitPrice: stopLoss
-                                                            }).then(response2 => {
-                                                                //console.log(response2);
-                                                            })
-                                                            .catch((reason) => {
-                                                                console.log("no1", arrayPrevisioni.simbolo, reason);
-                                                            });
-                                                    }, 1000);
+                                                    }));
                                                 }).catch((reason) => {
                                                     console.log("no2", arrayPrevisioni.simbolo, reason);
                                                 });
