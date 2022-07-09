@@ -151,12 +151,12 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
         symbol: simbolo,
         origClientOrderId: 'BUY',
     }).then(get_order => {
-        if (ocoAttemps > 0) {
+        if (ocoAttemps > 0 && get_order.status === 'FILLED') {
             console.log("getOrder", get_order);
             quantity = get_order.executedQty;
         }
         single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
-            if (stopLossTrigger < daily_stats.bidPrice) {
+            if (get_order.status === 'FILLED' && stopLossTrigger < daily_stats.bidPrice) {
                 quantity = get_order.executedQty;
 
                 single_client.order({
