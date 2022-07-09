@@ -188,7 +188,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
             if (ocoAttemps < 10) {
               ocoAttemps++
               setTimeout(function () {
-                piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback)
+                piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, ocoAttemps, single_client, callback)
               }, 1000)
             } else {
               ocoAttemps = 0
@@ -205,7 +205,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
     if (ocoAttemps < 10) {
       ocoAttemps++
       setTimeout(function () {
-        piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback)
+        piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, ocoAttemps, single_client, callback)
       }, 1000)
     } else {
       ocoAttemps = 0
@@ -655,10 +655,10 @@ async function bootstrap () {
 playBullSentiment(true)
 
 // testing
-/* setTimeout(function() {
-    let arrayInvestimento = [];
-    arrayInvestimento.push({ azione: "LONG", simbolo: 'SOLUSDT', price: 38.7, tp: 40, sl: 35, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 });
-    autoInvestiLong(arrayInvestimento);
-}, 5000) */
+setTimeout(function () {
+  const arrayInvestimento = []
+  arrayInvestimento.push({ azione: 'LONG', simbolo: 'SOLUSDT', price: 38, tp: 40, sl: 36, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 })
+  autoInvestiLong(arrayInvestimento)
+}, 5000)
 
 bootstrap()
