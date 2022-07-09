@@ -144,7 +144,7 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
         url: 'https://api.binance.com/api/v3/order/oco?stopLimitTimeInForce=GTC&symbol=BURGERUSDT&side=SELL&quantity=115.1&price=1.602&stopPrice=1.565&stopLimitPrice=1.562&timestamp=1657341088171&signature=9e743dfbe432fb8caae6d75accedacaaf088f6bc016393cf5f0f4a1826b1283b'
         }
     */
-    console.log("trying placing OCO", symbol, quantity);
+    console.log("trying placing OCO", simbolo, quantity);
 
     single_client.orderOco({
             symbol: simbolo,
