@@ -146,6 +146,8 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
     */
     console.log("trying placing OCO", simbolo, quantity);
 
+    //c'è un errore. se il prezzo è sotto quello dello stopLoggTrigger deve chiudere a Mercato
+    //se la quantità è diversa bisogna capire come fare
     single_client.orderOco({
             symbol: simbolo,
             side: 'SELL',
