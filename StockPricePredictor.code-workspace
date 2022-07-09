@@ -2,13 +2,10 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"name": "SSH FS - hostinger",
-			"uri": "ssh://hostinger/"
 		}
 	],
 	"settings": {
-		"deepscan.enable": true
+		"deepscan.enable": true,
+		"deepscan.serverEmbedded.eslint.enable":true,
 	}
 }
