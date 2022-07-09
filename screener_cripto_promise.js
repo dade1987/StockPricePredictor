@@ -146,41 +146,89 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
     */
     console.log("trying placing OCO", simbolo, quantity);
 
-    //c'è un errore. se il prezzo è sotto quello dello stopLoggTrigger deve chiudere a Mercato
-    //se la quantità è diversa bisogna capire come fare
-    single_client.orderOco({
-            symbol: simbolo,
-            side: 'SELL',
-            quantity: quantity,
-            //take profit
-            //si può calcolare su askprice o lastprice
-            //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
-            //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
-            price: takeProfit,
-            //stop loss trigger and limit
-            stopPrice: stopLossTrigger,
-            //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
-            stopLimitPrice: stopLoss
-        }).then(response2 => {
-            //console.log(response2);
-            ocoAttemps = 0;
-            callback([true, response2])
-        })
-        .catch((reason) => {
 
-            console.log("error. trying replacing OCO", arrayPrevisioni.simbolo, reason, ocoAttemps);
-            if (ocoAttemps < 10) {
-                ocoAttemps++;
-                setTimeout(function() {
-                    piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback);
-                }, 1000);
+    single_client.getOrder({
+        symbol: simbolo,
+        origClientOrderId: 'BUY',
+    }).then(get_order => {
+        if (ocoAttemps > 0) {
+            console.log("getOrder", get_order);
+            quantity = get_order.executedQty;
+        }
+        single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
+            if (stopLossTrigger < daily_stats.bidPrice) {
+                quantity = get_order.executedQty;
 
+                single_client.order({
+                    symbol: simbolo,
+                    side: 'SELL',
+                    type: 'MARKET',
+                    quantity: quantity,
+                    newClientOrderId: "SELL"
+                }).then(response => {
+                    console.log(response);
+                    callback([true, response])
+                }).catch((reason) => {
+                    console.log("single_client.order SELL", simbolo, reason);
+                });
             } else {
-                ocoAttemps = 0;
-                callback([false, "maxOCOattempts reached"])
-            }
 
+                //c'è un errore. se il prezzo è sotto quello dello stopLoggTrigger deve chiudere a Mercato
+                //se la quantità è diversa bisogna capire come fare
+                single_client.orderOco({
+                        symbol: simbolo,
+                        side: 'SELL',
+                        quantity: quantity,
+                        //take profit
+                        //si può calcolare su askprice o lastprice
+                        //meglio sull'ask price altrimenti guadagni talmente poco che spesso non copri neanche le commissioni
+                        //meglio su lastprice dato che le mediane vengono calcolate sui prezzi di chiusura medi
+                        price: takeProfit,
+                        //stop loss trigger and limit
+                        stopPrice: stopLossTrigger,
+                        //attenzione: non è detto che sia giusto impostarli uguali. forse in caso di slippage può saltare lo stop loss.
+                        stopLimitPrice: stopLoss
+                    }).then(response => {
+                        //console.log(response);
+                        ocoAttemps = 0;
+                        callback([true, response])
+                    })
+                    .catch((reason) => {
+
+                        console.log("single_client.orderOco", arrayPrevisioni.simbolo, reason, ocoAttemps);
+                        if (ocoAttemps < 10) {
+                            ocoAttemps++;
+                            setTimeout(function() {
+                                piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback);
+                            }, 1000);
+
+                        } else {
+                            ocoAttemps = 0;
+                            callback([false, "maxOCOattempts reached"])
+                        }
+
+                    });
+            }
+        }).catch((reason) => {
+            console.log("dailyStats", simbolo, reason);
         });
+    }).catch((reason) => {
+        console.log("getOrder", simbolo, reason);
+
+        if (ocoAttemps < 10) {
+            ocoAttemps++;
+            setTimeout(function() {
+                piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, single_client, callback);
+            }, 1000);
+
+        } else {
+            ocoAttemps = 0;
+            callback([false, "maxOCOattempts reached"])
+        }
+
+    });
+
+
 }
 
 async function autoInvestiLong(arrayPrevisioniFull) {
@@ -301,37 +349,38 @@ async function autoInvestiLong(arrayPrevisioniFull) {
                                                     symbol: arrayPrevisioni.simbolo,
                                                     side: 'BUY',
                                                     type: 'MARKET',
-                                                    quantity: maxQty
+                                                    quantity: maxQty,
+                                                    newClientOrderId: "BUY"
                                                 }).then(response => {
                                                     //console.log(response)
-                                                    piazzaOrdineOco(piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, 0, single_client, function(cb) {
+                                                    piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, 0, single_client, function(cb) {
                                                         if (cb[0] === true) {
                                                             console.log("ORDINE OCO PIAZZATO");
                                                         } else {
-                                                            console.log("no1", cb[1]);
+                                                            console.log("piazzaOrdineOco internal", cb[1]);
                                                         }
-                                                    }));
+                                                    });
                                                 }).catch((reason) => {
-                                                    console.log("no2", arrayPrevisioni.simbolo, reason);
+                                                    console.log("single_client.order BUY", arrayPrevisioni.simbolo, reason);
                                                 });
                                             }
                                         }).catch((reason) => {
-                                            console.log("no3", arrayPrevisioni.simbolo, reason);
+                                            console.log("single_client.openOrders", arrayPrevisioni.simbolo, reason);
                                         });
                                     }
                                 }
                             }).catch(reason => {
-                                console.log("no4", arrayPrevisioni.simbolo, reason);
+                                console.log("single_client.candles", arrayPrevisioni.simbolo, reason);
                             });
                         }).catch((reason) => {
-                            console.log("no5", arrayPrevisioni.simbolo, reason);
+                            console.log("single_client.dailyStats", arrayPrevisioni.simbolo, reason);
                         });
                     }).catch((reason) => {
                         //SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
-                        console.log("no6", arrayPrevisioni.simbolo, reason);
+                        console.log("single_client.accountInfo", arrayPrevisioni.simbolo, reason);
                     });
                 }).catch((reason) => {
-                    console.log("no7", arrayPrevisioni.simbolo, reason);
+                    console.log("single_client.exchangeInfo", arrayPrevisioni.simbolo, reason);
                 });
             };
 
