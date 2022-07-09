@@ -161,20 +161,20 @@ function piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLos
             stopLimitPrice: stopLoss
         }).then(response2 => {
             //console.log(response2);
-            OCOattemps = 0;
+            ocoAttemps = 0;
             callback([true, response2])
         })
         .catch((reason) => {
 
-            console.log("error. trying replacing OCO", arrayPrevisioni.simbolo, reason, OCOattemps);
-            if (OCOattemps < 10) {
-                OCOattemps++;
+            console.log("error. trying replacing OCO", arrayPrevisioni.simbolo, reason, ocoAttemps);
+            if (ocoAttemps < 10) {
+                ocoAttemps++;
                 setTimeout(function() {
                     piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, callback);
                 }, 1000);
 
             } else {
-                OCOattemps = 0;
+                ocoAttemps = 0;
                 callback([false, "maxOCOattempts reached"])
             }
 
