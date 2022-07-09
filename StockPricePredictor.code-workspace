@@ -8,5 +8,7 @@
 			"uri": "ssh://hostinger/"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"deepscan.enable": true
+	}
 }

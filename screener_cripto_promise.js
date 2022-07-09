@@ -103,7 +103,7 @@ async function playBullSentiment(bypass) {
     let ora = new Date().getHours();
 
     //solo ai minuti 30 fa il verso del toro
-    let minuti = new Date().getMinutes();
+    //let minuti = new Date().getMinutes();
 
     if (bypass === true) {
         if (sound_disabled === false) {
@@ -592,7 +592,7 @@ async function calculateNVTRatio(symbol) {
 
     return new Promise((resolve, reject) => {
 
-        let request = https.get(url, function(res) {
+        https.get(url, function(res) {
             let data = '';
             let json_data;
             let NVT = null;
@@ -932,9 +932,9 @@ async function bootstrap() {
                     let closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime);
                     console.log("AZIONE SHORT", symbol, "PREZZO", rawPrices[rawPrices.length - 1].close, "SIMBOLO", symbol);
                     let stopLoss = 1;
-                    let arrayInvestimento = [];
+                    //let arrayInvestimento = [];
                     arrayPrevisioni.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize });
-                    arrayInvestimento.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
+                    //arrayInvestimento.push({ azione: "SHORT", simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 - medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 + stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision: baseAssetPrecision, lotSize: lotSize, median: medianPercDifference });
 
 
 
