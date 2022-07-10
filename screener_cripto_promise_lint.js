@@ -671,7 +671,7 @@ playBullSentiment(true)
 bootstrap()
 setTimeout(function () {
   bootstrap()
-  interval = setInterval(function () {
+  setInterval(function () {
     bootstrap()
   }, 300000)
 }, wait_fist_time)
