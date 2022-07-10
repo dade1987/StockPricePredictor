@@ -138,18 +138,13 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
             */
   console.log('trying placing OCO', simbolo, quantity)
 
-  single_client.getOrder({
-    symbol: simbolo,
-    origClientOrderId: 'BUY'
-  }).then(get_order => {
-    if (ocoAttemps > 0 && get_order.status === 'FILLED') {
-      console.log('getOrder', get_order)
-      quantity = get_order.executedQty
-    }
-    single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
-      if (get_order.status === 'FILLED' && daily_stats.bidPrice < stopLossTrigger) {
-        quantity = get_order.executedQty
+  // non va bene vedere l'eseguito dell'ordine precedente
+  // bisogna vedere il bilancio di quel simbolo in conto
+  single_client.accountInfo().then(accountInfo => {
+    quantity = accountInfo.balances.filter(v => v.asset === simbolo.slice(-4))[0].free
 
+    single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
+      if (daily_stats.bidPrice < stopLossTrigger) {
         single_client.order({
           symbol: simbolo,
           side: 'SELL',
@@ -295,7 +290,7 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                   const stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), tickSizeDecimals)
 
                   // per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
-                  // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto) 
+                  // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto)
                   const condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) / 3) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.5)
 
                   console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/3', ((symbolPrice.bidPrice - stopLossTrigger) / 3), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
