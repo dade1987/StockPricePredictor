@@ -161,7 +161,16 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           callback([true, response])
         }).catch((reason) => {
           console.log('single_client.order SELL', simbolo, reason)
-          callback([false, 'single_client.order SELL'])
+
+          if (ocoAttemps < 10) {
+            ocoAttemps++
+            setTimeout(function () {
+              piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, single_client, callback)
+            }, 1000)
+          } else {
+            ocoAttemps = 0
+            callback([false, 'single_client.order SELL'])
+          }
         })
       } else {
         // c'è un errore. se il prezzo è sotto quello dello stopLoggTrigger deve chiudere a Mercato
@@ -200,12 +209,28 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
       }
     }).catch((reason) => {
       console.log('dailyStats', simbolo, reason)
-      callback([false, 'dailyStats'])
+      if (ocoAttemps < 10) {
+        ocoAttemps++
+        setTimeout(function () {
+          piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, single_client, callback)
+        }, 1000)
+      } else {
+        ocoAttemps = 0
+        callback([false, 'dailyStats'])
+      }
     })
   }).catch((reason) => {
     console.log('accountInfo', simbolo, reason)
 
-    callback([false, 'accountInfo'])
+    if (ocoAttemps < 10) {
+      ocoAttemps++
+      setTimeout(function () {
+        piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, single_client, callback)
+      }, 1000)
+    } else {
+      ocoAttemps = 0
+      callback([false, 'maxOCOattempts reached'])
+    }
   })
 }
 
