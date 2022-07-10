@@ -169,6 +169,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
             }, 1000)
           } else {
             ocoAttemps = 0
+            console.log('maxAttemps reached', simbolo)
             callback([false, 'single_client.order SELL'])
           }
         })
@@ -203,12 +204,14 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
               }, 1000)
             } else {
               ocoAttemps = 0
+              console.log('maxAttemps reached', simbolo)
               callback([false, 'maxOCOattempts reached'])
             }
           })
       }
     }).catch((reason) => {
       console.log('dailyStats', simbolo, reason)
+      console.log('maxAttemps reached', simbolo)
       if (ocoAttemps < 10) {
         ocoAttemps++
         setTimeout(function () {
@@ -228,6 +231,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
         piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, single_client, callback)
       }, 1000)
     } else {
+      console.log('maxAttemps reached', simbolo)
       ocoAttemps = 0
       callback([false, 'maxOCOattempts reached'])
     }
@@ -340,7 +344,7 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                           // console.log(response)
                           piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, single_client, function (cb) {
                             if (cb[0] === true) {
-                              console.log('ORDINE OCO PIAZZATO')
+                              console.log('ORDINE OCO PIAZZATO', arrayPrevisioni.simbolo)
                             } else {
                               console.log('piazzaOrdineOco internal', cb[1])
                             }
