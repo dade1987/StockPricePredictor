@@ -244,8 +244,6 @@ async function autoInvestiLong (arrayPrevisioniFull) {
       for (const arrayPrevisioni of arrayPrevisioniFull) {
         // questo serve solo in caso di conferma di tutte le altre condizioni
         client.exchangeInfo().then((e) => {
-          console.log('QUI')
-
           // console.log("ok1",  arrayPrevisioni.simbolo);
           const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
 
