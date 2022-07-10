@@ -439,7 +439,8 @@ function promessa (market, exchangeName, callback) {
 
     // connectionLimit è il limite di connessioni al secondo
     // con la mia connessione (30mbps down 15mbps up) ce la fa, altrimenti va regolato per non fare troppe richieste
-    if (simultaneousConnections < 3 && connectionLimit < 4) {
+    // < 3 e < 3 è l'ideale adesso che l'oco fa tante richieste alle API
+    if (simultaneousConnections < 3 && connectionLimit < 3) {
       // console.log('connectionLimit', 'passed', connectionLimit);
       // meglio mettere 210 nel reale altrimenti ci mette una vita a fare il ciclo
 
