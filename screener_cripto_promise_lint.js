@@ -147,7 +147,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
       quantity = get_order.executedQty
     }
     single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
-      if (get_order.status === 'FILLED' && stopLossTrigger < daily_stats.bidPrice) {
+      if (get_order.status === 'FILLED' && daily_stats.bidPrice < stopLossTrigger) {
         quantity = get_order.executedQty
 
         single_client.order({
@@ -185,6 +185,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
         })
           .catch((reason) => {
             console.log('single_client.orderOco', simbolo, reason, ocoAttemps)
+            console.log('ATTENZIONE. SE NON HAI BNB SCEGLIERE COMMISSIONI IN USDT')
             if (ocoAttemps < 10) {
               ocoAttemps++
               setTimeout(function () {
@@ -655,10 +656,10 @@ async function bootstrap () {
 playBullSentiment(true)
 
 // testing
-setTimeout(function () {
+/* setTimeout(function () {
   const arrayInvestimento = []
-  arrayInvestimento.push({ azione: 'LONG', simbolo: 'SOLUSDT', price: 38, tp: 40, sl: 36, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 })
+  arrayInvestimento.push({ azione: 'LONG', simbolo: 'SOLUSDT', price: 38.07, tp: 40, sl: 36, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 })
   autoInvestiLong(arrayInvestimento)
-}, 5000)
+}, 5000) */
 
 bootstrap()
