@@ -650,8 +650,10 @@ async function bootstrap () {
 }
 
 // ogni mezz'ora
-// let next_minute_date = roundUpTo30Minutes(new Date()) + 1000;
-// let next_minute_date = roundUpTo5Minutes(new Date()) + 1000;
+const next_minute_date = roundUpTo5Minutes(new Date()) + 1000
+
+const current_date = Date.now()
+const wait_fist_time = next_minute_date - current_date
 
 playBullSentiment(true)
 
