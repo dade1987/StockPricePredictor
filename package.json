@@ -30,7 +30,7 @@
         "technicalindicators": "^3.1.0"
     },
     "scripts": {
-        "start": "node screener_cripto_promise_lint.js"
+        "start": "node screener_cripto_promise_lint_beautified.js"
     },
     "author": "",
     "license": "MIT",
