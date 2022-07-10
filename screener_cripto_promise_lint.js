@@ -295,9 +295,10 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                   const stopLoss = roundByDecimals((symbolPrice.bidPrice / 100 * (100 - stop_loss_perc)), tickSizeDecimals)
 
                   // per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
-                  const condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.askPrice - stopLoss) / 3) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.askPrice - stopLoss) * 1.5)
+                  // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto) 
+                  const condition = (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) / 3) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.5)
 
-                  console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.askPrice - stopLoss), 'DIFF SL/2', ((symbolPrice.askPrice - stopLoss) / 2), 'DIFF SL*1.5', ((symbolPrice.askPrice - stopLoss) * 1.5), 'CONDITION', condition)
+                  console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/3', ((symbolPrice.bidPrice - stopLossTrigger) / 3), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
 
                   if (UsdtAmount >= 25 && condition === true) {
                     single_client.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
