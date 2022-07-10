@@ -141,7 +141,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
   // non va bene vedere l'eseguito dell'ordine precedente
   // bisogna vedere il bilancio di quel simbolo in conto
   single_client.accountInfo().then(accountInfo => {
-    quantity = accountInfo.balances.filter(v => v.asset === simbolo.slice(-4))[0].free
+    quantity = accountInfo.balances.filter(v => v.asset === simbolo.slice(0, -4))[0].free
     quantity = roundByDecimals(roundByLotSize(quantity, lotSize), baseAssetPrecision)
 
     single_client.dailyStats({ symbol: simbolo }).then(daily_stats => {
@@ -201,7 +201,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
   }).catch((reason) => {
     console.log('getOrder', simbolo, reason)
 
-    if (ocoAttemps < 10) {
+    /* if (ocoAttemps < 10) {
       ocoAttemps++
       setTimeout(function () {
         piazzaOrdineOco(simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, single_client, callback)
@@ -209,7 +209,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
     } else {
       ocoAttemps = 0
       callback([false, 'maxOCOattempts reached'])
-    }
+    } */
   })
 }
 
