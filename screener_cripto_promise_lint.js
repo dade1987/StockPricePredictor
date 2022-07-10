@@ -650,6 +650,10 @@ async function bootstrap () {
 }
 
 // ogni mezz'ora
+
+const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo
+const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5)
+
 const next_minute_date = roundUpTo5Minutes(new Date()) + 1000
 
 const current_date = Date.now()
