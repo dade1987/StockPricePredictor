@@ -663,3 +663,9 @@ playBullSentiment(true)
 }, 5000) */
 
 bootstrap()
+setTimeout(function () {
+  bootstrap()
+  interval = setInterval(function () {
+    bootstrap()
+  }, 300000)
+}, wait_fist_time)
