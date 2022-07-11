@@ -87,6 +87,73 @@ String.prototype.countDecimals = function () {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+function analisiGraficaGiornalieraMassimiMinimiVicini (candles30Min) {
+  const massimiVicini = []
+  const minimiVicini = []
+  const doppiTocchiMassimi = []
+  const tripliTocchiMassimi = []
+  const doppiTocchiMinimi = []
+  const tripliTocchiMinimi = []
+  let massimoAssoluto = 0
+  let minimoAssoluto = Infinity
+
+  const sma = SMA.calculate({
+    period: 3,
+    values: candles30Min
+  }).map((v) => roundByDecimals(v, 2))
+
+  const c = sma.length
+  let rapportoIncrementalePrecedente = 0
+  for (let i = 1; i < c; i++) {
+    const x0 = i - 1
+    const x1 = i
+    const y0 = sma[x0]
+    const y1 = sma[x1]
+    const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
+    if (i > 1) {
+      if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
+        const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y1
+        // minimo relativo o assoluto
+        if (y1 < minimoAssoluto) {
+          minimoAssoluto = price
+        }
+        const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
+        // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+        if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+          tripliTocchiMinimi.push(price)
+        }
+        const searchOtherMax = minimiVicini.lastIndexOf(price)
+        if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+          doppiTocchiMinimi.push(price)
+        }
+        minimiVicini.push(price)
+      } else if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
+        const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
+        // massimo relativo o assoluto
+        if (price > massimoAssoluto) {
+          massimoAssoluto = price
+        }
+        const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
+        // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+        if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+          tripliTocchiMassimi.push(price)
+        }
+        const searchOtherMax = massimiVicini.lastIndexOf(price)
+        if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+          doppiTocchiMassimi.push(price)
+        }
+        massimiVicini.push(price)
+      } else {
+        // flesso quindi non mi interessa per ora
+      }
+    }
+    rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
+  }
+
+  return { sma, massimiVicini, minimiVicini, massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi }
+}
+
 async function playBullSentiment (bypass) {
   const path = require('path')
   const filePath = path.join(__dirname, 'bull_sentiment.mp3')
@@ -319,7 +386,7 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                   console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
                   // per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
                   // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto)
-                  const condition = symbolPrice.quoteVolume > 4500000 && (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) / 2) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.5)
+                  const condition = symbolPrice.quoteVolume > 4500000 && (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) * 0.6) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.2)
 
                   console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/2', ((symbolPrice.bidPrice - stopLossTrigger) / 2), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
 
@@ -692,6 +759,13 @@ playBullSentiment(true)
   arrayInvestimento.push({ azione: 'LONG', simbolo: 'SOLUSDT', price: 38.07, tp: 40, sl: 36, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 })
   autoInvestiLong(arrayInvestimento)
 }, 5000) */
+
+// eslint-disable-next-line no-unused-vars
+function testAnalisiGraficaGiornalieraMassimiMinimiVicini () {
+  const testArray = [1, 2, 3, 4, 3, 2, 3, 4, 5, 4, 3, 4, 3, 4, 5, 4, 3, 2, 3, 4, 5, 4, 3, 4, 5, 6, 5, 6, 5, 4, 3, 4, 3, 2, 1, 2, 3, 4, 3, 2]
+  console.log(analisiGraficaGiornalieraMassimiMinimiVicini(testArray))
+  process.exit()
+}
 
 bootstrap()
 setTimeout(function () {
