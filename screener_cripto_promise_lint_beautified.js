@@ -1010,7 +1010,12 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
       let convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
 
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: 5 }).then((ultimeCandele) => {
-        const ultimiVolumiSalitaArray = ultimeCandele.filter((v, i, a) => { return i > 1 && Number(v.volume) > Number(a[i - 1].volume) })
+        let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
+          return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
+        })
+        ultimiVolumiSalitaArray = ultimiVolumiSalitaArray.filter((v, i, a) => {
+          return v === true
+        })
         // segno di inversione rialzista a 1 minuto
         let ultimeCandeleArray = ultimeCandele.map((v) => { return Number(v.close) > Number(v.open) })
 
@@ -1020,7 +1025,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
         // TEST
         // ultimeCandeleArray = [true];
-        console.log(simbolo, 'ultimeCandele', ultimeCandeleArray, 'ultimiVolumiSalit', ultimiVolumiSalitaArray)
+        console.log(simbolo, 'ultimeCandele', ultimeCandeleArray, 'ultimiVolumiSalita', ultimiVolumiSalitaArray)
 
         if (ultimeCandeleArray.length > 0 && ultimiVolumiSalitaArray.length >= 2) {
           // resta com'è
