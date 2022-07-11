@@ -881,7 +881,7 @@ playBullSentiment(true)
 
 // eslint-disable-next-line no-unused-vars
 function testAnalisiOrderBook () {
-  const simbolo = 'BURGERUSDT'
+  const simbolo = 'SOLUSDT'
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
     console.log(grafica)
     const currentPrice = grafica.currentPrice
@@ -917,7 +917,8 @@ function testAnalisiOrderBook () {
     const diffMinPerc = ((nextMinPrice - currentPrice) / currentPrice) * 100
 
     analisiOrderBook(simbolo, currentPrice, nextMaxPrice, nextMinPrice, (book) => {
-      console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice, 'diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
+      console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice)
+      console.log('diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
       console.log(/* book.asks, book.bids, */ 'bestAsk', book.bestAsk, 'bestBid', book.bestBid)
       process.exit()
     })
