@@ -91,20 +91,20 @@ String.prototype.countDecimals = function () {
 // eslint-disable-next-line no-unused-vars
 function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
   client.book({ symbol }).then(response => {
-    let asks = response.asks.reverse()
-    let bids = response.bids
+    const asks2 = response.asks.reverse()
+    const bids2 = response.bids
 
-    asks = asks.filter((v, i, a) => {
+    const asks = asks2.filter((v, i, a) => {
       if (v.price <= maxPrice && v.price > currentPrice) {
         return v.price
       }
     }).slice(0, 3)
 
-    bids = bids.filter((v, i, a) => {
+    const bids = bids2.filter((v, i, a) => {
       if (v.price >= minPrice && v.price < currentPrice) {
         return v.price
       }
-    }).slice(0, 3)
+    }).slice(-3)
 
     let bestAsk = asks.sort((a, b) => {
       return a.quantity - b.quantity
@@ -120,7 +120,7 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
       bestBid = bestBid[0]
     }
 
-    callback({ asks, bids, bestAsk: bestAsk.price, bestBid: bestBid.price })
+    callback({ asks, bids, asks2, bids2, bestAsk: bestAsk.price, bestBid: bestBid.price })
   }).catch(reason => { console.log(reason) })
 }
 
@@ -865,15 +865,20 @@ function testAnalisiOrderBook (simbolo, callback) {
         return v
       }
     })
+
+    let boolReimpostazioneStopLoss = false
     if (nextMinPrice.length > 0) {
       nextMinPrice = nextMinPrice[0]
     } else {
-      nextMinPrice = currentPrice * 0.988
-      console.log('minimo non presente in questa condizione. settato a -1.2%')
+      nextMinPrice = currentPrice * 0.99
+      boolReimpostazioneStopLoss = true
+      // console.log('minimo non presente in questa condizione. settato a -1%')
     }
 
+    let boolSottoMinimiGiornalieri = false
     if (currentPrice < grafica.minimoAssoluto) {
-      console.log('sotto i minimi giornalieri. non è possibile procedere')
+      boolSottoMinimiGiornalieri = true
+      // console.log('sotto i minimi giornalieri. non è possibile procedere')
     }
 
     const diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
@@ -891,12 +896,22 @@ function testAnalisiOrderBook (simbolo, callback) {
       console.log('boolDoppioMassimo', boolDoppioMassimo, 'boolDoppioMinimo', boolDoppioMinimo, 'boolTriploMassimo', boolTriploMassimo, 'boolTriploMinimo', boolTriploMinimo)
       process.exit() */
 
-      callback({ currentPrice, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+      const currentAskPrice = book.asks2[book.asks2.length - 1].price
+      // const currentBidPrice = book.bids2[0].price
+      const diffAskPerc = ((book.bestAsk - currentAskPrice) / currentAskPrice) * 100
+      const diffBidPerc = ((book.bestBid - currentAskPrice) / currentAskPrice) * 100
+
+      const convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
+
+      // alla fine bisogna guardare bestAsk e bestBid
+      callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
     })
   })
 }
 
-testAnalisiOrderBook()
+testAnalisiOrderBook('SOLUSDT', (data) => {
+  console.log(data)
+})
 
 bootstrap()
 setTimeout(function () {
