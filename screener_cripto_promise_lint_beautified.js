@@ -382,6 +382,122 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
   })
 }
 
+async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
+  try {
+    for (const singleClient of clients) {
+      // console.log(single_client);
+
+      for (const arrayPrevisioni of arrayPrevisioniFull) {
+        // questo serve solo in caso di conferma di tutte le altre condizioni
+        client.exchangeInfo().then((e) => {
+          // console.log("ok1",  arrayPrevisioni.simbolo);
+          const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
+
+          // anche se è già una stringa è per capire
+          const tickSizeDecimals = tickSize.toString().countDecimals()
+
+          // console.log("ok2", arrayPrevisioni.simbolo);
+          singleClient.accountInfo().then(accountInfo => {
+            // console.log(accountInfo);
+            // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+            // meglio differenziare perchè almeno se perdi su una magari su un altra sale
+            // quindi meglio settare un importo che sia 1/3 del totale che si possiede
+
+            const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95
+            // console.log("USDT Amount", UsdtAmount);
+            singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
+              // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
+              // altrimenti lasciar perdere l'investimento
+
+              analisiGraficoOrderbook(arrayPrevisioni.simbolo, singleClient, (analisiGraficoBook) => {
+                console.log(analisiGraficoBook)
+                if (analisiGraficoBook !== false) {
+                  // console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
+                  let maxQty = UsdtAmount / Number(analisiGraficoBook.currentAskPrice)
+                  // console.log("Max Qty", maxQty);
+
+                  maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision)
+
+                  // console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
+                  console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
+                  // L'ask price è il prezzo minore a cui ti vendono la moneta
+                  // in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
+
+                  // stop loss perc è -1.2% massimo. meglio seguire la regola del 2%
+                  // ovvero mai mettere a rischio più del 2% del capitale investito, per ogni operazione
+
+                  // rif. https://www.cmegroup.com/education/courses/trade-and-risk-management/the-2-percent-rule.html
+                  // rif. One popular method is the 2% Rule, which means you never put more than 2% of your account equity at risk (Table 1). For example, if you are trading a $50,000 account, and you choose a risk management stop loss of 2%, you could risk up to $1,000 on any given trade.
+                  const stopLossTriggerPerc = Math.abs(analisiGraficoBook.diffBidPerc)
+                  const stopLossPerc = Math.abs(analisiGraficoBook * 1.2)
+                  // dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
+                  // APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
+                  // COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
+                  // E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
+
+                  const takeProfit = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 + Math.abs(analisiGraficoBook.diffAskPerc))), tickSizeDecimals)
+                  // lo stop loss va sempre calcolato partendo da ask price, dato che ho comprato con ask price
+                  const stopLossTrigger = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 - stopLossTriggerPerc)), tickSizeDecimals)
+                  const stopLoss = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 - stopLossPerc)), tickSizeDecimals)
+
+                  console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
+                  // per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
+                  // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto)
+                  const condition = analisiGraficoBook.convenienza
+
+                  console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/2', ((symbolPrice.bidPrice - stopLossTrigger) / 2), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
+
+                  if (UsdtAmount >= 25 && condition === true) {
+                    singleClient.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
+                      console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
+
+                      if (openOrders.length === 0) {
+                        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
+                        playBullSentiment()
+
+                        singleClient.order({
+                          symbol: arrayPrevisioni.simbolo,
+                          side: 'BUY',
+                          type: 'MARKET',
+                          quantity: maxQty,
+                          newClientOrderId: 'BUY'
+                        }).then(() => {
+                          // console.log(response)
+                          piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, singleClient, function (cb) {
+                            if (cb[0] === true) {
+                              console.log('ORDINE OCO PIAZZATO', arrayPrevisioni.simbolo)
+                            } else {
+                              console.log('piazzaOrdineOco internal', cb[1])
+                            }
+                          })
+                        }).catch((reason) => {
+                          console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
+                        })
+                      }
+                    }).catch((reason) => {
+                      console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
+                    })
+                  }
+                }
+              })
+            }).catch((reason) => {
+              console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
+            })
+          }).catch((reason) => {
+            // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
+            console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
+          })
+        }).catch((reason) => {
+          console.log('single_client.exchangeInfo', arrayPrevisioni.simbolo, reason)
+        })
+      };
+    };
+  } catch (reason) {
+    console.log(reason)
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 async function autoInvestiLong (arrayPrevisioniFull) {
   try {
     for (const singleClient of clients) {
@@ -397,17 +513,6 @@ async function autoInvestiLong (arrayPrevisioniFull) {
           const tickSizeDecimals = tickSize.toString().countDecimals()
 
           // console.log("ok2", arrayPrevisioni.simbolo);
-
-          // qui da il seguente errore
-          /* Error: Timestamp for this request was 1000ms ahead of the server's time.
-                                                                                              at C:\var\www\StockPricePredictor\node_modules\binance-api-node\dist\http-client.js:100:17
-                                                                                              at processTicksAndRejections (node:internal/process/task_queues:96:5)
-                                                                                              at async autoInvestiLong (C:\var\www\StockPricePredictor\screener_cripto.js:273:31)
-                                                                                              at async bootstrap (C:\var\www\StockPricePredictor\screener_cripto.js:1239:21) {
-                                                                                              code: -1021,
-                                                                                              url: 'https://api.binance.com/api/v3/account?timestamp=1657010501523&signature=c592cb5f1cf44864b11e4960c2077c0b41ae926b81def834bb36e66598dfaf58'
-                                                                                              } */
-
           singleClient.accountInfo().then(accountInfo => {
             // console.log(accountInfo);
             // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
@@ -797,7 +902,8 @@ async function bootstrap () {
           arrayInvestimento.push({ azione: 'LONG', simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision, lotSize, median: medianPercDifference })
           // meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
           // provo a togliere l'await dato che è dentro una Promise e speriamo bene
-          autoInvestiLong(arrayInvestimento)
+          // autoInvestiLong(arrayInvestimento)
+          autoInvestiLongOrderbook(arrayInvestimento)
           // }
         } else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
@@ -840,7 +946,7 @@ playBullSentiment(true)
 }, 5000) */
 
 // eslint-disable-next-line no-unused-vars
-function testAnalisiOrderBook (simbolo, callback) {
+function analisiGraficoOrderbook (simbolo, singleClient, callback) {
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
     console.log(grafica)
     const currentPrice = grafica.currentPrice
@@ -903,15 +1009,29 @@ function testAnalisiOrderBook (simbolo, callback) {
 
       const convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
 
-      // alla fine bisogna guardare bestAsk e bestBid
-      callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+      singleClient.candles({ symbol: simbolo, interval: '5m', limit: 5 }).then((ultimeCandele) => {
+        // segno di inversione rialzista a 1 minuto
+        let ultimeCandeleArray = ultimeCandele.map((v) => { return Number(v.close) > Number(v.open) })
+
+        ultimeCandeleArray = ultimeCandeleArray.filter((v, i, a) => {
+          return i > 0 && a[i] === true && a[i - 1] === true
+        })
+
+        // TEST
+        // ultimeCandeleArray = [true];
+        console.log(simbolo, 'ultimeCandele', ultimeCandeleArray)
+
+        if (ultimeCandeleArray.length > 0) {
+          // alla fine bisogna guardare bestAsk e bestBid
+          callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+        }
+      }).catch(reason => {
+        console.log(reason)
+        callback(false)
+      })
     })
   })
 }
-
-testAnalisiOrderBook('SOLUSDT', (data) => {
-  console.log(data)
-})
 
 bootstrap()
 setTimeout(function () {
