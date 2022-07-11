@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable n/no-callback-literal */
 /* eslint-disable no-extend-native */
 'use strict'
@@ -88,70 +89,174 @@ String.prototype.countDecimals = function () {
 }
 
 // eslint-disable-next-line no-unused-vars
-function analisiGraficaGiornalieraMassimiMinimiVicini (candles30Min) {
-  const massimiVicini = []
-  const minimiVicini = []
-  const doppiTocchiMassimi = []
-  const tripliTocchiMassimi = []
-  const doppiTocchiMinimi = []
-  const tripliTocchiMinimi = []
-  let massimoAssoluto = 0
-  let minimoAssoluto = Infinity
+function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
+  client.book({ symbol }).then(response => {
+    let asks = response.asks.reverse()
+    let bids = response.bids
 
-  const sma = SMA.calculate({
-    period: 3,
-    values: candles30Min
-  }).map((v) => roundByDecimals(v, 2))
-
-  const c = sma.length
-  let rapportoIncrementalePrecedente = 0
-  for (let i = 1; i < c; i++) {
-    const x0 = i - 1
-    const x1 = i
-    const y0 = sma[x0]
-    const y1 = sma[x1]
-    const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
-    if (i > 1) {
-      if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
-        const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y1
-        // minimo relativo o assoluto
-        if (y1 < minimoAssoluto) {
-          minimoAssoluto = price
-        }
-        const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
-        // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-        if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
-          tripliTocchiMinimi.push(price)
-        }
-        const searchOtherMax = minimiVicini.lastIndexOf(price)
-        if (searchOtherMax !== -1 && searchOtherMax !== x0) {
-          doppiTocchiMinimi.push(price)
-        }
-        minimiVicini.push(price)
-      } else if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
-        const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
-        // massimo relativo o assoluto
-        if (price > massimoAssoluto) {
-          massimoAssoluto = price
-        }
-        const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
-        // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-        if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
-          tripliTocchiMassimi.push(price)
-        }
-        const searchOtherMax = massimiVicini.lastIndexOf(price)
-        if (searchOtherMax !== -1 && searchOtherMax !== x0) {
-          doppiTocchiMassimi.push(price)
-        }
-        massimiVicini.push(price)
-      } else {
-        // flesso quindi non mi interessa per ora
+    asks = asks.filter((v, i, a) => {
+      if (v.price < maxPrice && v.price > currentPrice) {
+        return v.price
       }
-    }
-    rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
-  }
+    }).slice(-5)
 
-  return { sma, massimiVicini, minimiVicini, massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi }
+    bids = bids.filter((v, i, a) => {
+      if (v.price > minPrice && v.price < currentPrice) {
+        return v.price
+      }
+    }).slice(0, 5)
+
+    callback({ asks, bids })
+  }).catch(reason => { console.log(reason) })
+}
+
+// eslint-disable-next-line no-unused-vars
+function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
+  // 48 vuol dire 24 ore dato che sono intervalli di 30 minuti
+  client.candles({ symbol, interval: '30m', limit: 48 }).then((candles30Min) => {
+    const massimiVicini = []
+    const minimiVicini = []
+    const doppiTocchiMassimi = []
+    const tripliTocchiMassimi = []
+    const doppiTocchiMinimi = []
+    const tripliTocchiMinimi = []
+    let massimoAssoluto = 0
+    let minimoAssoluto = Infinity
+
+    const candles30MinCloses = candles30Min.map((v) => Number(v.close))
+    const currentPrice = candles30MinCloses[candles30MinCloses.length - 1]
+
+    const smaClose = SMA.calculate({
+      period: 3,
+      values: candles30Min.map((v) => Number(v.close))
+    }).map((v) => roundByDecimals(v, 2))
+
+    const smaMin = SMA.calculate({
+      period: 3,
+      values: candles30Min.map((v) => Number(v.low))
+    }).map((v) => roundByDecimals(v, 2))
+
+    const smaMax = SMA.calculate({
+      period: 3,
+      values: candles30Min.map((v) => Number(v.high))
+    }).map((v) => roundByDecimals(v, 2))
+
+    // per calcolare le resistenze (in alto)
+    let c = smaMax.length
+    let rapportoIncrementalePrecedente = 0
+    for (let i = 1; i < c; i++) {
+      const x0 = i - 1
+      const x1 = i
+      const y0 = smaMax[x0]
+      const y1 = smaMax[x1]
+      const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
+      if (i > 1) {
+        if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
+          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
+          // massimo relativo o assoluto
+          if (price > massimoAssoluto) {
+            massimoAssoluto = price
+          }
+          const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
+          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+            tripliTocchiMassimi.push(price)
+          }
+          const searchOtherMax = massimiVicini.lastIndexOf(price)
+          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+            doppiTocchiMassimi.push(price)
+          }
+          massimiVicini.push(price)
+        } else {
+        // flesso quindi non mi interessa per ora
+        }
+      }
+      rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
+    }
+
+    // per calcolare i supporti (in basso)
+    c = smaMin.length
+    rapportoIncrementalePrecedente = 0
+    for (let i = 1; i < c; i++) {
+      const x0 = i - 1
+      const x1 = i
+      const y0 = smaMin[x0]
+      const y1 = smaMin[x1]
+      const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
+      if (i > 1) {
+        if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
+          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y1
+          // minimo relativo o assoluto
+          if (y1 < minimoAssoluto) {
+            minimoAssoluto = price
+          }
+          const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
+          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+            tripliTocchiMinimi.push(price)
+          }
+          const searchOtherMax = minimiVicini.lastIndexOf(price)
+          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+            doppiTocchiMinimi.push(price)
+          }
+          minimiVicini.push(price)
+        } else {
+        // flesso quindi non mi interessa per ora
+        }
+      }
+      rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
+    }
+
+    c = smaClose.length
+    rapportoIncrementalePrecedente = 0
+    for (let i = 1; i < c; i++) {
+      const x0 = i - 1
+      const x1 = i
+      const y0 = smaClose[x0]
+      const y1 = smaClose[x1]
+      const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
+      if (i > 1) {
+        if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
+          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
+          // massimo relativo o assoluto
+          if (price > massimoAssoluto) {
+            massimoAssoluto = price
+          }
+          const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
+          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+            tripliTocchiMassimi.push(price)
+          }
+          const searchOtherMax = massimiVicini.lastIndexOf(price)
+          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+            doppiTocchiMassimi.push(price)
+          }
+          massimiVicini.push(price)
+        } else if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
+          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y1
+          // minimo relativo o assoluto
+          if (y1 < minimoAssoluto) {
+            minimoAssoluto = price
+          }
+          const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
+          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
+          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+            tripliTocchiMinimi.push(price)
+          }
+          const searchOtherMax = minimiVicini.lastIndexOf(price)
+          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+            doppiTocchiMinimi.push(price)
+          }
+          minimiVicini.push(price)
+        } else {
+        // flesso quindi non mi interessa per ora
+        }
+      }
+      rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
+    }
+
+    callback({ currentPrice, candles30Min, smaMax, /* smaMin, */ massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
+  }).catch((r) => console.log(r))
 }
 
 async function playBullSentiment (bypass) {
@@ -761,11 +866,48 @@ playBullSentiment(true)
 }, 5000) */
 
 // eslint-disable-next-line no-unused-vars
-function testAnalisiGraficaGiornalieraMassimiMinimiVicini () {
-  const testArray = [1, 2, 3, 4, 3, 2, 3, 4, 5, 4, 3, 4, 3, 4, 5, 4, 3, 2, 3, 4, 5, 4, 3, 4, 5, 6, 5, 6, 5, 4, 3, 4, 3, 2, 1, 2, 3, 4, 3, 2]
-  console.log(analisiGraficaGiornalieraMassimiMinimiVicini(testArray))
-  process.exit()
+function testAnalisiOrderBook () {
+  analisiGraficaGiornalieraMassimiMinimiVicini('BTCUSDT', (grafica) => {
+    console.log(grafica)
+    const currentPrice = grafica.currentPrice
+    // eslint-disable-next-line array-callback-return
+    let nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
+      // se torna più dello 0.5% rispetto al prezzo attuale
+      if (v > currentPrice * 1.005 && v < currentPrice * 1.02) {
+        return v
+      }
+    })
+    if (nextMaxPrice.length > 0) {
+      nextMaxPrice = nextMaxPrice[0]
+    }
+
+    // eslint-disable-next-line no-unused-vars, array-callback-return
+    let nextMinPrice = grafica.minimiVicini.sort().reverse().filter((v) => {
+      // se torna più dello 0.5% rispetto al prezzo attuale
+      // può essere anche che non ci siano minimi con queste condizioni
+      if (v < currentPrice * 0.99 && v > currentPrice * 0.98) {
+        return v
+      }
+    })
+    if (nextMinPrice.length > 0) {
+      nextMinPrice = nextMinPrice[0]
+    }else
+    {
+      console.log('minimo non presente in questa condizione')
+    }
+
+    const diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
+    const diffMinPerc = ((nextMinPrice - currentPrice) / currentPrice) * 100
+
+    console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice, 'diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
+    analisiOrderBook('BTCUSDT', currentPrice, nextMaxPrice, nextMinPrice, (book) => {
+      console.log(book.asks, book.bids)
+      process.exit()
+    })
+  })
 }
+
+testAnalisiOrderBook()
 
 bootstrap()
 setTimeout(function () {
