@@ -1027,7 +1027,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         // ultimeCandeleArray = [true];
         console.log(simbolo, 'ultimeCandele', ultimeCandeleArray, 'ultimiVolumiSalita', ultimiVolumiSalitaArray)
 
-        if (ultimeCandeleArray.length > 0 && ultimiVolumiSalitaArray.length >= 2) {
+        if (ultimeCandeleArray.length >= 2 && ultimiVolumiSalitaArray.length >= 3) {
           // resta com'è
         } else {
           convenienza = false
