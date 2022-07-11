@@ -95,18 +95,32 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
     let bids = response.bids
 
     asks = asks.filter((v, i, a) => {
-      if (v.price < maxPrice && v.price > currentPrice) {
+      if (v.price <= maxPrice && v.price > currentPrice) {
         return v.price
       }
-    }).slice(-5)
+    }).slice(0, 4)
 
     bids = bids.filter((v, i, a) => {
-      if (v.price > minPrice && v.price < currentPrice) {
+      if (v.price >= minPrice && v.price < currentPrice) {
         return v.price
       }
-    }).slice(0, 5)
+    }).slice(0, 4)
 
-    callback({ asks, bids })
+    let bestAsk = asks.sort((a, b) => {
+      return a.quantity - b.quantity
+    })
+    if (bestAsk.length > 0) {
+      bestAsk = bestAsk[0]
+    }
+
+    let bestBid = bids.sort((a, b) => {
+      return a.quantity - b.quantity
+    })
+    if (bestBid.length > 0) {
+      bestBid = bestBid[0]
+    }
+
+    callback({ asks, bids, bestAsk: bestAsk.price, bestBid: bestBid.price })
   }).catch(reason => { console.log(reason) })
 }
 
@@ -255,7 +269,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
     }
 
-    callback({ currentPrice, candles30Min, smaMax, /* smaMin, */ massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
+    callback({ currentPrice, /* candles30Min, smaMax, smaMin, */ massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
 }
 
@@ -867,18 +881,21 @@ playBullSentiment(true)
 
 // eslint-disable-next-line no-unused-vars
 function testAnalisiOrderBook () {
-  analisiGraficaGiornalieraMassimiMinimiVicini('BTCUSDT', (grafica) => {
+  const simbolo = 'BURGERUSDT'
+  analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
     console.log(grafica)
     const currentPrice = grafica.currentPrice
     // eslint-disable-next-line array-callback-return
     let nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
       // se torna più dello 0.5% rispetto al prezzo attuale
-      if (v > currentPrice * 1.005 && v < currentPrice * 1.02) {
+      if (v > currentPrice * 1.01 && v < currentPrice * 1.05) {
         return v
       }
     })
     if (nextMaxPrice.length > 0) {
       nextMaxPrice = nextMaxPrice[0]
+    } else {
+      console.log('massimo non presente in questa condizione')
     }
 
     // eslint-disable-next-line no-unused-vars, array-callback-return
@@ -891,17 +908,17 @@ function testAnalisiOrderBook () {
     })
     if (nextMinPrice.length > 0) {
       nextMinPrice = nextMinPrice[0]
-    }else
-    {
-      console.log('minimo non presente in questa condizione')
+    } else {
+      nextMinPrice = currentPrice * 0.988
+      console.log('minimo non presente in questa condizione. settato a -1.2%')
     }
 
     const diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
     const diffMinPerc = ((nextMinPrice - currentPrice) / currentPrice) * 100
 
-    console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice, 'diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
-    analisiOrderBook('BTCUSDT', currentPrice, nextMaxPrice, nextMinPrice, (book) => {
-      console.log(book.asks, book.bids)
+    analisiOrderBook(simbolo, currentPrice, nextMaxPrice, nextMinPrice, (book) => {
+      console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice, 'diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
+      console.log(/* book.asks, book.bids, */ 'bestAsk', book.bestAsk, 'bestBid', book.bestBid)
       process.exit()
     })
   })
