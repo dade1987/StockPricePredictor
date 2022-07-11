@@ -953,7 +953,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
     // eslint-disable-next-line array-callback-return
     let nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
       // se torna più dello 0.5% rispetto al prezzo attuale
-      if (v > currentPrice * 1.01 && v < currentPrice * 1.05) {
+      if (v > currentPrice * 1.01 && v < currentPrice * 1.03) {
         return v
       }
     })
