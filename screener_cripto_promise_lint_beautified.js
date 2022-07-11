@@ -1007,9 +1007,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
       const diffAskPerc = ((book.bestAsk - currentAskPrice) / currentAskPrice) * 100
       const diffBidPerc = ((book.bestBid - currentAskPrice) / currentAskPrice) * 100
 
-      const convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
+      let convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
 
-      singleClient.candles({ symbol: simbolo, interval: '5m', limit: 5 }).then((ultimeCandele) => {
+      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 5 }).then((ultimeCandele) => {
+        const ultimiVolumiSalitaArray = ultimeCandele.filter((v, i, a) => { return i > 1 && Number(v.volume) > Number(a[i - 1].volume) })
         // segno di inversione rialzista a 1 minuto
         let ultimeCandeleArray = ultimeCandele.map((v) => { return Number(v.close) > Number(v.open) })
 
@@ -1019,12 +1020,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
         // TEST
         // ultimeCandeleArray = [true];
-        console.log(simbolo, 'ultimeCandele', ultimeCandeleArray)
+        console.log(simbolo, 'ultimeCandele', ultimeCandeleArray, 'ultimiVolumiSalit', ultimiVolumiSalitaArray)
 
-        if (ultimeCandeleArray.length > 0) {
-          // alla fine bisogna guardare bestAsk e bestBid
-          callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+        if (ultimeCandeleArray.length > 0 && ultimiVolumiSalitaArray.length >= 2) {
+          // resta com'è
+        } else {
+          convenienza = false
         }
+        callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
       }).catch(reason => {
         console.log(reason)
         callback(false)
@@ -1032,6 +1035,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
     })
   })
 }
+
+analisiGraficoOrderbook('SOLUSDT', client, function (response) {
+  console.log(response)
+})
 
 bootstrap()
 setTimeout(function () {
