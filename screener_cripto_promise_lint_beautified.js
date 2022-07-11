@@ -140,10 +140,10 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const candles30MinCloses = candles30Min.map((v) => Number(v.close))
     const currentPrice = candles30MinCloses[candles30MinCloses.length - 1]
 
-    const smaClose = SMA.calculate({
+    /* const smaClose = SMA.calculate({
       period: 3,
       values: candles30Min.map((v) => Number(v.close))
-    }).map((v) => roundByDecimals(v, 2))
+    }).map((v) => roundByDecimals(v, 2)) */
 
     const smaMin = SMA.calculate({
       period: 3,
@@ -173,11 +173,11 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
           }
           const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
           // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+          if (searchOtherDouble !== -1 && searchOtherDouble !== doppiTocchiMassimi.length - 1) {
             tripliTocchiMassimi.push(price)
           }
           const searchOtherMax = massimiVicini.lastIndexOf(price)
-          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+          if (searchOtherMax !== -1 && searchOtherMax !== massimiVicini.length - 1) {
             doppiTocchiMassimi.push(price)
           }
           massimiVicini.push(price)
@@ -206,11 +206,11 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
           }
           const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
           // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
+          if (searchOtherDouble !== -1 && searchOtherDouble !== doppiTocchiMinimi.length - 1) {
             tripliTocchiMinimi.push(price)
           }
           const searchOtherMax = minimiVicini.lastIndexOf(price)
-          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
+          if (searchOtherMax !== -1 && searchOtherMax !== minimiVicini.length - 1) {
             doppiTocchiMinimi.push(price)
           }
           minimiVicini.push(price)
@@ -221,7 +221,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
     }
 
-    c = smaClose.length
+    /* c = smaClose.length
     rapportoIncrementalePrecedente = 0
     for (let i = 1; i < c; i++) {
       const x0 = i - 1
@@ -231,7 +231,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
       if (i > 1) {
         if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
-          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
+          const price = y0
           // massimo relativo o assoluto
           if (price > massimoAssoluto) {
             massimoAssoluto = price
@@ -247,7 +247,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
           }
           massimiVicini.push(price)
         } else if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
-          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y1
+          const price = y1
           // minimo relativo o assoluto
           if (y1 < minimoAssoluto) {
             minimoAssoluto = price
@@ -267,7 +267,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
         }
       }
       rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
-    }
+    } */
 
     callback({ currentPrice, /* candles30Min, smaMax, smaMin, */ massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
