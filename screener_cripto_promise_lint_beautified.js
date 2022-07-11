@@ -126,7 +126,7 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
 
 // eslint-disable-next-line no-unused-vars
 function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
-  // 48 vuol dire 24 ore dato che sono intervalli di 30 minuti
+  // 48 vuol dire 24 ore dato che sono intervalli di 30 minuti, quindi  x 3 fa 3 giorni
   client.candles({ symbol, interval: '30m', limit: 48 }).then((candles30Min) => {
     const massimiVicini = []
     const minimiVicini = []
@@ -145,13 +145,14 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       values: candles30Min.map((v) => Number(v.close))
     }).map((v) => roundByDecimals(v, 2)) */
 
+    const period = 1
     const smaMin = SMA.calculate({
-      period: 3,
+      period,
       values: candles30Min.map((v) => Number(v.low))
     }).map((v) => roundByDecimals(v, 2))
 
     const smaMax = SMA.calculate({
-      period: 3,
+      period,
       values: candles30Min.map((v) => Number(v.high))
     }).map((v) => roundByDecimals(v, 2))
 
@@ -221,55 +222,14 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
     }
 
-    /* c = smaClose.length
-    rapportoIncrementalePrecedente = 0
-    for (let i = 1; i < c; i++) {
-      const x0 = i - 1
-      const x1 = i
-      const y0 = smaClose[x0]
-      const y1 = smaClose[x1]
-      const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
-      if (i > 1) {
-        if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
-          const price = y0
-          // massimo relativo o assoluto
-          if (price > massimoAssoluto) {
-            massimoAssoluto = price
-          }
-          const searchOtherDouble = doppiTocchiMassimi.lastIndexOf(price)
-          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
-            tripliTocchiMassimi.push(price)
-          }
-          const searchOtherMax = massimiVicini.lastIndexOf(price)
-          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
-            doppiTocchiMassimi.push(price)
-          }
-          massimiVicini.push(price)
-        } else if (rapportoIncrementalePrecedente < 0 && rapportoIncrementaleAttuale > 0) {
-          const price = y1
-          // minimo relativo o assoluto
-          if (y1 < minimoAssoluto) {
-            minimoAssoluto = price
-          }
-          const searchOtherDouble = doppiTocchiMinimi.lastIndexOf(price)
-          // non deve essere l'ultimo indice perchè se è piatto non vale come massimo
-          if (searchOtherDouble !== -1 && searchOtherDouble !== x0) {
-            tripliTocchiMinimi.push(price)
-          }
-          const searchOtherMax = minimiVicini.lastIndexOf(price)
-          if (searchOtherMax !== -1 && searchOtherMax !== x0) {
-            doppiTocchiMinimi.push(price)
-          }
-          minimiVicini.push(price)
-        } else {
-        // flesso quindi non mi interessa per ora
-        }
-      }
-      rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
-    } */
-
-    callback({ currentPrice, /* candles30Min, smaMax, smaMin, */ massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
+    const vol1 = calculateAbsPercVariationArray([massimoAssoluto, minimoAssoluto])
+    const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
+    const volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
+    const numeroDoppiTocchiMassimi = doppiTocchiMassimi.length
+    const numeroDoppiTocchiMinimi = doppiTocchiMinimi.length
+    const numeroTripliTocchiMassimi = tripliTocchiMassimi.length
+    const numeroTripliTocchiMinimi = tripliTocchiMinimi.length
+    callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
 }
 
@@ -880,8 +840,7 @@ playBullSentiment(true)
 }, 5000) */
 
 // eslint-disable-next-line no-unused-vars
-function testAnalisiOrderBook () {
-  const simbolo = 'SOLUSDT'
+function testAnalisiOrderBook (simbolo, callback) {
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
     console.log(grafica)
     const currentPrice = grafica.currentPrice
@@ -913,14 +872,26 @@ function testAnalisiOrderBook () {
       console.log('minimo non presente in questa condizione. settato a -1.2%')
     }
 
+    if (currentPrice < grafica.minimoAssoluto) {
+      console.log('sotto i minimi giornalieri. non è possibile procedere')
+    }
+
     const diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
     const diffMinPerc = ((nextMinPrice - currentPrice) / currentPrice) * 100
 
+    const boolDoppioMassimo = grafica.doppiTocchiMassimi.indexOf(nextMaxPrice) !== -1
+    const boolDoppioMinimo = grafica.doppiTocchiMinimi.indexOf(nextMinPrice) !== -1
+    const boolTriploMassimo = grafica.tripliTocchiMassimi.indexOf(nextMaxPrice) !== -1
+    const boolTriploMinimo = grafica.tripliTocchiMinimi.indexOf(nextMinPrice) !== -1
+
     analisiOrderBook(simbolo, currentPrice, nextMaxPrice, nextMinPrice, (book) => {
-      console.log('currentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice)
+      /* console.log('\ncurrentPrice', currentPrice, 'nextMaxPrice', nextMaxPrice, 'nextMinPrice', nextMinPrice)
       console.log('diffMaxPerc', diffMaxPerc, 'diffMinPerc', diffMinPerc)
-      console.log(/* book.asks, book.bids, */ 'bestAsk', book.bestAsk, 'bestBid', book.bestBid)
-      process.exit()
+      console.log( 'bestAsk', book.bestAsk, 'bestBid', book.bestBid)
+      console.log('boolDoppioMassimo', boolDoppioMassimo, 'boolDoppioMinimo', boolDoppioMinimo, 'boolTriploMassimo', boolTriploMassimo, 'boolTriploMinimo', boolTriploMinimo)
+      process.exit() */
+
+      callback({ currentPrice, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
     })
   })
 }
