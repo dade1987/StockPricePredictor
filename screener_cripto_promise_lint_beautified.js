@@ -98,13 +98,13 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
       if (v.price <= maxPrice && v.price > currentPrice) {
         return v.price
       }
-    }).slice(0, 4)
+    }).slice(0, 3)
 
     bids = bids.filter((v, i, a) => {
       if (v.price >= minPrice && v.price < currentPrice) {
         return v.price
       }
-    }).slice(0, 4)
+    }).slice(0, 3)
 
     let bestAsk = asks.sort((a, b) => {
       return a.quantity - b.quantity
