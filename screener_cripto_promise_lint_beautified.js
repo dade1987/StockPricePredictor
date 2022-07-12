@@ -1012,14 +1012,14 @@ async function bootstrapModalitaOrderbook () {
           values: askClosePrices
         }) */
 
-        // rsi
+        // rsi su 6 ore
         const rsi = RSI.calculate({
-          period: 14,
+          period: 12,
           values: askClosePrices
         })
 
-        // vuol dire che adesso è ipervenduto
-        const rsiRialzista = rsi[rsi.length - 1] < 30
+        // vuol dire che adesso è almeno un po basso nella giornata
+        const rsiRialzista = rsi[rsi.length - 1] < 45
 
         // la settimana deve essere rialzista abbastanza
         // la giornata deve essere rialzista
