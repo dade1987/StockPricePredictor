@@ -1019,7 +1019,7 @@ async function bootstrapModalitaOrderbook () {
         })
 
         // vuol dire che adesso è almeno un po basso nella giornata
-        const rsiRialzista = rsi[rsi.length - 1] < 45
+        const rsiRialzista = rsi[rsi.length - 1] < 50
 
         // la settimana deve essere rialzista abbastanza
         // la giornata deve essere rialzista
