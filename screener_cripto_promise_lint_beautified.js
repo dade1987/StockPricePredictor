@@ -419,7 +419,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                 // quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
                 // così può differenziare un po gli investimenti
-                const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 1.25 /* 100 * 95 */
+                const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 3 /* 100 * 95 */
                 // console.log("USDT Amount", UsdtAmount);
                 singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
                   // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
