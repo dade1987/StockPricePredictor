@@ -703,7 +703,7 @@ function promessa (market, exchangeName, callback) {
 
         // console.log(market.symbol);
 
-        client.candles({ symbol: market.symbol, interval: '30m', limit: 210 }).then((rawPrices) => {
+        client.candles({ symbol: market.symbol, interval: '30m', limit: 340 }).then((rawPrices) => {
           askClosePrices = rawPrices.map((v) => { return Number(v.close) })
           lotSize = market.filters.filter(v => v.filterType === 'LOT_SIZE')[0].stepSize
 
@@ -984,22 +984,49 @@ async function bootstrapModalitaOrderbook () {
       // console.log("PRICES LENGTH", askClosePrices.length);
 
       // se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
-      if (askClosePrices.length > 20) {
+      if (askClosePrices.length > 338) {
         const medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14))
 
-        // ho visto che quando la sma5 supera la 18 di solito fa belle salite
+        // trend di 2 ore (corto)
         const sma5 = SMA.calculate({
           period: 5,
           values: askClosePrices
         })
 
-        const sma18 = SMA.calculate({
-          period: 18,
+        // trend di 8 ore (lavorativa)
+        const sma16 = SMA.calculate({
+          period: 16,
           values: askClosePrices
         })
 
-        // è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
-        if (sma5[sma5.length - 1] > sma18[sma18.length - 1]) {
+        // trend della settimana
+        const sma336 = SMA.calculate({
+          period: 336,
+          values: askClosePrices
+        })
+
+        // trend del giorno
+        // non serve. ovviamente essendo intraday tf30minuti sarà negativo per forza
+        /* const sma48 = SMA.calculate({
+          period: 48,
+          values: askClosePrices
+        }) */
+
+        // rsi
+        const rsi = RSI.calculate({
+          period: 14,
+          values: askClosePrices
+        })
+
+        // vuol dire che adesso è ipervenduto
+        const rsiRialzista = rsi[rsi.length - 1] < 30
+
+        // la settimana deve essere rialzista abbastanza
+        // la giornata deve essere rialzista
+        // deve incrociare il trend di 2 ore con quello di 8
+        // deve essere a ribasso nella giornata
+
+        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 20 && sma5[sma5.length - 1] > sma16[sma16.length - 1] && rsiRialzista === true) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
@@ -1116,7 +1143,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 4 }).then((ultimeCandele) => {
+      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 6 }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
         })
@@ -1143,8 +1170,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
 
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
-        const gradiForzaPrezzo = 2 / (closes[2] - closes[0])
-        const gradiForzaVolume = 2 / (volumes[2] - volumes[0])
+        const gradiForzaPrezzo = 2 / (closes[4] - closes[0])
+        const gradiForzaVolume = 2 / (volumes[4] - volumes[0])
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1191,11 +1218,11 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           puntiConvenienza++
         }
         // con gradi di forza di intende l'angolo goniometrico
-        if (gradiForzaPrezzo > 20) {
+        if (gradiForzaPrezzo > 25) {
           // console.log('puntiConvenienza 2', simbolo)
           puntiConvenienza++
         }
-        if (gradiForzaVolume > 20) {
+        if (gradiForzaVolume > 25) {
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
