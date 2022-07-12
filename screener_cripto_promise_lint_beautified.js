@@ -106,11 +106,14 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
       }
     }).slice(-3)
 
+    // console.log(asks)
     let bestAsk = asks.sort((a, b) => {
       return a.quantity - b.quantity
     })
     if (bestAsk.length > 0) {
       bestAsk = bestAsk[0]
+    } else {
+      bestAsk = maxPrice
     }
 
     let bestBid = bids.sort((a, b) => {
@@ -118,6 +121,8 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
     })
     if (bestBid.length > 0) {
       bestBid = bestBid[0]
+    } else {
+      bestAsk = minPrice
     }
 
     callback({ asks, bids, asks2, bids2, bestAsk: bestAsk.price, bestBid: bestBid.price })
@@ -127,7 +132,7 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
 // eslint-disable-next-line no-unused-vars
 function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
   // 48 vuol dire 24 ore dato che sono intervalli di 30 minuti, quindi  x 3 fa 3 giorni
-  client.candles({ symbol, interval: '30m', limit: 48 }).then((candles30Min) => {
+  client.candles({ symbol, interval: '30m', limit: 48 * 7 }).then((candles30Min) => {
     const massimiVicini = []
     const minimiVicini = []
     const doppiTocchiMassimi = []
@@ -145,7 +150,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
           values: candles30Min.map((v) => Number(v.close))
         }).map((v) => roundByDecimals(v, 2)) */
 
-    const period = 1
+    const period = 3
     const smaMin = SMA.calculate({
       period,
       values: candles30Min.map((v) => Number(v.low))
@@ -224,12 +229,16 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
 
     const vol1 = calculateAbsPercVariationArray([massimoAssoluto, minimoAssoluto])
     const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
-    const volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
+    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
+    if (isNaN(volatilitaGiornaliera)) {
+      volatilitaGiornaliera = 0
+    }
     const numeroDoppiTocchiMassimi = doppiTocchiMassimi.length
     const numeroDoppiTocchiMinimi = doppiTocchiMinimi.length
     const numeroTripliTocchiMassimi = tripliTocchiMassimi.length
     const numeroTripliTocchiMinimi = tripliTocchiMinimi.length
-    callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: massimiVicini.sort(), minimiVicini: minimiVicini.sort(), massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
+
+    callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: [...new Set(massimiVicini.sort())], minimiVicini: [...new Set(minimiVicini.sort())], massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
 }
 
@@ -383,115 +392,99 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
 }
 
 async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
+  // console.log(autoInvestiLongOrderbook, arrayPrevisioniFull)
   try {
-    for (const singleClient of clients) {
-      // console.log(single_client);
+    analisiGraficoOrderbook(arrayPrevisioniFull[0].simbolo, client, (analisiGraficoBook) => {
+      const condition = analisiGraficoBook.convenienza
+      if (analisiGraficoBook !== false && condition === true) {
+        console.log('condizione vera', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
 
-      for (const arrayPrevisioni of arrayPrevisioniFull) {
-        // questo serve solo in caso di conferma di tutte le altre condizioni
-        client.exchangeInfo().then((e) => {
-          // console.log("ok1",  arrayPrevisioni.simbolo);
-          const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
+        for (const singleClient of clients) {
+          // console.log(single_client);
 
-          // anche se è già una stringa è per capire
-          const tickSizeDecimals = tickSize.toString().countDecimals()
+          for (const arrayPrevisioni of arrayPrevisioniFull) {
+            // questo serve solo in caso di conferma di tutte le altre condizioni
+            client.exchangeInfo().then((e) => {
+              // console.log("ok1",  arrayPrevisioni.simbolo);
+              const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
 
-          // console.log("ok2", arrayPrevisioni.simbolo);
-          singleClient.accountInfo().then(accountInfo => {
-            // console.log(accountInfo);
-            // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-            // meglio differenziare perchè almeno se perdi su una magari su un altra sale
-            // quindi meglio settare un importo che sia 1/3 del totale che si possiede
+              // anche se è già una stringa è per capire
+              const tickSizeDecimals = tickSize.toString().countDecimals()
 
-            const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 95
-            // console.log("USDT Amount", UsdtAmount);
-            singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
-              // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
-              // altrimenti lasciar perdere l'investimento
+              // console.log("ok2", arrayPrevisioni.simbolo);
+              singleClient.accountInfo().then(accountInfo => {
+                // console.log(accountInfo);
+                // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+                // meglio differenziare perchè almeno se perdi su una magari su un altra sale
+                // quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
-              analisiGraficoOrderbook(arrayPrevisioni.simbolo, singleClient, (analisiGraficoBook) => {
-                console.log(analisiGraficoBook)
-                if (analisiGraficoBook !== false) {
-                  // console.log("Symbol Price", symbolPrice.askPrice, symbolPrice);
+                // così può differenziare un po gli investimenti
+                const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 1.25 /* 100 * 95 */
+                // console.log("USDT Amount", UsdtAmount);
+                singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
+                  // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
+                  // altrimenti lasciar perdere l'investimento
+
                   let maxQty = UsdtAmount / Number(analisiGraficoBook.currentAskPrice)
-                  // console.log("Max Qty", maxQty);
 
                   maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision)
 
-                  // console.log('USDT AMOUNT', UsdtAmount, 'ARRAY PREVISIONI', arrayPrevisioni, 'SYMBOL PRICE', symbolPrice, 'ASK PRICE', symbolPrice.askPrice);
                   console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
-                  // L'ask price è il prezzo minore a cui ti vendono la moneta
-                  // in realtà dovresti testare anche la quantità ma siccome per ora metto poco non serve
 
-                  // stop loss perc è -1.2% massimo. meglio seguire la regola del 2%
-                  // ovvero mai mettere a rischio più del 2% del capitale investito, per ogni operazione
+                  const takeProfit = analisiGraficoBook.bestAsk
+                  const stopLossTrigger = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
+                  const stopLoss = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
 
-                  // rif. https://www.cmegroup.com/education/courses/trade-and-risk-management/the-2-percent-rule.html
-                  // rif. One popular method is the 2% Rule, which means you never put more than 2% of your account equity at risk (Table 1). For example, if you are trading a $50,000 account, and you choose a risk management stop loss of 2%, you could risk up to $1,000 on any given trade.
-                  const stopLossTriggerPerc = Math.abs(analisiGraficoBook.diffBidPerc)
-                  const stopLossPerc = Math.abs(analisiGraficoBook * 1.2)
-                  // dato che la commissione è lo 0.1% basta che la mediana sia superiore alla commissione
-                  // APRO SOLO SE ALMENO LA PREVISIONE E' MAGGIORE DEL RISCHIO
-                  // COME SI SUOL DIRE: CHE ALMENO IL RISCHIO VALGA LA CANDELA
-                  // E' GIUSTO MAGGIORE PERCHE' DEVE SUPERARE NECESSARIAMENTE LA MEDIANA, NON SOLO EGUAGLIARLA IN CASO DI GUADAGNO
+                  // console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
+                  if (symbolPrice.quoteVolume > 4000000) {
+                    console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'CONDITION', condition)
 
-                  const takeProfit = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 + Math.abs(analisiGraficoBook.diffAskPerc))), tickSizeDecimals)
-                  // lo stop loss va sempre calcolato partendo da ask price, dato che ho comprato con ask price
-                  const stopLossTrigger = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 - stopLossTriggerPerc)), tickSizeDecimals)
-                  const stopLoss = roundByDecimals((analisiGraficoBook.currentAskPrice / 100 * (100 - stopLossPerc)), tickSizeDecimals)
+                    if (UsdtAmount >= 25) {
+                      singleClient.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
+                        console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
 
-                  console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
-                  // per evitare rischi dovuti alla troppa volatilità. comunque proviamo /3 altrimenti non trova mai una condizione favorevole
-                  // lo stopLossTrigger (quello che lancia lo stop loss effettivo) si riferisce al bidPrice (prezzo vendita cioè più basso), mentre il take profit all'ask price (prezzo d'acquisto cioè più alto)
-                  const condition = analisiGraficoBook.convenienza
+                        if (openOrders.length === 0) {
+                          console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
+                          playBullSentiment()
 
-                  console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/2', ((symbolPrice.bidPrice - stopLossTrigger) / 2), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
-
-                  if (UsdtAmount >= 25 && condition === true) {
-                    singleClient.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
-                      console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
-
-                      if (openOrders.length === 0) {
-                        console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
-                        playBullSentiment()
-
-                        singleClient.order({
-                          symbol: arrayPrevisioni.simbolo,
-                          side: 'BUY',
-                          type: 'MARKET',
-                          quantity: maxQty,
-                          newClientOrderId: 'BUY'
-                        }).then(() => {
+                          singleClient.order({
+                            symbol: arrayPrevisioni.simbolo,
+                            side: 'BUY',
+                            type: 'MARKET',
+                            quantity: maxQty,
+                            newClientOrderId: 'BUY'
+                          }).then(() => {
                           // console.log(response)
-                          piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, singleClient, function (cb) {
-                            if (cb[0] === true) {
-                              console.log('ORDINE OCO PIAZZATO', arrayPrevisioni.simbolo)
-                            } else {
-                              console.log('piazzaOrdineOco internal', cb[1])
-                            }
+                            piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, singleClient, function (cb) {
+                              if (cb[0] === true) {
+                                console.log('ORDINE OCO PIAZZATO', arrayPrevisioni.simbolo)
+                              } else {
+                                console.log('piazzaOrdineOco internal', cb[1])
+                              }
+                            })
+                          }).catch((reason) => {
+                            console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
                           })
-                        }).catch((reason) => {
-                          console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
-                        })
-                      }
-                    }).catch((reason) => {
-                      console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
-                    })
+                        }
+                      }).catch((reason) => {
+                        console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
+                      })
+                    }
                   }
-                }
+                }).catch((reason) => {
+                  console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
+                })
+              }).catch((reason) => {
+                // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
+                console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
               })
             }).catch((reason) => {
-              console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
+              console.log('single_client.exchangeInfo', arrayPrevisioni.simbolo, reason)
             })
-          }).catch((reason) => {
-            // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
-            console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
-          })
-        }).catch((reason) => {
-          console.log('single_client.exchangeInfo', arrayPrevisioni.simbolo, reason)
-        })
-      };
-    };
+          };
+        };
+      }
+    })
   } catch (reason) {
     console.log(reason)
   }
@@ -899,7 +892,7 @@ async function bootstrap () {
           // if (medianPercDifference > stopLoss) {
           const arrayInvestimento = []
 
-          console.log('AZIONE LONG', symbol, 'PREZZO', rawPrices[rawPrices.length - 1].close, 'SIMBOLO', symbol)
+          console.log('TEST LONG', symbol, 'PREZZO', rawPrices[rawPrices.length - 1].close)
 
           // stop loss -1 %. take profit teorico sulla mediana, ma si può lasciare libero e chiudere dopo mezz'ora e basta
           arrayPrevisioni.push({ azione: 'LONG', simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, RSI: rsi[rsi.length - 1], date: closeTime, baseAssetPrecision, lotSize })
@@ -907,7 +900,7 @@ async function bootstrap () {
           // meglio così perchè è più veloce a piazzare l'ordine, altrimenti si rischia cambio prezzo
           // provo a togliere l'await dato che è dentro una Promise e speriamo bene
           // autoInvestiLong(arrayInvestimento)
-          autoInvestiLongOrderbook(arrayInvestimento)
+          autoInvestiLong(arrayInvestimento)
           // }
         }
         /* else if (trendMinoreRialzista === true && trendMaggioreRibassista === true && rsiRibassista === true && segnaleSuperaMACDBasso === true) {
@@ -929,6 +922,102 @@ async function bootstrap () {
   // sendEmails(arrayPrevisioni);
   // console.log("Fine del Giro");
   // });
+}
+
+async function bootstrapModalitaOrderbook () {
+  console.log('---------------------------------------------------------------------------')
+  const binanceDate = new Date().toLocaleString()
+  console.log('DATA', binanceDate)
+
+  const exchangeName = 'binance'
+
+  let info, symbols
+
+  if (exchangeName === 'binance') {
+    // https://www.binance.com/en/markets/spot-USDT top volume and > 50 MILLIONS MARKET CAP AND INCREMENT 24 HOURS > 1 E < 5
+
+    info = await client.exchangeInfo()
+    symbols = info.symbols
+  } else if (exchangeName === 'kucoin') {
+    info = await Kucoin.getSymbols()
+    symbols = info.data
+  }
+
+  // console.log(info);
+  // process.exit();
+
+  for (const market of symbols) {
+    // sono 2 richieste per ciclo e puoi farne massimo 1200
+    // per sicurezza mettiamone un po in meno per lasciare spazio all'apertura ordini ecc
+
+    // per provare a velocizzare le richieste
+    new Promise((resolve, reject) => {
+      promessa(market, exchangeName, function (result) {
+        if (result[0] === true) {
+          // console.log(result);
+          resolve(result[1])
+        } else {
+          /* if (result[1] !== "non verificata") {
+                                                                                                        console.log(result[1]);
+                                                                                                    } */
+          reject(result[1])
+        }
+      })
+    }).then(result => {
+      const promiseModel = { value: result }
+
+      const symbol = promiseModel.value.symbol
+      const rawPrices = promiseModel.value.rawPrices
+      const askClosePrices = promiseModel.value.askClosePrices
+      const baseAsset = promiseModel.value.baseAsset
+      const baseAssetPrecision = promiseModel.value.baseAssetPrecision
+      const lotSize = promiseModel.value.lotSize
+
+      if (tradeDebugEnabled === true) {
+        console.log('\n', symbol)
+      }
+
+      /* console.log("ASSET SOTTOSTANTE", baseAsset); */
+
+      /* console.log("LOT_SIZE", lotSize); */
+
+      // console.log("PRICES LENGTH", askClosePrices.length);
+
+      // se ci sono abbastanza prezzi da fare i calcoli, altrimenti si blocca l'esecuzione del programma
+      if (askClosePrices.length > 20) {
+        const medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14))
+
+        // ho visto che quando la sma5 supera la 18 di solito fa belle salite
+        const sma5 = SMA.calculate({
+          period: 5,
+          values: askClosePrices
+        })
+
+        const sma18 = SMA.calculate({
+          period: 18,
+          values: askClosePrices
+        })
+
+        // è giusto trend minore ribassista e maggiore rialzista secondo Alyssa
+        if (sma5[sma5.length - 1] > sma18[sma18.length - 1]) {
+          const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
+          // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
+
+          // non avrebbe senso investire in qualcosa che promette meno dello stop loss in termini percentuali
+          const stopLoss = 1
+
+          const arrayInvestimento = []
+
+          console.log('TEST LONG', symbol, 'PREZZO', rawPrices[rawPrices.length - 1].close)
+
+          arrayInvestimento.push({ azione: 'LONG', simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, date: closeTime, baseAssetPrecision, lotSize, median: medianPercDifference })
+
+          autoInvestiLongOrderbook(arrayInvestimento)
+        }
+      }
+    }).catch(() => {
+    })
+  }
 }
 
 // ogni mezz'ora
@@ -953,9 +1042,10 @@ playBullSentiment(true)
 // eslint-disable-next-line no-unused-vars
 function analisiGraficoOrderbook (simbolo, singleClient, callback) {
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
-    console.log(grafica)
+    // console.log(grafica)
     const currentPrice = grafica.currentPrice
     // eslint-disable-next-line array-callback-return
+    let boolReimpostazioneNextMaxPrice = false
     let nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
       // se torna più dello 0.5% rispetto al prezzo attuale
       if (v > currentPrice * 1.01 && v < currentPrice * 1.03) {
@@ -965,7 +1055,19 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
     if (nextMaxPrice.length > 0) {
       nextMaxPrice = nextMaxPrice[0]
     } else {
-      console.log('massimo non presente in questa condizione')
+      nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
+        // se torna più dello 0.5% rispetto al prezzo attuale
+        if (v > currentPrice * 1.01) {
+          return v
+        }
+      })
+      if (nextMaxPrice.length > 0) {
+        nextMaxPrice = nextMaxPrice[0]
+      } else {
+        nextMaxPrice = currentPrice * 1.01
+      }
+      boolReimpostazioneNextMaxPrice = true
+      // console.log('massimo non presente in questa condizione')
     }
 
     // eslint-disable-next-line no-unused-vars, array-callback-return
@@ -1012,10 +1114,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
       const diffAskPerc = ((book.bestAsk - currentAskPrice) / currentAskPrice) * 100
       const diffBidPerc = ((book.bestBid - currentAskPrice) / currentAskPrice) * 100
 
-      let convenienza = Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5
-
-      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 5 }).then((ultimeCandele) => {
-        let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
+      // messa una candela in più per poi escludere quella attuale nel conteggio
+      // altrimenti se il prezzo ha appena iniziato il volume magari è zero
+      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 4 }).then((ultimeCandele) => {
+        /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
         })
         ultimiVolumiSalitaArray = ultimiVolumiSalitaArray.filter((v, i, a) => {
@@ -1036,8 +1138,92 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           // resta com'è
         } else {
           convenienza = false
+        } */
+        const closes = ultimeCandele.map((v, i, a) => Number(v.close))
+        const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
+
+        // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
+        const gradiForzaPrezzo = 2 / (closes[2] - closes[0])
+        const gradiForzaVolume = 2 / (volumes[2] - volumes[0])
+
+        let vicinoDoppioMassimo = false
+        let vicinoTriploMassimo = false
+        let superaDoppioMassimo = false
+        let superaTriploMassimo = false
+        let superaMassimoVicino = false
+
+        grafica.doppiTocchiMassimi.forEach((massimo) => {
+          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.9925) {
+            vicinoDoppioMassimo = true
+            // console.log(simbolo, 'close vicino doppio tocco massimo', massimo)
+          }
+        })
+        grafica.tripliTocchiMassimi.forEach((massimo) => {
+          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.9925) {
+            vicinoTriploMassimo = true
+            // console.log(simbolo, 'close vicino triplo tocco massimo', massimo)
+          }
+        })
+        grafica.doppiTocchiMassimi.forEach((massimo) => {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+            superaDoppioMassimo = true
+            // console.log(simbolo, 'close supera doppio tocco massimo', massimo)
+          }
+        })
+        grafica.tripliTocchiMassimi.forEach((massimo) => {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+            superaTriploMassimo = true
+            // console.log(simbolo, 'close supera triplo tocco massimo', massimo)
+          }
+        })
+        grafica.massimiVicini.forEach((massimo) => {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+            superaMassimoVicino = true
+            // console.log(simbolo, 'close supera triplo tocco massimo', massimo)
+          }
+        })
+
+        let convenienza = false
+        let puntiConvenienza = 0
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 1.00 /* && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5 */) {
+          // console.log('puntiConvenienza 1', simbolo)
+          puntiConvenienza++
         }
-        callback({ convenienza, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+        // con gradi di forza di intende l'angolo goniometrico
+        if (gradiForzaPrezzo > 20) {
+          // console.log('puntiConvenienza 2', simbolo)
+          puntiConvenienza++
+        }
+        if (gradiForzaVolume > 20) {
+          // console.log('puntiConvenienza 3', simbolo)
+          puntiConvenienza++
+        }
+        if (superaDoppioMassimo === true) {
+          // console.log('puntiConvenienza 4', simbolo)
+          puntiConvenienza += 3
+        }
+        if (superaTriploMassimo === true) {
+          // console.log('puntiConvenienza 5', simbolo)
+          puntiConvenienza += 2
+        }
+        if (superaMassimoVicino === true) {
+          // console.log('puntiConvenienza 6', simbolo)
+          puntiConvenienza++
+        }
+        if (puntiConvenienza >= 5) {
+          // console.log('puntiConvenienza SI', simbolo)
+          convenienza = true
+        }
+        // condizioni di esclusione obbligatoria
+        // posso tollerare solo la reimpostazione stop loss dato che viene reimpostato a -1%
+        if (grafica.minimoAssoluto === Infinity || grafica.massimoAssoluto === 0 || grafica.volatilitaGiornaliera === 0 || boolSottoMinimiGiornalieri === true || boolReimpostazioneNextMaxPrice === true /* || boolReimpostazioneStopLoss === true */) {
+          // console.log('puntiConvenienza NO', simbolo)
+          convenienza = false
+        }
+
+        // console.log('puntiConvenienza', puntiConvenienza, convenienza, simbolo)
+
+        callback({ convenienza, vicinoDoppioMassimo, vicinoTriploMassimo, superaMassimoVicino, superaDoppioMassimo, superaTriploMassimo, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneNextMaxPrice, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
       }).catch(reason => {
         console.log(reason)
         callback(false)
@@ -1046,14 +1232,21 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
   })
 }
 
-/* analisiGraficoOrderbook('SOLUSDT', client, function (response) {
-  console.log(response)
-}) */
-
-bootstrap()
-setTimeout(function () {
+const modalita = 2
+if (modalita === 2) {
+  bootstrapModalitaOrderbook()
+  setTimeout(function () {
+    bootstrapModalitaOrderbook()
+    setInterval(function () {
+      bootstrapModalitaOrderbook()
+    }, 300000)
+  }, waitFistTime)
+} else {
   bootstrap()
-  setInterval(function () {
+  setTimeout(function () {
     bootstrap()
-  }, 300000)
-}, waitFistTime)
+    setInterval(function () {
+      bootstrap()
+    }, 300000)
+  }, waitFistTime)
+}
