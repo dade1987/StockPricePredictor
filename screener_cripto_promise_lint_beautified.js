@@ -1185,7 +1185,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
         let convenienza = false
         let puntiConvenienza = 0
-        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 1.00 /* && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.5 */) {
+        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 3%
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.7 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.03) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
