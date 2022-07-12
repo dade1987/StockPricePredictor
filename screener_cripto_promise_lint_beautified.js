@@ -1222,7 +1222,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           // console.log('puntiConvenienza 2', simbolo)
           puntiConvenienza++
         }
-        if (gradiForzaVolume > 25) {
+        if (gradiForzaVolume > 20) {
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
