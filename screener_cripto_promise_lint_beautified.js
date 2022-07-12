@@ -1143,7 +1143,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 6 }).then((ultimeCandele) => {
+      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 4 }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
         })
@@ -1170,8 +1170,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
 
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
-        const gradiForzaPrezzo = 2 / (closes[4] - closes[0])
-        const gradiForzaVolume = 2 / (volumes[4] - volumes[0])
+        const gradiForzaPrezzo = 2 / (closes[2] - closes[0])
+        const gradiForzaVolume = 2 / (volumes[2] - volumes[0])
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
