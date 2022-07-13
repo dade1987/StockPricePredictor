@@ -172,7 +172,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       const rapportoIncrementaleAttuale = (y1 - y0) / (x1 - x0)
       if (i > 1) {
         if (rapportoIncrementalePrecedente > 0 && rapportoIncrementaleAttuale < 0) {
-          const price = /* roundByDecimals((y0 + y1) / 2, 2) */ y0
+          const price = y0
           // massimo relativo o assoluto
           if (price > massimoAssoluto) {
             massimoAssoluto = price
@@ -643,6 +643,10 @@ function calculateAbsPercVariationArray (values, period) {
   return percentageArray
 }
 
+function calculatePercDiff (finalValue, initialValue) {
+  return ((finalValue - initialValue) / initialValue) * 100
+}
+
 function calculateMedian (values) {
   if (values.length === 0) throw new Error('No inputs')
 
@@ -990,8 +994,8 @@ async function bootstrapModalitaOrderbook () {
         const medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14))
 
         // trend di 2 ore (corto)
-        const sma5 = SMA.calculate({
-          period: 5,
+        const sma4 = SMA.calculate({
+          period: 4,
           values: askClosePrices
         })
 
@@ -1032,12 +1036,28 @@ async function bootstrapModalitaOrderbook () {
         // per ora escludiamo il requisito dell'RSI sotto i 50
         // l'sma 16 è giusto che superi l'sma5 ma dev'essere il salita ripida, non in discesa
 
-        const forzaSmaCorta = 2 / sma5[sma5.length - 1] - sma5[sma5.length - 2]
-        const forzaSmaLunga = 2 / sma5[sma16.length - 1] - sma5[sma16.length - 2]
+        const forzaSmaCorta = calculatePercDiff(sma4[sma4.length - 1], sma4[sma4.length - 2])
+        const forzaSmaLunga = calculatePercDiff(sma16[sma16.length - 1], sma16[sma16.length - 2])
+        const forzaSmaSettimana = calculatePercDiff(sma336[sma336.length - 1], sma336[sma336.length - 2])
         // il rapporto tra SmaCorta e SmaLunga dev'essere almeno di 3:1
         const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
 
-        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 10 && sma5[sma5.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta > 60 && rapportoIncrocioSma >= 3 /* && rsiRialzista === true */) {
+        console.log(
+          symbol, 
+          'forzaSmaSettimana', forzaSmaSettimana.toFixed(2), 
+          'forzaSmaLunga', forzaSmaLunga.toFixed(2), 
+          'sma4', sma4[sma4.length - 1].toFixed(5), 
+          'sma16', sma16[sma16.length - 1].toFixed(5), 
+          'forzaSmaCorta', forzaSmaCorta.toFixed(2), 
+          'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2), 
+          'rsiRialzista', rsiRialzista, 
+          forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 
+          && sma4[sma4.length - 1] > sma16[sma16.length - 1] 
+          && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 
+          && rsiRialzista === true
+          )
+        
+        if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 && rsiRialzista === true) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
@@ -1181,8 +1201,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
 
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
-        const gradiForzaPrezzo = 3 / (closes[2] - closes[0])
-        const gradiForzaVolume = 3 / (volumes[2] - volumes[0])
+        // sono 2 intervalli DA 0 A 2
+
+        const gradiForzaPrezzo = calculatePercDiff(closes[0], closes[2]) / 2
+        const gradiForzaVolume = calculatePercDiff(volumes[0], volumes[2]) / 2
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1229,12 +1251,12 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           puntiConvenienza++
         }
         // con gradi di forza di intende l'angolo goniometrico
-        if (gradiForzaPrezzo > 25) {
+        if (gradiForzaPrezzo >= 0.4) {
           // console.log('puntiConvenienza 2', simbolo)
           puntiConvenienza++
         }
         // non serve che sia altissimo ma almeno deve essere un po in salita
-        if (gradiForzaVolume > 10) {
+        if (gradiForzaVolume >= 0.1) {
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
