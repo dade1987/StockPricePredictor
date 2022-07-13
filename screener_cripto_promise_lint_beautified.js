@@ -397,7 +397,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
     analisiGraficoOrderbook(arrayPrevisioniFull[0].simbolo, client, (analisiGraficoBook) => {
       const condition = analisiGraficoBook.convenienza
       if (analisiGraficoBook !== false && condition === true) {
-        console.log('condizione vera', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
+        console.log('CONDIZIONE VERA', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
 
         for (const singleClient of clients) {
           // console.log(single_client);
@@ -429,7 +429,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
 
                   maxQty = roundByDecimals(roundByLotSize(maxQty, arrayPrevisioni.lotSize), arrayPrevisioni.baseAssetPrecision)
 
-                  console.log('VALUTAZIONE ORDINE', 'SALDO USDT', UsdtAmount, 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
+                  console.log('VALUTAZIONE ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'SALDO USDT', UsdtAmount, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
 
                   const takeProfit = analisiGraficoBook.bestAsk
                   const stopLossTrigger = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
@@ -437,14 +437,14 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
 
                   // analisi della liquidità in 24 ore
                   if (symbolPrice.quoteVolume > 3000000) {
-                    console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'CONDITION', condition)
+                    console.log('TEST LIQUIDITA SUPERATO', 'SIMBOLO', arrayPrevisioni.simbolo, 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit)
 
                     if (UsdtAmount >= 25) {
                       singleClient.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
-                        console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
+                        // console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
 
                         if (openOrders.length === 0) {
-                          console.log('APERTURA ORDINE', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
+                          console.log('APERTURA ORDINE MERCATO', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
                           playBullSentiment()
 
                           singleClient.order({
@@ -1037,7 +1037,7 @@ async function bootstrapModalitaOrderbook () {
 
           const arrayInvestimento = []
 
-          console.log('TEST LONG', symbol, 'PREZZO', rawPrices[rawPrices.length - 1].close)
+          // console.log('TEST LONG', symbol, 'PREZZO', rawPrices[rawPrices.length - 1].close)
 
           arrayInvestimento.push({ azione: 'LONG', simbolo: symbol, price: rawPrices[rawPrices.length - 1].close, tp: rawPrices[rawPrices.length - 1].close / 100 * (100 + medianPercDifference), sl: rawPrices[rawPrices.length - 1].close / 100 * (100 - stopLoss), base_asset: baseAsset, date: closeTime, baseAssetPrecision, lotSize, median: medianPercDifference })
 
