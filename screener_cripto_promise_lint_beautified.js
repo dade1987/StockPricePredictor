@@ -436,7 +436,9 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                   const stopLoss = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
 
                   // analisi della liquidità in 24 ore
-                  if (symbolPrice.quoteVolume > 3000000) {
+                  // dev'essere almeno 4 milioni perchè sotto ho guardato, anche a 3.200.000 e il mercato nel minuto è fermo.
+                  // manca flusso di cassa
+                  if (symbolPrice.quoteVolume > 4000000) {
                     console.log('TEST LIQUIDITA SUPERATO', 'SIMBOLO', arrayPrevisioni.simbolo, 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit)
 
                     if (UsdtAmount >= 25) {
@@ -1028,7 +1030,14 @@ async function bootstrapModalitaOrderbook () {
         // deve essere a ribasso nella giornata
 
         // per ora escludiamo il requisito dell'RSI sotto i 50
-        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 10 && sma5[sma5.length - 1] > sma16[sma16.length - 1] /* && rsiRialzista === true */) {
+        // l'sma 16 è giusto che superi l'sma5 ma dev'essere il salita ripida, non in discesa
+
+        const forzaSmaCorta = 2 / sma5[sma5.length - 1] - sma5[sma5.length - 2]
+        const forzaSmaLunga = 2 / sma5[sma16.length - 1] - sma5[sma16.length - 2]
+        // il rapporto tra SmaCorta e SmaLunga dev'essere almeno di 3:1
+        const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
+
+        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 10 && sma5[sma5.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta > 60 && rapportoIncrocioSma >= 3 /* && rsiRialzista === true */) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
@@ -1172,8 +1181,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
 
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
-        const gradiForzaPrezzo = 2 / (closes[2] - closes[0])
-        const gradiForzaVolume = 2 / (volumes[2] - volumes[0])
+        const gradiForzaPrezzo = 3 / (closes[2] - closes[0])
+        const gradiForzaVolume = 3 / (volumes[2] - volumes[0])
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1214,8 +1223,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
         let convenienza = false
         let puntiConvenienza = 0
-        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 3%
-        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.7 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.03) {
+        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 2%
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.7 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.02) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
