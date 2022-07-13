@@ -100,11 +100,18 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
       }
     }).slice(0, 3)
 
+    // è sbagliato calcolare i bid sopra al muro
+    // deve chiudere se sfonda il muro in basso
+    // altrimenti potrebbe solo scendere per pescare liquidità
     const bids = bids2.filter((v, i, a) => {
-      if (v.price >= minPrice && v.price < currentPrice) {
+      /* if (v.price >= minPrice && v.price < currentPrice) {
+        return v.price
+      } */
+
+      if (v.price < minPrice && v.price < currentPrice) {
         return v.price
       }
-    }).slice(-3)
+    }).slice(0, 3)
 
     // console.log(asks)
     let bestAsk = asks.sort((a, b) => {
@@ -395,6 +402,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
   // console.log(autoInvestiLongOrderbook, arrayPrevisioniFull)
   try {
     analisiGraficoOrderbook(arrayPrevisioniFull[0].simbolo, client, (analisiGraficoBook) => {
+      console.log(analisiGraficoBook)
       const condition = analisiGraficoBook.convenienza
       if (analisiGraficoBook !== false && condition === true) {
         console.log('CONDIZIONE VERA', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
@@ -1043,21 +1051,20 @@ async function bootstrapModalitaOrderbook () {
         const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
 
         console.log(
-          symbol, 
-          'forzaSmaSettimana', forzaSmaSettimana.toFixed(2), 
-          'forzaSmaLunga', forzaSmaLunga.toFixed(2), 
-          'sma4', sma4[sma4.length - 1].toFixed(5), 
-          'sma16', sma16[sma16.length - 1].toFixed(5), 
-          'forzaSmaCorta', forzaSmaCorta.toFixed(2), 
-          'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2), 
-          'rsiRialzista', rsiRialzista, 
-          forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 
-          && sma4[sma4.length - 1] > sma16[sma16.length - 1] 
-          && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 
-          && rsiRialzista === true
-          )
-        
-        if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 && rsiRialzista === true) {
+          symbol,
+          'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
+          'forzaSmaLunga', forzaSmaLunga.toFixed(2),
+          'sma4', sma4[sma4.length - 1].toFixed(5),
+          'sma16', sma16[sma16.length - 1].toFixed(5),
+          'forzaSmaCorta', forzaSmaCorta.toFixed(2),
+          'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2),
+          /*  'rsiRialzista', rsiRialzista */
+          forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 &&
+          sma4[sma4.length - 1] > sma16[sma16.length - 1] &&
+          forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5
+          /* && rsiRialzista === true */)
+
+        if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 /* && rsiRialzista === true */) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
@@ -1174,7 +1181,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      singleClient.candles({ symbol: simbolo, interval: '1m', limit: 4 }).then((ultimeCandele) => {
+      const candlesPeriod = 4
+      singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
         })
@@ -1197,14 +1205,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         } else {
           convenienza = false
         } */
-        const closes = ultimeCandele.map((v, i, a) => Number(v.close))
-        const volumes = ultimeCandele.map((v, i, a) => Number(v.volume))
+        const closes = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(a[i - 1].close) * 1.005)
+        const volumes = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.volume) > Number(a[i - 1].volume) * 1.005)
 
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
 
-        const gradiForzaPrezzo = calculatePercDiff(closes[0], closes[2]) / 2
-        const gradiForzaVolume = calculatePercDiff(volumes[0], volumes[2]) / 2
+        const gradiForzaPrezzo = closes.length === candlesPeriod - 1
+        const gradiForzaVolume = volumes.length === candlesPeriod - 1
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1251,12 +1259,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           puntiConvenienza++
         }
         // con gradi di forza di intende l'angolo goniometrico
-        if (gradiForzaPrezzo >= 0.4) {
+        if (gradiForzaPrezzo === true) {
+          console.log(gradiForzaPrezzo)
           // console.log('puntiConvenienza 2', simbolo)
           puntiConvenienza++
         }
         // non serve che sia altissimo ma almeno deve essere un po in salita
-        if (gradiForzaVolume >= 0.1) {
+        if (gradiForzaVolume === true) {
+          console.log(gradiForzaVolume)
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
@@ -1295,7 +1305,11 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 }
 
 const modalita = 2
-if (modalita === 2) {
+if (modalita === 3) {
+  analisiOrderBook('TRBUSDT', 15.46, 15.62, 15.33, function (data) {
+    console.log(data)
+  })
+} else if (modalita === 2) {
   bootstrapModalitaOrderbook()
   setTimeout(function () {
     bootstrapModalitaOrderbook()
