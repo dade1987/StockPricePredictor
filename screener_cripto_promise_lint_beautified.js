@@ -435,8 +435,8 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                   const stopLossTrigger = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
                   const stopLoss = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
 
-                  // console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
-                  if (symbolPrice.quoteVolume > 4000000) {
+                  // analisi della liquidità in 24 ore
+                  if (symbolPrice.quoteVolume > 3000000) {
                     console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'CONDITION', condition)
 
                     if (UsdtAmount >= 25) {
@@ -1019,6 +1019,7 @@ async function bootstrapModalitaOrderbook () {
         })
 
         // vuol dire che adesso è almeno un po basso nella giornata
+        // eslint-disable-next-line no-unused-vars
         const rsiRialzista = rsi[rsi.length - 1] < 50
 
         // la settimana deve essere rialzista abbastanza
@@ -1026,7 +1027,8 @@ async function bootstrapModalitaOrderbook () {
         // deve incrociare il trend di 2 ore con quello di 8
         // deve essere a ribasso nella giornata
 
-        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 20 && sma5[sma5.length - 1] > sma16[sma16.length - 1] && rsiRialzista === true) {
+        // per ora escludiamo il requisito dell'RSI sotto i 50
+        if ((2 / (sma336[sma336.length - 1] - sma336[sma336.length - 2])) > 10 && sma5[sma5.length - 1] > sma16[sma16.length - 1] /* && rsiRialzista === true */) {
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
@@ -1222,7 +1224,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           // console.log('puntiConvenienza 2', simbolo)
           puntiConvenienza++
         }
-        if (gradiForzaVolume > 20) {
+        // non serve che sia altissimo ma almeno deve essere un po in salita
+        if (gradiForzaVolume > 10) {
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
@@ -1238,7 +1241,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           // console.log('puntiConvenienza 6', simbolo)
           puntiConvenienza++
         }
-        if (puntiConvenienza >= 5) {
+        if (puntiConvenienza >= 6) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }
@@ -1251,7 +1254,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
 
         // console.log('puntiConvenienza', puntiConvenienza, convenienza, simbolo)
 
-        callback({ convenienza, vicinoDoppioMassimo, vicinoTriploMassimo, superaMassimoVicino, superaDoppioMassimo, superaTriploMassimo, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneNextMaxPrice, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+        callback({ convenienza, doppiTocchiMassimi: grafica.doppiTocchiMassimi, tripliTocchiMassimi: grafica.tripliTocchiMassimi, doppiTocchiMinimi: grafica.doppiTocchiMinimi, tripliTocchiMinimi: grafica.tripliTocchiMinimi, puntiConvenienza, vicinoDoppioMassimo, vicinoTriploMassimo, superaMassimoVicino, superaDoppioMassimo, superaTriploMassimo, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneNextMaxPrice, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
       }).catch(reason => {
         console.log(reason)
         callback(false)
