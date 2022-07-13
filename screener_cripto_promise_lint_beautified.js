@@ -1050,21 +1050,16 @@ async function bootstrapModalitaOrderbook () {
         // il rapporto tra SmaCorta e SmaLunga dev'essere almeno di 3:1
         const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
 
-        console.log(
-          symbol,
-          'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
-          'forzaSmaLunga', forzaSmaLunga.toFixed(2),
-          'sma4', sma4[sma4.length - 1].toFixed(5),
-          'sma16', sma16[sma16.length - 1].toFixed(5),
-          'forzaSmaCorta', forzaSmaCorta.toFixed(2),
-          'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2),
-          /*  'rsiRialzista', rsiRialzista */
-          forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 &&
-          sma4[sma4.length - 1] > sma16[sma16.length - 1] &&
-          forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5
-          /* && rsiRialzista === true */)
-
         if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 /* && rsiRialzista === true */) {
+          console.log(
+            symbol,
+            'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
+            'forzaSmaLunga', forzaSmaLunga.toFixed(2),
+            'sma4', sma4[sma4.length - 1].toFixed(5),
+            'sma16', sma16[sma16.length - 1].toFixed(5),
+            'forzaSmaCorta', forzaSmaCorta.toFixed(2),
+            'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2))
+
           const closeTime = new Date(rawPrices[rawPrices.length - 1].closeTime)
           // console.log(closeTime, rawPrices[rawPrices.length - 1].closeTime);
 
