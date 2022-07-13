@@ -1051,12 +1051,15 @@ async function bootstrapModalitaOrderbook () {
         const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
 
         if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 /* && rsiRialzista === true */) {
+          // CONTA CHE SONO SMA SU 30 MINUTI
           console.log(
             symbol,
             'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
             'forzaSmaLunga', forzaSmaLunga.toFixed(2),
-            'sma4', sma4[sma4.length - 1].toFixed(5),
-            'sma16', sma16[sma16.length - 1].toFixed(5),
+            'sma4 - 1', sma4[sma4.length - 1].toFixed(5),
+            'sma4 - 2', sma4[sma4.length - 2].toFixed(5),
+            'sma16 - 1', sma16[sma16.length - 1].toFixed(5),
+            'sma16 - 2', sma16[sma16.length - 2].toFixed(5),
             'forzaSmaCorta', forzaSmaCorta.toFixed(2),
             'rapportoIncrocioSma', rapportoIncrocioSma.toFixed(2))
 
@@ -1228,19 +1231,19 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           }
         })
         grafica.doppiTocchiMassimi.forEach((massimo) => {
-          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.01) {
             superaDoppioMassimo = true
             // console.log(simbolo, 'close supera doppio tocco massimo', massimo)
           }
         })
         grafica.tripliTocchiMassimi.forEach((massimo) => {
-          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.01) {
             superaTriploMassimo = true
             // console.log(simbolo, 'close supera triplo tocco massimo', massimo)
           }
         })
         grafica.massimiVicini.forEach((massimo) => {
-          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.0075) {
+          if (currentAskPrice > massimo && currentAskPrice < massimo * 1.01) {
             superaMassimoVicino = true
             // console.log(simbolo, 'close supera triplo tocco massimo', massimo)
           }
@@ -1249,7 +1252,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         let convenienza = false
         let puntiConvenienza = 0
         // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 2%
-        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.7 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.02) {
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.7 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.03) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
