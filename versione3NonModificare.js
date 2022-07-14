@@ -1217,8 +1217,9 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      // il classico periodo di trend è 8
-      const candlesPeriod = 8
+      // il classico periodo di trend secondo la teoria di Dow, esclusi ritracciamenti, è 5
+      // ma mettiamo uno in più per che faccia da indice 0 per il confronto
+      const candlesPeriod = 6
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1250,7 +1251,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // sono 2 intervalli DA 0 A 2
 
         // escludiamo magari l'attuale in caso non siano tutti e 3 che salgono ma solo 2
-        const gradiForzaPrezzo = priceTrend.length >= candlesPeriod / 10 * 6
+        const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 6
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
