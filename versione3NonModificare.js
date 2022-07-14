@@ -254,7 +254,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
 
     // in realtà è volatilità settimanale
-    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
+    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 5)
 
     if (isNaN(volatilitaGiornaliera)) {
       volatilitaGiornaliera = 0
