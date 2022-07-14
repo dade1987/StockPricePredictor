@@ -234,12 +234,6 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
       rapportoIncrementalePrecedente = rapportoIncrementaleAttuale
     }
 
-    const vol1 = calculateAbsPercVariationArray([massimoAssoluto, minimoAssoluto])
-    const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
-    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
-    if (isNaN(volatilitaGiornaliera)) {
-      volatilitaGiornaliera = 0
-    }
     const numeroDoppiTocchiMassimi = doppiTocchiMassimi.length
     const numeroDoppiTocchiMinimi = doppiTocchiMinimi.length
     const numeroTripliTocchiMassimi = tripliTocchiMassimi.length
@@ -255,6 +249,16 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     // if (minimoAssoluto === Infinity) {
     minimoAssoluto = Math.min(...smaMin.slice(0, -1))
     // }
+
+    const vol1 = calculateAbsPercVariationArray([massimoAssoluto, minimoAssoluto])
+    const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
+
+    // in realtà è volatilità settimanale
+    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 2)
+
+    if (isNaN(volatilitaGiornaliera)) {
+      volatilitaGiornaliera = 0
+    }
 
     callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: [...new Set(massimiVicini.sort())], minimiVicini: [...new Set(minimiVicini.sort())], massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
