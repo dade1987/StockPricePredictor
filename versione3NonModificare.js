@@ -245,6 +245,16 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const numeroTripliTocchiMassimi = tripliTocchiMassimi.length
     const numeroTripliTocchiMinimi = tripliTocchiMinimi.length
 
+    // escludiamo la candela corrente altrimenti non supererà mai i massimi
+    // partiamo da -48 ovvero 24 ore (48 intervalli da 30 min)
+    if (massimoAssoluto === 0) {
+      massimoAssoluto = Math.max(...candles30MinCloses.slice(-48, -1))
+    }
+
+    if (minimoAssoluto === Infinity) {
+      minimoAssoluto = Math.min(...candles30MinCloses.slice(-48, -1))
+    }
+
     callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: [...new Set(massimiVicini.sort())], minimiVicini: [...new Set(minimiVicini.sort())], massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
 }
@@ -655,6 +665,12 @@ function calculatePercDiff (finalValue, initialValue) {
   return ((finalValue - initialValue) / initialValue) * 100
 }
 
+function percentTo0until90Angle (percent) {
+  // ad esempio una salita del 50% in 1 incremento è un angolo di 45 gradi
+  // una salita del 5% è un angolo di 4.5 gradi
+  return roundByDecimals(90 / 100 * percent, 2)
+}
+
 function calculateMedian (values) {
   if (values.length === 0) throw new Error('No inputs')
 
@@ -1001,6 +1017,9 @@ async function bootstrapModalitaOrderbook () {
       if (askClosePrices.length > 338) {
         const medianPercDifference = calculateMedian(calculateAbsPercVariationArray(askClosePrices, 14))
 
+        // const openPrices = rawPrices.map((v) => Number(v.open))
+
+        // ricordare di togliere dopo gli openPrices
         // trend di 2 ore (corto)
         const sma4 = SMA.calculate({
           period: 4,
@@ -1019,22 +1038,29 @@ async function bootstrapModalitaOrderbook () {
           values: askClosePrices
         })
 
-        // trend del giorno
-        // non serve. ovviamente essendo intraday tf30minuti sarà negativo per forza
-        /* const sma48 = SMA.calculate({
-          period: 48,
-          values: askClosePrices
-        }) */
+        /* const mediaSmaOpenArr = []
+          for (let i = 1; i < askClosePrices.slice(3).length; i++) {
+          // se era maggiore del 5% il prezzo raggiunto
 
-        // rsi su 6 ore
-        const rsi = RSI.calculate({
-          period: 12,
-          values: askClosePrices
-        })
+          if (calculatePercDiff(askClosePrices[i], askClosePrices[i - 1]) > 5 && sma4[i] > 0) {
+            mediaSmaOpenArr.push(sma4[i])
+          }
+        }
+
+        for (let i = 1; i < askClosePrices.slice(15).length; i++) {
+          // se era maggiore del 5% il prezzo raggiunto
+
+          if (calculatePercDiff(askClosePrices[i], askClosePrices[i - 1]) > 5 && sma16[i] > 0) {
+            // console.log('prices', askClosePrices[i], askClosePrices[i - 1], calculatePercDiff(sma16[i], sma16[i - 1]), askClosePrices.slice(15).length, sma16.length)
+            mediaSmaOpenArr.push(sma16[i])
+          }
+        }
+
+        console.log(calculateMedian(mediaSmaOpenArr)) */
 
         // vuol dire che adesso è almeno un po basso nella giornata
         // eslint-disable-next-line no-unused-vars
-        const rsiRialzista = rsi[rsi.length - 1] < 50
+        /* const rsiRialzista = rsi[rsi.length - 1] < 50 */
 
         // la settimana deve essere rialzista abbastanza
         // la giornata deve essere rialzista
@@ -1044,14 +1070,18 @@ async function bootstrapModalitaOrderbook () {
         // per ora escludiamo il requisito dell'RSI sotto i 50
         // l'sma 16 è giusto che superi l'sma5 ma dev'essere il salita ripida, non in discesa
 
-        const forzaSmaCorta = calculatePercDiff(sma4[sma4.length - 1], sma4[sma4.length - 2])
-        const forzaSmaLunga = calculatePercDiff(sma16[sma16.length - 1], sma16[sma16.length - 2])
-        const forzaSmaSettimana = calculatePercDiff(sma336[sma336.length - 1], sma336[sma336.length - 2])
+        const forzaSmaCorta = percentTo0until90Angle(calculatePercDiff(sma4[sma4.length - 1], sma4[sma4.length - 2]))
+        const forzaSmaLunga = percentTo0until90Angle(calculatePercDiff(sma16[sma16.length - 1], sma16[sma16.length - 2]))
+        const forzaSmaSettimana = percentTo0until90Angle(calculatePercDiff(sma336[sma336.length - 1], sma336[sma336.length - 2]))
         // il rapporto tra SmaCorta e SmaLunga dev'essere almeno di 3:1
         const rapportoIncrocioSma = forzaSmaCorta / forzaSmaLunga
 
-        if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 /* && rsiRialzista === true */) {
-          // CONTA CHE SONO SMA SU 30 MINUTI
+        // if (forzaSmaSettimana >= 0.1 && forzaSmaLunga >= 0.1 && sma4[sma4.length - 1] > sma16[sma16.length - 1] && forzaSmaCorta >= 0.4 && rapportoIncrocioSma >= 1.5 /* && rsiRialzista === true */) {
+
+        // ho calcolato la mediana dell'angolo di apertura dell'SMA4 quando poi ha fatto +5%: 0.22 di angolo solo se sma > 0
+        // la SMA16 mediamente ha 0.26 gradi di angolo
+        if (forzaSmaSettimana > 0 && forzaSmaLunga > 0.25 && forzaSmaCorta > 0.25 && sma4[sma4.length - 1] > sma16[sma16.length - 1]) {
+        // CONTA CHE SONO SMA SU 30 MINUTI
           console.log(
             symbol,
             'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
@@ -1220,6 +1250,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
         let superaDoppioMassimo = false
         let superaTriploMassimo = false
         let superaMassimoVicino = false
+        let superaMassimoAssoluto = false
+        let superaMinimoAssoluto = false
 
         grafica.doppiTocchiMassimi.forEach((massimo) => {
           if (currentAskPrice < massimo && currentAskPrice > massimo * 0.9925) {
@@ -1252,6 +1284,16 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           }
         })
 
+        if (currentAskPrice > grafica.massimoAssoluto && currentAskPrice < grafica.massimoAssoluto * 1.01) {
+          // facciamo che conta come un doppio tocco
+          superaMassimoAssoluto = true
+        }
+
+        if (currentAskPrice > grafica.minimoAssoluto && currentAskPrice < grafica.minimoAssoluto * 1.01) {
+          // facciamo che conta come un doppio tocco
+          superaMinimoAssoluto = true
+        }
+
         let convenienza = false
         let puntiConvenienza = 0
         // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 2%
@@ -1271,32 +1313,81 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           // console.log('puntiConvenienza 3', simbolo)
           puntiConvenienza++
         }
-        if (superaDoppioMassimo === true) {
-          // console.log('puntiConvenienza 4', simbolo)
-          puntiConvenienza += 3
-        }
-        if (superaTriploMassimo === true) {
-          // console.log('puntiConvenienza 5', simbolo)
-          puntiConvenienza += 2
-        }
+
         if (superaMassimoVicino === true) {
           // console.log('puntiConvenienza 6', simbolo)
           puntiConvenienza++
         }
-        if (puntiConvenienza >= 6) {
+        // contiamo il superaMassimoAssoluto alla pari del doppioMassimo
+        if (superaDoppioMassimo === true || superaMassimoAssoluto === true) {
+          // console.log('puntiConvenienza 4', simbolo)
+          puntiConvenienza += 2
+        }
+        if (superaTriploMassimo === true) {
+          // console.log('puntiConvenienza 5', simbolo)
+          puntiConvenienza += 3
+        }
+
+        // deve superare i 5 punti su 9 (la maggioranza)
+        if (puntiConvenienza >= 5) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }
         // condizioni di esclusione obbligatoria
         // posso tollerare solo la reimpostazione stop loss dato che viene reimpostato a -1%
-        if (grafica.minimoAssoluto === Infinity || grafica.massimoAssoluto === 0 || grafica.volatilitaGiornaliera === 0 || boolSottoMinimiGiornalieri === true || boolReimpostazioneNextMaxPrice === true /* || boolReimpostazioneStopLoss === true */) {
+        if (superaMinimoAssoluto === true || grafica.minimoAssoluto === Infinity || grafica.massimoAssoluto === 0 || grafica.volatilitaGiornaliera === 0 || boolSottoMinimiGiornalieri === true /* || boolReimpostazioneNextMaxPrice === true /* || boolReimpostazioneStopLoss === true */) {
           // console.log('puntiConvenienza NO', simbolo)
           convenienza = false
         }
 
         // console.log('puntiConvenienza', puntiConvenienza, convenienza, simbolo)
 
-        callback({ convenienza, doppiTocchiMassimi: grafica.doppiTocchiMassimi, tripliTocchiMassimi: grafica.tripliTocchiMassimi, doppiTocchiMinimi: grafica.doppiTocchiMinimi, tripliTocchiMinimi: grafica.tripliTocchiMinimi, puntiConvenienza, vicinoDoppioMassimo, vicinoTriploMassimo, superaMassimoVicino, superaDoppioMassimo, superaTriploMassimo, currentAskPrice, diffAskPerc, diffBidPerc, currentPrice, boolSottoMinimiGiornalieri, boolReimpostazioneNextMaxPrice, boolReimpostazioneStopLoss, nextMaxPrice, nextMinPrice, diffMaxPerc, diffMinPerc, bestAsk: book.bestAsk, bestBid: book.bestBid, boolDoppioMassimo, boolDoppioMinimo, boolTriploMassimo, boolTriploMinimo })
+        callback({
+          convenienza,
+          puntiConvenienza,
+
+          massimoAssoluto: grafica.massimoAssoluto,
+          minimoAssoluto: grafica.minimoAssoluto,
+
+          superaMassimoAssoluto,
+          superaMinimoAssoluto,
+
+          massimiVicini: grafica.massimiVicini,
+          minimiVicini: grafica.minimiVicini,
+          boolSottoMinimiGiornalieri,
+
+          doppiTocchiMassimi: grafica.doppiTocchiMassimi,
+          tripliTocchiMassimi: grafica.tripliTocchiMassimi,
+
+          boolDoppioMassimo,
+          boolDoppioMinimo,
+          boolTriploMassimo,
+          boolTriploMinimo,
+
+          vicinoDoppioMassimo,
+          vicinoTriploMassimo,
+          superaMassimoVicino,
+          superaDoppioMassimo,
+          superaTriploMassimo,
+
+          doppiTocchiMinimi: grafica.doppiTocchiMinimi,
+          tripliTocchiMinimi: grafica.tripliTocchiMinimi,
+
+          currentPrice,
+          currentAskPrice,
+
+          nextMaxPrice,
+          nextMinPrice,
+          boolReimpostazioneNextMaxPrice,
+          boolReimpostazioneStopLoss,
+          diffMaxPerc,
+          diffMinPerc,
+
+          bestAsk: book.bestAsk,
+          bestBid: book.bestBid,
+          diffAskPerc,
+          diffBidPerc
+        })
       }).catch(reason => {
         console.log(reason)
         callback(false)
