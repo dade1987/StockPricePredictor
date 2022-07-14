@@ -1201,7 +1201,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
       // di solito quando le ultime 2 candele sono verdi e il volume è in crescita è un indice di inversione rialzista
       // secondo la teoria delle candele giapponesi
-      const candlesPeriod = 2
+      // può essere settato o a 2 o a 1
+      const candlesPeriod = 3
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1455,7 +1456,9 @@ if (modalita === 4) {
     console.log(data)
   })
 } else if (modalita === 2) {
-  nextMinuteDate = roundUpTo2Minutes(new Date()) + 1000
+  // ai secondi 15 così almeno fa ora a valutare i volumi dell'ultima candela in modo decente
+  // così vedi se è partita forte
+  nextMinuteDate = roundUpTo2Minutes(new Date()) + (1000 * 15)
   const currentDate = Date.now()
   const waitFistTime = nextMinuteDate - currentDate
 
