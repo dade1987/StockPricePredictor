@@ -1090,6 +1090,7 @@ async function bootstrapModalitaOrderbook () {
         // CONTA CHE SONO SMA SU 30 MINUTI
           console.log(
             symbol,
+            'data', new Date().toLocaleString(),
             'forzaSmaSettimana', forzaSmaSettimana.toFixed(2),
             'forzaSmaLunga', forzaSmaLunga.toFixed(2),
             'sma4 - 1', sma4[sma4.length - 1].toFixed(5),
@@ -1141,6 +1142,7 @@ playBullSentiment(true)
 // eslint-disable-next-line no-unused-vars
 function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callback) {
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, tickSizeDecimals, (grafica) => {
+    const data = new Date().toLocaleString()
     // console.log(grafica)
     const currentPrice = grafica.currentPrice
     // eslint-disable-next-line array-callback-return
@@ -1215,7 +1217,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      const candlesPeriod = 4
+      // il classico periodo di trend è 8
+      const candlesPeriod = 8
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1241,15 +1244,13 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         } */
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
-        const closes = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(a[i - 1].close) /* * 1.005 */)
-        const volumes = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.volume) > Number(a[i - 1].volume) /* * 1.005 */)
-
+        const priceTrend = ultimeCandele.filter((v, i) => i > 0 && Number(v.close) > Number(ultimeCandele[i - 1].close) && Number(v.volume) > Number(ultimeCandele[i - 1].volume))
+        console.log('priceTrend', priceTrend)
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
 
         // escludiamo magari l'attuale in caso non siano tutti e 3 che salgono ma solo 2
-        const gradiForzaPrezzo = closes.length === candlesPeriod - 2
-        const gradiForzaVolume = volumes.length === candlesPeriod - 2
+        const gradiForzaPrezzo = priceTrend.length >= candlesPeriod / 10 * 6
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1308,16 +1309,11 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           puntiConvenienza++
         }
         // con gradi di forza di intende l'angolo goniometrico
+        // uniti prezzi e volumi
         if (gradiForzaPrezzo === true) {
           console.log(gradiForzaPrezzo)
           // console.log('puntiConvenienza 2', simbolo)
-          puntiConvenienza++
-        }
-        // non serve che sia altissimo ma almeno deve essere un po in salita
-        if (gradiForzaVolume === true) {
-          console.log(gradiForzaVolume)
-          // console.log('puntiConvenienza 3', simbolo)
-          puntiConvenienza++
+          puntiConvenienza += 2
         }
 
         if (superaMassimoVicino === true) {
@@ -1351,6 +1347,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         callback({
           convenienza,
           puntiConvenienza,
+          data,
 
           massimoAssoluto: grafica.massimoAssoluto,
           minimoAssoluto: grafica.minimoAssoluto,
@@ -1403,7 +1400,65 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 }
 
 const modalita = 2
-if (modalita === 3) {
+if (modalita === 4) {
+  const data = [
+    {
+      openTime: 1657808460000,
+      open: '2.61500000',
+      high: '2.61700000',
+      low: '2.60100000',
+      close: '2.61500000',
+      volume: '6823.40000000',
+      closeTime: 1657808519999,
+      quoteVolume: '17805.82590000',
+      trades: 75,
+      baseAssetVolume: '1154.50000000',
+      quoteAssetVolume: '3016.61960000'
+    },
+    {
+      openTime: 1657808520000,
+      open: '2.61500000',
+      high: '2.62000000',
+      low: '2.61400000',
+      close: '2.62000000',
+      volume: '835.60000000',
+      closeTime: 1657808579999,
+      quoteVolume: '2186.24290000',
+      trades: 25,
+      baseAssetVolume: '596.30000000',
+      quoteAssetVolume: '1560.05240000'
+    },
+    {
+      openTime: 1657808580000,
+      open: '2.62000000',
+      high: '2.62200000',
+      low: '2.61700000',
+      close: '2.62200000',
+      volume: '3947.40000000',
+      closeTime: 1657808639999,
+      quoteVolume: '10341.94100000',
+      trades: 50,
+      baseAssetVolume: '1563.30000000',
+      quoteAssetVolume: '4096.34900000'
+    },
+    {
+      openTime: 1657808640000,
+      open: '2.62200000',
+      high: '2.62800000',
+      low: '2.62200000',
+      close: '2.62800000',
+      volume: '3995.70000000',
+      closeTime: 1657808699999,
+      quoteVolume: '10488.80050000',
+      trades: 30,
+      baseAssetVolume: '2069.70000000',
+      quoteAssetVolume: '5433.07330000'
+    }
+  ]
+
+  const dataFiltered = data.filter((v, i) => i > 0 && v.close > data[i - 1].close && v.volume > data[i - 1].volume)
+  console.log(dataFiltered)
+} else if (modalita === 3) {
   analisiOrderBook('TRBUSDT', 15.46, 15.62, 15.33, function (data) {
     console.log(data)
   })
