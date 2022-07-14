@@ -1120,25 +1120,6 @@ async function bootstrapModalitaOrderbook () {
   }
 }
 
-// ogni mezz'ora
-
-const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo
-const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5)
-
-const nextMinuteDate = roundUpTo5Minutes(new Date()) + 1000
-
-const currentDate = Date.now()
-const waitFistTime = nextMinuteDate - currentDate
-
-playBullSentiment(true)
-
-// testing
-/* setTimeout(function () {
-  const arrayInvestimento = []
-  arrayInvestimento.push({ azione: 'LONG', simbolo: 'SOLUSDT', price: 38.07, tp: 40, sl: 36, base_asset: 'SOL', RSI: 25, date: new Date().getTime(), baseAssetPrecision: '2', lotSize: '0.1', median: 1 })
-  autoInvestiLong(arrayInvestimento)
-}, 5000) */
-
 // eslint-disable-next-line no-unused-vars
 function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callback) {
   analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, tickSizeDecimals, (grafica) => {
@@ -1217,9 +1198,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
       // messa una candela in più per poi escludere quella attuale nel conteggio
       // altrimenti se il prezzo ha appena iniziato il volume magari è zero
-      // il classico periodo di trend secondo la teoria di Dow, esclusi ritracciamenti, è 5
-      // ma mettiamo uno in più per che faccia da indice 0 per il confronto
-      const candlesPeriod = 6
+
+      // di solito quando le ultime 2 candele sono verdi e il volume è in crescita è un indice di inversione rialzista
+      // secondo la teoria delle candele giapponesi
+      const candlesPeriod = 2
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1246,11 +1228,12 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
         const priceTrend = ultimeCandele.filter((v, i) => i > 0 && Number(v.close) > Number(ultimeCandele[i - 1].close) && Number(v.volume) > Number(ultimeCandele[i - 1].volume))
-        console.log('priceTrend', priceTrend)
+        console.log('priceTrend', priceTrend.length, 'periodo', candlesPeriod - 1, 'soglia', (candlesPeriod - 1) / 10 * 6)
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
 
-        // escludiamo magari l'attuale in caso non siano tutti e 3 che salgono ma solo 2
+        // nel caso di periodo 2 avere una candela, quindi superiore allo 0,6
+        // significa che le ultime 2 candele sono rialzista, inclusi i volumi
         const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 6
 
         let vicinoDoppioMassimo = false
@@ -1262,13 +1245,13 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         let superaMinimoAssoluto = false
 
         grafica.doppiTocchiMassimi.forEach((massimo) => {
-          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.9925) {
+          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.99) {
             vicinoDoppioMassimo = true
             // console.log(simbolo, 'close vicino doppio tocco massimo', massimo)
           }
         })
         grafica.tripliTocchiMassimi.forEach((massimo) => {
-          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.9925) {
+          if (currentAskPrice < massimo && currentAskPrice > massimo * 0.99) {
             vicinoTriploMassimo = true
             // console.log(simbolo, 'close vicino triplo tocco massimo', massimo)
           }
@@ -1400,6 +1383,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
   })
 }
 
+const roundUpTo = roundTo => x => Math.ceil(x / roundTo) * roundTo
+const roundUpTo5Minutes = roundUpTo(1000 * 60 * 5)
+const roundUpTo2Minutes = roundUpTo(1000 * 60 * 2)
+
+let nextMinuteDate = 0
+
+playBullSentiment(true)
+
 const modalita = 2
 if (modalita === 4) {
   const data = [
@@ -1464,19 +1455,29 @@ if (modalita === 4) {
     console.log(data)
   })
 } else if (modalita === 2) {
+  nextMinuteDate = roundUpTo2Minutes(new Date()) + 1000
+  const currentDate = Date.now()
+  const waitFistTime = nextMinuteDate - currentDate
+
   bootstrapModalitaOrderbook()
   setTimeout(function () {
     bootstrapModalitaOrderbook()
     setInterval(function () {
       bootstrapModalitaOrderbook()
-    }, 300000)
+      // 2 minuti x 60 secondi x 1000 millisecondi
+    }, 2 * 60 * 1000)
   }, waitFistTime)
 } else {
+  nextMinuteDate = roundUpTo5Minutes(new Date()) + 1000
+  const currentDate = Date.now()
+  const waitFistTime = nextMinuteDate - currentDate
+
   bootstrap()
   setTimeout(function () {
     bootstrap()
     setInterval(function () {
       bootstrap()
-    }, 300000)
+      // 5 minuti x 60 secondi x 1000 millisecondi
+    }, 5 * 60 * 1000)
   }, waitFistTime)
 }
