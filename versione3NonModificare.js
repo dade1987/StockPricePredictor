@@ -246,14 +246,15 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const numeroTripliTocchiMinimi = tripliTocchiMinimi.length
 
     // escludiamo la candela corrente altrimenti non supererà mai i massimi
-    // partiamo da -48 ovvero 24 ore (48 intervalli da 30 min)
-    if (massimoAssoluto === 0) {
-      massimoAssoluto = Math.max(...candles30MinCloses.slice(-48, -1))
-    }
+    // facciamo sempre sullo stesso calendario il calcolo cioè della settimana
+    // altrimenti si rischia che il massimo sia uguale al minimo
+    // if (massimoAssoluto === 0) {
+    massimoAssoluto = Math.max(...smaMax.slice(0, -1))
+    // }
 
-    if (minimoAssoluto === Infinity) {
-      minimoAssoluto = Math.min(...candles30MinCloses.slice(-48, -1))
-    }
+    // if (minimoAssoluto === Infinity) {
+    minimoAssoluto = Math.min(...smaMin.slice(0, -1))
+    // }
 
     callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: [...new Set(massimiVicini.sort())], minimiVicini: [...new Set(minimiVicini.sort())], massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
   }).catch((r) => console.log(r))
@@ -1284,12 +1285,12 @@ function analisiGraficoOrderbook (simbolo, singleClient, callback) {
           }
         })
 
-        if (currentAskPrice > grafica.massimoAssoluto && currentAskPrice < grafica.massimoAssoluto * 1.01) {
+        if (currentAskPrice > grafica.massimoAssoluto) {
           // facciamo che conta come un doppio tocco
           superaMassimoAssoluto = true
         }
 
-        if (currentAskPrice > grafica.minimoAssoluto && currentAskPrice < grafica.minimoAssoluto * 1.01) {
+        if (currentAskPrice < grafica.minimoAssoluto) {
           // facciamo che conta come un doppio tocco
           superaMinimoAssoluto = true
         }
