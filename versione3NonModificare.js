@@ -137,7 +137,7 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
+function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, tickSizeDecimals, callback) {
   // 48 vuol dire 24 ore dato che sono intervalli di 30 minuti, quindi  x 3 fa 3 giorni
   client.candles({ symbol, interval: '30m', limit: 48 * 7 }).then((candles30Min) => {
     const massimiVicini = []
@@ -161,12 +161,12 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const smaMin = SMA.calculate({
       period,
       values: candles30Min.map((v) => Number(v.low))
-    }).map((v) => roundByDecimals(v, currentPrice.toString().countDecimals()))
+    }).map((v) => roundByDecimals(v, tickSizeDecimals))
 
     const smaMax = SMA.calculate({
       period,
       values: candles30Min.map((v) => Number(v.high))
-    }).map((v) => roundByDecimals(v, currentPrice.toString().countDecimals()))
+    }).map((v) => roundByDecimals(v, tickSizeDecimals))
 
     // per calcolare le resistenze (in alto)
     let c = smaMax.length
@@ -255,7 +255,7 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
 
     // in realtà è volatilità settimanale
     console.log(vol1[0], vol2[0])
-    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, currentPrice.toString().countDecimals())
+    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, tickSizeDecimals)
 
     if (isNaN(volatilitaGiornaliera)) {
       volatilitaGiornaliera = 0
@@ -417,37 +417,37 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
 async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
   // console.log(autoInvestiLongOrderbook, arrayPrevisioniFull)
   try {
-    analisiGraficoOrderbook(arrayPrevisioniFull[0].simbolo, client, (analisiGraficoBook) => {
-      console.log(analisiGraficoBook)
-      const condition = analisiGraficoBook.convenienza
-      if (analisiGraficoBook !== false && condition === true) {
-        console.log('CONDIZIONE VERA', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
+    client.exchangeInfo().then((e) => {
+      // console.log("ok1",  arrayPrevisioni.simbolo);
+      const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioniFull[0].simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
 
-        for (const singleClient of clients) {
+      // anche se è già una stringa è per capire
+      const tickSizeDecimals = tickSize.toString().countDecimals()
+
+      analisiGraficoOrderbook(arrayPrevisioniFull[0].simbolo, client, tickSizeDecimals, (analisiGraficoBook) => {
+        console.log(analisiGraficoBook)
+        const condition = analisiGraficoBook.convenienza
+        if (analisiGraficoBook !== false && condition === true) {
+          console.log('CONDIZIONE VERA', arrayPrevisioniFull[0].simbolo, analisiGraficoBook)
+
+          for (const singleClient of clients) {
           // console.log(single_client);
 
-          for (const arrayPrevisioni of arrayPrevisioniFull) {
+            for (const arrayPrevisioni of arrayPrevisioniFull) {
             // questo serve solo in caso di conferma di tutte le altre condizioni
-            client.exchangeInfo().then((e) => {
-              // console.log("ok1",  arrayPrevisioni.simbolo);
-              const tickSize = e.symbols.filter(v => v.symbol === arrayPrevisioni.simbolo)[0].filters.filter(v => v.filterType === 'PRICE_FILTER')[0].tickSize
-
-              // anche se è già una stringa è per capire
-              const tickSizeDecimals = tickSize.toString().countDecimals()
-
-              // console.log("ok2", arrayPrevisioni.simbolo);
+            // console.log("ok2", arrayPrevisioni.simbolo);
               singleClient.accountInfo().then(accountInfo => {
-                // console.log(accountInfo);
-                // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
-                // meglio differenziare perchè almeno se perdi su una magari su un altra sale
-                // quindi meglio settare un importo che sia 1/3 del totale che si possiede
+              // console.log(accountInfo);
+              // meglio investire un po meno altrimenti si rischia che il prezzo cambi nel frattempo e il bilancio non basta più a fine ciclo
+              // meglio differenziare perchè almeno se perdi su una magari su un altra sale
+              // quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
                 // così può differenziare un po gli investimenti
                 const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 3 /* 100 * 95 */
                 // console.log("USDT Amount", UsdtAmount);
                 singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
-                  // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
-                  // altrimenti lasciar perdere l'investimento
+                // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
+                // altrimenti lasciar perdere l'investimento
 
                   let maxQty = UsdtAmount / Number(analisiGraficoBook.currentAskPrice)
 
@@ -467,7 +467,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
 
                     if (UsdtAmount >= 25) {
                       singleClient.openOrders({ symbol: arrayPrevisioni.simbolo }).then(openOrders => {
-                        // console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
+                      // console.log('ORDINI APERTI PER ' + arrayPrevisioni.simbolo, openOrders, openOrders.length)
 
                         if (openOrders.length === 0) {
                           console.log('APERTURA ORDINE MERCATO', 'SIMBOLO', arrayPrevisioni.simbolo, 'QUANTITA', maxQty, 'MEDIANA', arrayPrevisioni.median, 'TAKE PROFIT', roundByDecimals((symbolPrice.askPrice / 100 * (100 + arrayPrevisioni.median)), tickSizeDecimals), 'STOP LOSS', roundByDecimals((symbolPrice.bidPrice / 100 * (100 - 1)), tickSizeDecimals), 'TICK SIZE', tickSize, 'TICK SIZE DECIMALS', tickSizeDecimals)
@@ -501,15 +501,15 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                   console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
                 })
               }).catch((reason) => {
-                // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
+              // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
                 console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
               })
-            }).catch((reason) => {
-              console.log('single_client.exchangeInfo', arrayPrevisioni.simbolo, reason)
-            })
+            };
           };
-        };
-      }
+        }
+      })
+    }).catch((reason) => {
+      console.log('single_client.exchangeInfo', arrayPrevisioniFull[0].simbolo, reason)
     })
   } catch (reason) {
     console.log(reason)
@@ -1139,8 +1139,8 @@ playBullSentiment(true)
 }, 5000) */
 
 // eslint-disable-next-line no-unused-vars
-function analisiGraficoOrderbook (simbolo, singleClient, callback) {
-  analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, (grafica) => {
+function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callback) {
+  analisiGraficaGiornalieraMassimiMinimiVicini(simbolo, tickSizeDecimals, (grafica) => {
     // console.log(grafica)
     const currentPrice = grafica.currentPrice
     // eslint-disable-next-line array-callback-return
