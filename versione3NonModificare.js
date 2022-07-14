@@ -161,12 +161,12 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const smaMin = SMA.calculate({
       period,
       values: candles30Min.map((v) => Number(v.low))
-    }).map((v) => roundByDecimals(v, 2))
+    }).map((v) => roundByDecimals(v, currentPrice.toString().countDecimals()))
 
     const smaMax = SMA.calculate({
       period,
       values: candles30Min.map((v) => Number(v.high))
-    }).map((v) => roundByDecimals(v, 2))
+    }).map((v) => roundByDecimals(v, currentPrice.toString().countDecimals()))
 
     // per calcolare le resistenze (in alto)
     let c = smaMax.length
@@ -254,7 +254,8 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, callback) {
     const vol2 = calculateAbsPercVariationArray([minimoAssoluto, massimoAssoluto])
 
     // in realtà è volatilità settimanale
-    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, 5)
+    console.log(vol1[0], vol2[0])
+    let volatilitaGiornaliera = roundByDecimals((vol1[0] + vol2[0]) / 2, currentPrice.toString().countDecimals())
 
     if (isNaN(volatilitaGiornaliera)) {
       volatilitaGiornaliera = 0
