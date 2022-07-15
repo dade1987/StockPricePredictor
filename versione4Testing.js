@@ -265,6 +265,33 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, tickSizeDecimals,
   }).catch((r) => console.log(r))
 }
 
+let lastDrinTime = 0
+async function playDrin (bypass) {
+  // suona per mostrare errori, se non è notte
+
+  const path = require('path')
+  const filePath = path.join(__dirname, 'drin.mp3')
+
+  // di notte non deve riprodurre suoni sennò fai un infarto
+  const ora = new Date().getHours()
+
+  // solo ai minuti 30 fa il verso del toro
+  // let minuti = new Date().getMinutes();
+
+  if (bypass === true) {
+    if (soundDisabled === false) {
+      // console.log(filePath);
+      sound.play(filePath)
+    }
+  } else if (ora < 22 && ora > 9 && lastDrinTime >= 30000) {
+    if (soundDisabled === false) {
+      sound.play(filePath)
+      lastDrinTime = new Date().getTime()
+    }
+  }
+}
+
+let lastBullTime = 0
 async function playBullSentiment (bypass) {
   const path = require('path')
   const filePath = path.join(__dirname, 'bull_sentiment.mp3')
@@ -280,11 +307,12 @@ async function playBullSentiment (bypass) {
       // console.log(filePath);
       sound.play(filePath)
     }
-  } else if (ora < 22 && ora > 9) {
+  } else if (ora < 22 && ora > 9 && lastBullTime >= 30000) {
     // if (minuti >= 30 && minuti <= 34) {
     if (soundDisabled === false) {
       // console.log(filePath);
       sound.play(filePath)
+      lastBullTime = new Date().getTime()
     }
     // }
   }
@@ -346,6 +374,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           } else {
             ocoAttemps = 0
             console.log('maxAttemps reached', simbolo)
+            playDrin()
             callback([false, 'single_client.order SELL'])
           }
         })
@@ -381,13 +410,13 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
             } else {
               ocoAttemps = 0
               console.log('maxAttemps reached', simbolo)
+              playDrin()
               callback([false, 'maxOCOattempts reached'])
             }
           })
       }
     }).catch((reason) => {
       console.log('dailyStats', simbolo, reason)
-      console.log('maxAttemps reached', simbolo)
       if (ocoAttemps < 10) {
         ocoAttemps++
         setTimeout(function () {
@@ -395,6 +424,8 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
         }, 1000)
       } else {
         ocoAttemps = 0
+        console.log('maxAttemps reached', simbolo)
+        playDrin()
         callback([false, 'dailyStats'])
       }
     })
@@ -409,6 +440,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
     } else {
       console.log('maxAttemps reached', simbolo)
       ocoAttemps = 0
+      playDrin()
       callback([false, 'maxOCOattempts reached'])
     }
   })
@@ -443,7 +475,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
               // quindi meglio settare un importo che sia 1/3 del totale che si possiede
 
                 // così può differenziare un po gli investimenti
-                const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 3 /* 100 * 95 */
+                const UsdtAmount = accountInfo.balances.filter(v => v.asset === 'USDT')[0].free / 100 * 97.5
                 // console.log("USDT Amount", UsdtAmount);
                 singleClient.dailyStats({ symbol: arrayPrevisioni.simbolo }).then(symbolPrice => {
                 // verificare se la criptovaluta ha gli ultimi 48 volumi alti (in dollari) o se è senza liquidità
@@ -490,19 +522,23 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                               }
                             })
                           }).catch((reason) => {
+                            playDrin()
                             console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
                           })
                         }
                       }).catch((reason) => {
+                        playDrin()
                         console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
                       })
                     }
                   }
                 }).catch((reason) => {
+                  playDrin()
                   console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
                 })
               }).catch((reason) => {
               // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
+                playDrin()
                 console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
               })
             };
@@ -510,9 +546,11 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
         }
       })
     }).catch((reason) => {
+      playDrin()
       console.log('single_client.exchangeInfo', arrayPrevisioniFull[0].simbolo, reason)
     })
   } catch (reason) {
+    playDrin()
     console.log(reason)
   }
 }
@@ -965,6 +1003,8 @@ async function bootstrapModalitaOrderbook () {
   console.log('---------------------------------------------------------------------------')
   const binanceDate = new Date().toLocaleString()
   console.log('DATA', binanceDate)
+  console.log('SINCRONIZZA OROLOGIO DI WINDOWS')
+  console.log('https://answers.microsoft.com/it-it/windows/forum/all/modificare-la-frequenza-di-aggiornamento/56ff20dd-1901-41f4-8799-efe767d96886')
 
   const exchangeName = 'binance'
 
@@ -1391,6 +1431,7 @@ const roundUpTo2Minutes = roundUpTo(1000 * 60 * 2)
 
 let nextMinuteDate = 0
 
+// playDrin(true)
 playBullSentiment(true)
 
 const modalita = 2
