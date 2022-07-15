@@ -3,6 +3,11 @@
 /* eslint-disable no-extend-native */
 'use strict'
 
+const fs = require('fs')
+const util = require('util')
+const path = require('path')
+const logFile = fs.createWriteStream(path.join(__dirname, 'debug.log'), { flags: 'w' })
+
 // TESTATO SENZA MAI AVER SBAGLIATO IL 10 GIUGNO 2022 TUTTO IL GIORNO
 const dotenv = require('dotenv')
 dotenv.config()
@@ -57,6 +62,7 @@ Number.prototype.countDecimals = function () {
     if (Math.floor(this.valueOf()) === this.valueOf()) return 0
     return this.toString().split('.')[1].length || 0
   } catch (exception) {
+    logFile.write(util.format(exception) + '\n')
     console.log('Exception', exception, 'This', this)
   }
 }
@@ -84,6 +90,7 @@ String.prototype.countDecimals = function () {
       return 0
     }
   } catch (exception) {
+    logFile.write(util.format(exception) + '\n')
     console.log('Exception', exception, 'This', this)
   }
 }
@@ -133,7 +140,9 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
     }
 
     callback({ asks, bids, asks2, bids2, bestAsk: bestAsk.price, bestBid: bestBid.price })
-  }).catch(reason => { console.log(reason) })
+  }).catch(reason => {
+    logFile.write(util.format(reason) + '\n')
+    console.log(reason) })
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -262,7 +271,10 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, tickSizeDecimals,
     }
 
     callback({ currentPrice, volatilitaGiornaliera, numeroDoppiTocchiMassimi, numeroDoppiTocchiMinimi, numeroTripliTocchiMassimi, numeroTripliTocchiMinimi, massimiVicini: [...new Set(massimiVicini.sort())], minimiVicini: [...new Set(minimiVicini.sort())], massimoAssoluto, minimoAssoluto, doppiTocchiMassimi, doppiTocchiMinimi, tripliTocchiMassimi, tripliTocchiMinimi })
-  }).catch((r) => console.log(r))
+  }).catch((r) => {
+    logFile.write(util.format(r) + '\n')
+    console.log(r)
+  })
 }
 
 let lastDrinTime = 0
@@ -374,6 +386,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           } else {
             ocoAttemps = 0
             console.log('maxAttemps reached', simbolo)
+            logFile.write(util.format(reason) + '\n')
             playDrin()
             callback([false, 'single_client.order SELL'])
           }
@@ -410,6 +423,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
             } else {
               ocoAttemps = 0
               console.log('maxAttemps reached', simbolo)
+              logFile.write(util.format(reason) + '\n')
               playDrin()
               callback([false, 'maxOCOattempts reached'])
             }
@@ -425,6 +439,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
       } else {
         ocoAttemps = 0
         console.log('maxAttemps reached', simbolo)
+        logFile.write(util.format(reason) + '\n')
         playDrin()
         callback([false, 'dailyStats'])
       }
@@ -439,6 +454,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
       }, 1000)
     } else {
       console.log('maxAttemps reached', simbolo)
+      logFile.write(util.format(reason) + '\n')
       ocoAttemps = 0
       playDrin()
       callback([false, 'maxOCOattempts reached'])
@@ -522,22 +538,26 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                               }
                             })
                           }).catch((reason) => {
+                            logFile.write(util.format(reason) + '\n')
                             playDrin()
                             console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
                           })
                         }
                       }).catch((reason) => {
+                        logFile.write(util.format(reason) + '\n')
                         playDrin()
                         console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
                       })
                     }
                   }
                 }).catch((reason) => {
+                  logFile.write(util.format(reason) + '\n')
                   playDrin()
                   console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
                 })
               }).catch((reason) => {
-              // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
+                logFile.write(util.format(reason) + '\n')
+                // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
                 playDrin()
                 console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
               })
@@ -546,10 +566,12 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
         }
       })
     }).catch((reason) => {
+      logFile.write(util.format(reason) + '\n')
       playDrin()
       console.log('single_client.exchangeInfo', arrayPrevisioniFull[0].simbolo, reason)
     })
   } catch (reason) {
+    logFile.write(util.format(reason) + '\n')
     playDrin()
     console.log(reason)
   }
@@ -656,30 +678,37 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                             }
                           })
                         }).catch((reason) => {
+                          logFile.write(util.format(reason) + '\n')
                           console.log('single_client.order BUY', arrayPrevisioni.simbolo, reason)
                         })
                       }
                     }).catch((reason) => {
+                      logFile.write(util.format(reason) + '\n')
                       console.log('single_client.openOrders', arrayPrevisioni.simbolo, reason)
                     })
                   }
                 }
               }).catch(reason => {
+                logFile.write(util.format(reason) + '\n')
                 console.log('single_client.candles', arrayPrevisioni.simbolo, reason)
               })
             }).catch((reason) => {
+              logFile.write(util.format(reason) + '\n')
               console.log('single_client.dailyStats', arrayPrevisioni.simbolo, reason)
             })
           }).catch((reason) => {
+            logFile.write(util.format(reason) + '\n')
             // SINCRONIZZARE OROLOGIO SE DICE CHE E' 1000ms avanti rispetto al server di binance
             console.log('single_client.accountInfo', arrayPrevisioni.simbolo, reason)
           })
         }).catch((reason) => {
+          logFile.write(util.format(reason) + '\n')
           console.log('single_client.exchangeInfo', arrayPrevisioni.simbolo, reason)
         })
       };
     };
   } catch (reason) {
+    logFile.write(util.format(reason) + '\n')
     console.log(reason)
   }
 }
@@ -786,6 +815,7 @@ function promessa (market, exchangeName, callback) {
           callback([true, { symbol: market.symbol, baseAsset: market.baseAsset, baseAssetPrecision: market.baseAssetPrecision, rawPrices, askClosePrices, lotSize }])
           // console.log(market.symbol, "qui");
         }).catch((reason) => {
+          logFile.write(util.format(reason) + '\n')
           console.log('no1', market.symbol, reason)
           simultaneousConnections--
           callback([false, reason])
@@ -1418,6 +1448,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           diffBidPerc
         })
       }).catch(reason => {
+        logFile.write(util.format(reason) + '\n')
         console.log(reason)
         callback(false)
       })
