@@ -1466,6 +1466,9 @@ let nextMinuteDate = 0
 playBullSentiment(true)
 
 const modalita = 2
+if (modalita === 6) {
+  client.exchangeInfo().then((e) => { console.log(e) }).catch(r => console.log(r))
+}
 if (modalita === 5) {
   logFile.write(util.format('test1') + '\n')
   logFile.write(util.format('test2') + '\n')
