@@ -1248,7 +1248,18 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       // console.log('sotto i minimi giornalieri. non è possibile procedere')
     }
 
-    const diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
+    // blocco il massimo guadagno a +5% per non farmi male
+    const maxGuadagnoPerc = 5
+
+    let diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
+
+    // siccome current price è sempre più basso del prezzo a cui compri, sicuramente se lo blocchi
+    // con una percentuale, la differenza sarà meno che tra prezzo ask e nextMaxPrice
+    if (diffMaxPerc >= maxGuadagnoPerc) {
+      nextMaxPrice = roundByDecimals(currentPrice / 100 * (100 + maxGuadagnoPerc), tickSizeDecimals)
+      diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
+    }
+
     const diffMinPerc = ((nextMinPrice - currentPrice) / currentPrice) * 100
 
     const boolDoppioMassimo = grafica.doppiTocchiMassimi.indexOf(nextMaxPrice) !== -1
@@ -1264,7 +1275,6 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
             process.exit() */
 
       const currentAskPrice = book.asks2[book.asks2.length - 1].price
-      // const currentBidPrice = book.bids2[0].price
       const diffAskPerc = ((book.bestAsk - currentAskPrice) / currentAskPrice) * 100
       const diffBidPerc = ((book.bestBid - currentAskPrice) / currentAskPrice) * 100
 
@@ -1360,8 +1370,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
         let convenienza = false
         let puntiConvenienza = 0
-        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 2%
-        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) * 1.05) {
+        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 5%
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) / 100 * (100 + maxGuadagnoPerc)) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
