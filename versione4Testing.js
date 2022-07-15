@@ -142,7 +142,8 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
     callback({ asks, bids, asks2, bids2, bestAsk: bestAsk.price, bestBid: bestBid.price })
   }).catch(reason => {
     logFile.write(util.format(reason) + '\n')
-    console.log(reason) })
+    console.log(reason)
+  })
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -1299,7 +1300,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         } */
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
-        const priceTrend = ultimeCandele.filter((v, i) => i > 0 && Number(v.close) > Number(ultimeCandele[i - 1].close) && Number(v.volume) > Number(ultimeCandele[i - 1].volume))
+        const priceTrend = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume))
         console.log('priceTrend', priceTrend.length, 'periodo', candlesPeriod - 1, 'soglia', (candlesPeriod - 1) / 10 * 6)
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
@@ -1468,26 +1469,12 @@ playBullSentiment(true)
 const modalita = 2
 if (modalita === 6) {
   client.exchangeInfo().then((e) => { console.log(e) }).catch(r => console.log(r))
-}
-if (modalita === 5) {
+} else if (modalita === 5) {
   logFile.write(util.format('test1') + '\n')
   logFile.write(util.format('test2') + '\n')
   logFile.write(util.format('test3') + '\n')
 } else if (modalita === 4) {
   const data = [
-    {
-      openTime: 1657808460000,
-      open: '2.61500000',
-      high: '2.61700000',
-      low: '2.60100000',
-      close: '2.61500000',
-      volume: '6823.40000000',
-      closeTime: 1657808519999,
-      quoteVolume: '17805.82590000',
-      trades: 75,
-      baseAssetVolume: '1154.50000000',
-      quoteAssetVolume: '3016.61960000'
-    },
     {
       openTime: 1657808520000,
       open: '2.61500000',
@@ -1529,7 +1516,12 @@ if (modalita === 5) {
     }
   ]
 
-  const dataFiltered = data.filter((v, i) => i > 0 && v.close > data[i - 1].close && v.volume > data[i - 1].volume)
+  const dataFiltered = data.filter((v, i, a) => {
+    if (i > 0) {
+      console.log(v.close, a[i - 1].close, v.volume, a[i - 1].volume)
+      return Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
+    }
+  })
   console.log(dataFiltered)
 } else if (modalita === 3) {
   analisiOrderBook('TRBUSDT', 15.46, 15.62, 15.33, function (data) {
