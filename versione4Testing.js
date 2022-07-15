@@ -1517,12 +1517,11 @@ if (modalita === 6) {
   ]
 
   const dataFiltered = data.filter((v, i, a) => {
-    if (i > 0) {
-      console.log(v.close, a[i - 1].close, v.volume, a[i - 1].volume)
-      return Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
-    }
+    // console.log(v.close, a[i - 1].close, v.volume, a[i - 1].volume)
+    return i > 0 && Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
   })
-  console.log(dataFiltered)
+  console.log(dataFiltered.length, dataFiltered.length >= (3 - 1) / 10 * 6)
+  process.exit()
 } else if (modalita === 3) {
   analisiOrderBook('TRBUSDT', 15.46, 15.62, 15.33, function (data) {
     console.log(data)
