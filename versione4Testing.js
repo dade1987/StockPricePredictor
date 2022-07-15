@@ -6,7 +6,7 @@
 const fs = require('fs')
 const util = require('util')
 const path = require('path')
-const logFile = fs.createWriteStream(path.join(__dirname, 'debug.log'), { flags: 'w' })
+const logFile = fs.createWriteStream(path.join(__dirname, 'debug.log'), { flags: 'a' })
 
 // TESTATO SENZA MAI AVER SBAGLIATO IL 10 GIUGNO 2022 TUTTO IL GIORNO
 const dotenv = require('dotenv')
@@ -1465,8 +1465,12 @@ let nextMinuteDate = 0
 // playDrin(true)
 playBullSentiment(true)
 
-const modalita = 2
-if (modalita === 4) {
+const modalita = 5
+if (modalita === 5) {
+  logFile.write(util.format('test1') + '\n')
+  logFile.write(util.format('test2') + '\n')
+  logFile.write(util.format('test3') + '\n')
+} else if (modalita === 4) {
   const data = [
     {
       openTime: 1657808460000,

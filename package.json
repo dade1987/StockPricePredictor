@@ -30,7 +30,7 @@
         "technicalindicators": "^3.1.0"
     },
     "scripts": {
-        "start": "node versione3NonModificare.js"
+        "start": "node versione4Tesing.js"
     },
     "author": "",
     "license": "MIT",

@@ -4,3 +4,4 @@ drafts
 /*.env
 /package-lock.json
 /yarn.lock
+/debug.log
