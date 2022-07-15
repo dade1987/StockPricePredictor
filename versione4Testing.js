@@ -1465,7 +1465,7 @@ let nextMinuteDate = 0
 // playDrin(true)
 playBullSentiment(true)
 
-const modalita = 5
+const modalita = 2
 if (modalita === 5) {
   logFile.write(util.format('test1') + '\n')
   logFile.write(util.format('test2') + '\n')
