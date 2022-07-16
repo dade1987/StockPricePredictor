@@ -1310,7 +1310,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         } */
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
-        const priceTrend = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume))
+        const priceTrend = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) && Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume))
         console.log('priceTrend', priceTrend.length, 'periodo', candlesPeriod - 1, 'soglia', (candlesPeriod - 1) / 10 * 6)
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
