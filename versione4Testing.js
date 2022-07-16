@@ -1399,7 +1399,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         }
 
         // deve superare i 5 punti su 9 (la maggioranza)
-        if (puntiConvenienza >= 6) {
+        if (puntiConvenienza >= 5) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }
