@@ -1284,7 +1284,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       // di solito quando le ultime 2 candele sono verdi e il volume è in crescita è un indice di inversione rialzista
       // secondo la teoria delle candele giapponesi
       // può essere settato o a 2 o a 1
-      const candlesPeriod = 3
+      const candlesPeriod = 2
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1310,13 +1310,20 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         } */
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
-        const priceTrend = ultimeCandele.filter((v, i, a) => i > 0 && Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) && Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume))
+        const priceTrend = ultimeCandele.filter((v, i, a) =>
+          i > 0 && Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
+          Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
+        )
+
         console.log('priceTrend', priceTrend.length, 'periodo', candlesPeriod - 1, 'soglia', (candlesPeriod - 1) / 10 * 6)
         // -2 per escludere la candela attuale che magari è appena partita e non ha volumi
         // sono 2 intervalli DA 0 A 2
 
         // nel caso di periodo 2 avere una candela, quindi superiore allo 0,6
         // significa che le ultime 2 candele sono rialzista, inclusi i volumi
+        // in caso di periodo 1 dev'essere superiore a 0.5 cioè 1 in pratica quindi avere:
+        // 2 candele verdi, volumi in aumento e close maggiore del close precedente, anche in caso l'open sia più basso
+        // del close precedente
         const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 6
 
         let vicinoDoppioMassimo = false
@@ -1380,8 +1387,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // uniti prezzi e volumi
         if (gradiForzaPrezzo === true) {
           console.log(gradiForzaPrezzo)
-          // console.log('puntiConvenienza 2', simbolo)
-          puntiConvenienza += 2
+          // 3 perchè sono 3 condizioni assieme verificate
+          puntiConvenienza += 3
         }
 
         if (superaMassimoVicino === true) {
@@ -1398,8 +1405,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           puntiConvenienza += 3
         }
 
-        // deve superare i 5 punti su 9 (la maggioranza)
-        if (puntiConvenienza >= 5) {
+        // deve superare i 6 punti su 9 (la sufficienza)
+        if (puntiConvenienza >= 6) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }

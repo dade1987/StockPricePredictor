@@ -1,20 +1,22 @@
 statistiche versione 3
 
-asset data                                          partenza      arrivo      errore      guadagno %    da 1000 euro		periodo		fuori q3
-QNT   2022-07-14 17:15:55   2022-07-14 17:16:59     93.7          94.6                    0.96          1009.60			1 min
-PNT   2022-07-14 17:38:57   2022-07-14 17:50:48     0.2802        0.2766      E           -1.28         996.48			12 min			
-AR    2022-07-14 17:39:38   2022-07-14 17:42:44     13.07         13.18                   0.84          1005.04			3 min
-AR    2022-07-14 18:15:49   2022-07-14 18:21:38     13.26         13.38                   0.90          1014.09			6 min
-MATIC 2022-07-14 18:16:47   2022-07-14 19:10:24     0.6721        0.6781                  0.89          1023.12			54 min			x
-MATIC 2022-07-14 19:54:36   2022-07-14 19:55:03     0.6963        0.7038                  1.08          1034.17			1 min
-XMR   2022-07-14 20:34:26   2022-07-14 21:53:36     134.2         132.7       E           -1.12         1022.59			19 min			x
-SUSHI 2022-07-14 20:37:05   2022-07-14 20:56:21     1.322         1.333                   0.83          1031.07			19 min			x
-AAVE  2022-07-14 21:29:44   2022-07-14 21:30:20     91.8          92.7                    0.98          1041.18			1 min
-COMP  2022-07-14 22:42:56   2022-07-14 00:17:30     55.19         54.13       E           -1.92         1021.19			1 ora e 35 minuti		x
-QNT   2022-07-15 00:53:40   2022-07-15 01:07:50     97            97.8                    1.86          1040.18			14 min			
-CRV   2022-07-15 01:47:02   2022-07-15 01:47:53     1.177         1.186                   0.76          1048.09 			1 min circa
+asset data                                          partenza      arrivo      errore      guadagno %    da 1000 euro		periodo		fuori q3		ultime 3 Candele 1 min
+QNT   2022-07-14 17:15:55   2022-07-14 17:16:59     93.7          94.6                    0.96          1009.60			1 min						volume aumento e m4 in aumento rispetto m16
+PNT   2022-07-14 17:38:57   2022-07-14 17:50:48     0.2802        0.2766      E           -1.28         996.48			12 min					niente volume aumento e niente m4 aumento
+AR    2022-07-14 17:39:38   2022-07-14 17:42:44     13.07         13.18                   0.84          1005.04			3 min						volume e ma4 in aumento su ma16
+AR    2022-07-14 18:15:49   2022-07-14 18:21:38     13.26         13.38                   0.90          1014.09			6 min						prezzi aumento. volume su solo ultima candela
+MATIC 2022-07-14 18:16:47   2022-07-14 19:10:24     0.6721        0.6781                  0.89          1023.12			54 min			x		precedenti 2 volumi e prezzi in salita
+MATIC 2022-07-14 19:54:36   2022-07-14 19:55:03     0.6963        0.7038                  1.08          1034.17			1 min						precedenti 2 volumi e prezzi salita
+XMR   2022-07-14 20:34:26   2022-07-14 21:53:36     134.2         132.7       E           -1.12         1022.59			19 min			x		ultimi 3 volumi in salita ma prezzi altalenanti
+SUSHI 2022-07-14 20:37:05   2022-07-14 20:56:21     1.322         1.333                   0.83          1031.07			19 min			x		ultimi 3 volumi e prezzi in salita
+AAVE  2022-07-14 21:29:44   2022-07-14 21:30:20     91.8          92.7                    0.98          1041.18			1 min						ultimo volume salita. ultimi prezzi in salita leggere
+COMP  2022-07-14 22:42:56   2022-07-14 00:17:30     55.19         54.13       E           -1.92         1021.19			1 ora e 35 minuti		x		caso particolare. ultimi 3 volumi e prezzi in aumento. in effetti poi non è sceso molto ed è salito parecchio
+QNT   2022-07-15 00:53:40   2022-07-15 01:07:50     97            97.8                    1.86          1040.18			14 min					ultimi 3 volumi in aumento ma prezzi altalenanti. è andata bene
+CRV   2022-07-15 01:47:02   2022-07-15 01:47:53     1.177         1.186                   0.76          1048.09 			1 min circa					insensati volumi precedenti
 CTSI	2022-07-15 11:46:56   2022-07-15 11:48:01	    0.1666		0.1678			1.80		  1066.96			2 min
 ACM	2022-07-15 11:55:37   2022-07-15 11:56:01	    3.102		3.130				0.9		  1076.56			1 min
+REN	2022-07-15 21:16:41   2022-07-15 21:34:50	    0.1557		0.1574			1.09		  10788.29			18 min			x
+REN	2022-07-15 22:25:36   2022-07-15 01:59:00	    0.1580		0.1562	E		-1.14		  1075.89			3 ore e 34 minuti		x
 
 percentuale di guadagno su 1000:	7.65%
 media periodo 9.36
@@ -26,7 +28,7 @@ massimo 54
 quantità 11
 Quartile 1 -> 1
 Quartile2  -> 2
-Quartile4  -> 14
+Quartile3  -> 14
 Interquartile Range IQR 13
 Outliers 54
 Somma 103
