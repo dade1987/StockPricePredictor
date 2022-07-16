@@ -1284,7 +1284,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       // di solito quando le ultime 2 candele sono verdi e il volume è in crescita è un indice di inversione rialzista
       // secondo la teoria delle candele giapponesi
       // può essere settato o a 2 o a 1
-      const candlesPeriod = 2
+      const candlesPeriod = 3
       singleClient.candles({ symbol: simbolo, interval: '1m', limit: candlesPeriod }).then((ultimeCandele) => {
         /* let ultimiVolumiSalitaArray = ultimeCandele.map((v, i, a) => {
           return (i > 0 && Number(v.volume) > Number(a[i - 1].volume)) === true
@@ -1310,9 +1310,18 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         } */
 
         // abbassiamo un po i filtri altrimenti non apre mai niente
-        const priceTrend = ultimeCandele.filter((v, i, a) =>
-          i > 0 && Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
-          Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
+        const priceTrend = ultimeCandele.filter((v, i, a) => {
+          if (i > 0) {
+            if (i < candlesPeriod - 1) {
+              return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
+              Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
+            } else {
+              // l'ultima basta solo che abbia aperto in positivo
+              return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
+              Number(v.close) > Number(a[i - 1].close) /* && Number(v.volume) > Number(a[i - 1].volume) */
+            }
+          }
+        }
         )
 
         console.log('priceTrend', priceTrend.length, 'periodo', candlesPeriod - 1, 'soglia', (candlesPeriod - 1) / 10 * 6)
