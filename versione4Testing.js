@@ -507,7 +507,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                   const takeProfit = analisiGraficoBook.bestAsk
                   const stopLossTrigger = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
                   // lo stopLoss è 1 tick + basso dello stopLossTrigger
-                  const stopLoss = roundByDecimals(analisiGraficoBook.bestBid - tickSize, tickSizeDecimals)
+                  const stopLoss = roundByDecimals(analisiGraficoBook.bestBid - (tickSize * 2), tickSizeDecimals)
 
                   // analisi della liquidità in 24 ore
                   // dev'essere almeno 4 milioni perchè sotto ho guardato, anche a 3.200.000 e il mercato nel minuto è fermo.
