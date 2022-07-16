@@ -1415,7 +1415,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           puntiConvenienza += 3
         }
 
-        // deve superare i 6 punti su 9 (la sufficienza)
+        // deve superare i 6 punti su 10 (la sufficienza)
         if (puntiConvenienza >= 6) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
