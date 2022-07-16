@@ -506,8 +506,9 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
 
                   const takeProfit = analisiGraficoBook.bestAsk
                   const stopLossTrigger = roundByDecimals(analisiGraficoBook.bestBid, tickSizeDecimals)
-                  // lo stopLoss è 1 tick + basso dello stopLossTrigger
-                  const stopLoss = roundByDecimals(analisiGraficoBook.bestBid - (tickSize * 2), tickSizeDecimals)
+
+                  // ho visto che così c'è circa uno 0.5% di margine tra trigger e loss quindi è meno rischioso per gli slippage
+                  const stopLoss = roundByDecimals(analisiGraficoBook.bestBid / 100 * 99.5, tickSizeDecimals)
 
                   // analisi della liquidità in 24 ore
                   // dev'essere almeno 4 milioni perchè sotto ho guardato, anche a 3.200.000 e il mercato nel minuto è fermo.
@@ -1317,9 +1318,21 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
               return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
               Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
             } else {
+              // devi considerare che in apertura devi calcolare l'aumento in proporzione al tempo dal quale hai aperto
+              const seconds = new Date().getSeconds()
+              const volumeDivSeconds = Number(a[i - 1].volume) / 60 * seconds
+              const closeDivSeconds = Number(a[i - 1].close) / 60 * seconds
+              /* console.log(seconds)
+              console.log(a[i - 1].volume)
+              console.log(a[i - 1].volume / 60 * seconds)
+              console.log(v.volume)
+              console.log(a[i - 1].close)
+              console.log(a[i - 1].close / 60 * seconds)
+              console.log(v.close)
+              process.exit() */
               // l'ultima basta solo che abbia aperto in positivo. il volume non conta perchè è una candela all'inizio
               return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
-              Number(v.close) > Number(a[i - 1].close) /* && Number(v.volume) > Number(a[i - 1].volume) */
+              Number(v.close) > closeDivSeconds && Number(v.volume) > volumeDivSeconds
             }
           }
         }
@@ -1334,7 +1347,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // in caso di periodo 1 dev'essere superiore a 0.5 cioè 1 in pratica quindi avere:
         // 2 candele verdi, volumi in aumento e close maggiore del close precedente, anche in caso l'open sia più basso
         // del close precedente
-        const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 6
+        const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 7
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1415,8 +1428,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           puntiConvenienza += 3
         }
 
-        // deve superare i 6 punti su 10 (la sufficienza)
-        if (puntiConvenienza >= 6) {
+        // deve superare i 7 punti su 10 (la sufficienza)
+        if (puntiConvenienza >= 7) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }
@@ -1557,7 +1570,7 @@ if (modalita === 6) {
 } else if (modalita === 2) {
   // ai secondi 15 così almeno fa ora a valutare i volumi dell'ultima candela in modo decente
   // così vedi se è partita forte
-  nextMinuteDate = roundUpTo2Minutes(new Date()) + (1000 * 15)
+  nextMinuteDate = roundUpTo2Minutes(new Date()) + (1000 * 10)
   const currentDate = Date.now()
   const waitFistTime = nextMinuteDate - currentDate
 
