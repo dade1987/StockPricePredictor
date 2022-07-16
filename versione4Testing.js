@@ -1313,10 +1313,11 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         const priceTrend = ultimeCandele.filter((v, i, a) => {
           if (i > 0) {
             if (i < candlesPeriod - 1) {
+              // le ultime prima della candela corrente devono avere volumi e prezzi in crescita
               return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
               Number(v.close) > Number(a[i - 1].close) && Number(v.volume) > Number(a[i - 1].volume)
             } else {
-              // l'ultima basta solo che abbia aperto in positivo
+              // l'ultima basta solo che abbia aperto in positivo. il volume non conta perchè è una candela all'inizio
               return Number(v.close) > Number(v.open) && Number(a[i - 1].close) > Number(a[i - 1].open) &&
               Number(v.close) > Number(a[i - 1].close) /* && Number(v.volume) > Number(a[i - 1].volume) */
             }
