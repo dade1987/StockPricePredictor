@@ -1412,7 +1412,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         }
         // condizioni di esclusione obbligatoria
         // posso tollerare solo la reimpostazione stop loss dato che viene reimpostato a -1%
-        if (superaMinimoAssoluto === true || grafica.minimoAssoluto === Infinity || grafica.massimoAssoluto === 0 || grafica.volatilitaGiornaliera === 0 || boolSottoMinimiGiornalieri === true /* || boolReimpostazioneNextMaxPrice === true /* || boolReimpostazioneStopLoss === true */) {
+        if (book.bestAsk === undefined || book.bestBid === undefined || superaMinimoAssoluto === true || grafica.minimoAssoluto === Infinity || grafica.massimoAssoluto === 0 || grafica.volatilitaGiornaliera === 0 || boolSottoMinimiGiornalieri === true /* || boolReimpostazioneNextMaxPrice === true /* || boolReimpostazioneStopLoss === true */) {
           // console.log('puntiConvenienza NO', simbolo)
           convenienza = false
         }
