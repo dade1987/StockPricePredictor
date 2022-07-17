@@ -1347,7 +1347,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // in caso di periodo 1 dev'essere superiore a 0.5 cioè 1 in pratica quindi avere:
         // 2 candele verdi, volumi in aumento e close maggiore del close precedente, anche in caso l'open sia più basso
         // del close precedente
-        const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 7
+        const gradiForzaPrezzo = priceTrend.length >= (candlesPeriod - 1) / 10 * 6
 
         let vicinoDoppioMassimo = false
         let vicinoTriploMassimo = false
@@ -1428,8 +1428,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
           puntiConvenienza += 3
         }
 
-        // deve superare i 7 punti su 10 (la sufficienza)
-        if (puntiConvenienza >= 7) {
+        // deve superare i 6 punti su 10 (la sufficienza)
+        if (puntiConvenienza >= 6) {
           // console.log('puntiConvenienza SI', simbolo)
           convenienza = true
         }
