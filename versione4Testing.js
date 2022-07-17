@@ -1249,8 +1249,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       // console.log('sotto i minimi giornalieri. non è possibile procedere')
     }
 
-    // blocco il massimo guadagno a +4% per non farmi male
-    const maxGuadagnoPerc = 4
+    // blocco il massimo guadagno a +2.5% per non farmi male
+    const maxGuadagnoPerc = 2.5
 
     let diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
 
@@ -1400,8 +1400,9 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
         let convenienza = false
         let puntiConvenienza = 0
-        // il rapporto guadagno / perdita dev'essere maggiore a 1 e minore di 4
-        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc) > 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc) < maxGuadagnoPerc) {
+        // il rapporto guadagno / perdita dev'essere maggiore a 1.5 e minore del guadagno massimo settato
+        // calcoliamo il rapporto sullo stop loss effettivo, non sul trigger
+        if (Math.abs(diffAskPerc) / Math.abs(diffAskPerc / 100 * 99.5) > 1.5 && Math.abs(diffAskPerc) / Math.abs(diffAskPerc / 100 * 99.5) < maxGuadagnoPerc) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
