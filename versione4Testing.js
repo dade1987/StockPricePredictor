@@ -1401,7 +1401,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         let convenienza = false
         let puntiConvenienza = 0
         // il rapporto guadagno / perdita dev'essere maggiore a 1 e minore di 4
-        if (Math.abs(diffAskPerc) - Math.abs(diffBidPerc) > 1 && Math.abs(diffAskPerc) - Math.abs(diffBidPerc) < maxGuadagnoPerc) {
+        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc) > 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc) < maxGuadagnoPerc) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
