@@ -1402,7 +1402,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // il rapporto guadagno / perdita dev'essere maggiore a 1.5 e minore del guadagno massimo settato
         // calcoliamo il rapporto sullo stop loss effettivo, non sul trigger
         // è giusto / 100 * 100.5 non 99.5 perchè è una percentuale dove vai a perdere di più nel loss effettivo
-        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc / 100 * 150) > 1.5 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc / 100 * 150) < maxGuadagnoPerc) {
+        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc / 100 * 150) > 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc / 100 * 150) < maxGuadagnoPerc) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
