@@ -1199,6 +1199,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
     const data = new Date().toLocaleString()
     // console.log(grafica)
     const currentPrice = grafica.currentPrice
+    // blocco il massimo guadagno a +2.5% per non farmi male
+    const maxGuadagnoPerc = 2.5
     // eslint-disable-next-line array-callback-return
     let boolReimpostazioneNextMaxPrice = false
     let nextMaxPrice = grafica.massimiVicini.sort().filter((v) => {
@@ -1219,7 +1221,7 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       if (nextMaxPrice.length > 0) {
         nextMaxPrice = nextMaxPrice[0]
       } else {
-        nextMaxPrice = currentPrice * 1.01
+        nextMaxPrice = currentPrice / 100 * (100 + maxGuadagnoPerc)
       }
       boolReimpostazioneNextMaxPrice = true
       // console.log('massimo non presente in questa condizione')
@@ -1248,9 +1250,6 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
       boolSottoMinimiGiornalieri = true
       // console.log('sotto i minimi giornalieri. non è possibile procedere')
     }
-
-    // blocco il massimo guadagno a +2.5% per non farmi male
-    const maxGuadagnoPerc = 2.5
 
     let diffMaxPerc = ((nextMaxPrice - currentPrice) / currentPrice) * 100
 
