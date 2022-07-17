@@ -1400,9 +1400,9 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
 
         let convenienza = false
         let puntiConvenienza = 0
-        // un rischio di perdita dell'1% a fronte di un guadagno dallo 0.7% al 5%
+        // un rischio di perdita dell'1.5% a fronte di un guadagno dall'1.25'% al 4%
         // messo + 1 per sicurezza
-        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 0.75 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) / 100 * (100 + maxGuadagnoPerc + 1)) {
+        if (Math.abs(diffAskPerc) > Math.abs(diffBidPerc) * 1.25 && Math.abs(diffAskPerc) < Math.abs(diffBidPerc) / 100 * (100 + maxGuadagnoPerc + 1)) {
           // console.log('puntiConvenienza 1', simbolo)
           puntiConvenienza++
         }
