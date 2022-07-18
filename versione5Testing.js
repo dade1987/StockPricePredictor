@@ -939,8 +939,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
     const data = new Date().toLocaleString()
     const currentPrice = grafica.currentPrice
 
-    // blocco il massimo guadagno a +2.5% per non farmi male
-    const maxGuadagnoPerc = 2.5
+    // blocco il massimo guadagno a +1.5% per non farmi male
+    const maxGuadagnoPerc = 1.5
 
     // eslint-disable-next-line array-callback-return
     let boolReimpostazioneNextMaxPrice = false
@@ -1097,14 +1097,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         let puntiConvenienza = 0
 
         // facciamo finta che abbiamo comprato per un prezzo ask di 100 USDT
-        // posso perdere da 1.50 a 2 euro (media 1.75) e guadagnare da 1.50 a 2.50 USDT ( media 2)
+        // posso perdere da 1.50 a 2 euro (media 1.75) e guadagnare da 1.50 a 2 USDT ( media 1.75%)
         // il calcolo va fatto però non sullo stop trigger ma sullo stop loss effettivo,
         // che sarebbe il trigger % * 1.5
         // quindi il rapporto più conveniente tra askperc / stoplossperc è da >=1 a <=1.67
         // perchè 1.5 / 1.5 che è il rapporto peggiore è 1
-        // e 2.5 / 1.5 che è il migliore fa 1.67
-        // 2.5 / 2 che è il valore medio fa 1.25
-        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) >= 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) <= 1.67) {
+        // e 2 / 1.5 che è il migliore fa 1.33
+        // 2 / 2 che è il valore medio fa 1
+        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) >= 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) <= 1.33) {
           puntiConvenienza++
         }
 
