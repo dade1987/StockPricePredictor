@@ -1,0 +1,156 @@
+[Object: null prototype] {
+  symbol: 'IOTAUSDT',
+  orderId: 696732980,
+  orderListId: -1,
+  clientOrderId: 'BUY',
+  transactTime: 1658248096385,
+  price: '0.00000000',
+  origQty: '147.00000000',
+  executedQty: '147.00000000',
+  cummulativeQuoteQty: '45.21720000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'BUY',
+  fills: [
+    [Object: null prototype] {
+      price: '0.30760000',
+      qty: '147.00000000',
+      commission: '0.14700000',
+      commissionAsset: 'IOTA',
+      tradeId: 65419510
+    }
+  ]
+}
+[Object: null prototype] {
+  orderListId: 70317612,
+  contingencyType: 'OCO',
+  listStatusType: 'EXEC_STARTED',
+  listOrderStatus: 'EXECUTING',
+  listClientOrderId: 'FeIUMWzjYWCrFOCpPmcTVI',
+  transactionTime: 1658248106858,
+  symbol: 'IOTAUSDT',
+  orders: [
+    [Object: null prototype] {
+      symbol: 'IOTAUSDT',
+      orderId: 696733077,
+      clientOrderId: 'mpxqvotJwy1ZvpRRKBoJEK'
+    },
+    [Object: null prototype] {
+      symbol: 'IOTAUSDT',
+      orderId: 696733078,
+      clientOrderId: 'wuUvCs2wv6ofyMlWEVmlqZ'
+    }
+  ],
+  orderReports: [
+    [Object: null prototype] {
+      symbol: 'IOTAUSDT',
+      orderId: 696733077,
+      orderListId: 70317612,
+      clientOrderId: 'mpxqvotJwy1ZvpRRKBoJEK',
+      transactTime: 1658248106858,
+      price: '0.30260000',
+      origQty: '146.00000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'STOP_LOSS_LIMIT',
+      side: 'SELL',
+      stopPrice: '0.30410000'
+    },
+    [Object: null prototype] {
+      symbol: 'IOTAUSDT',
+      orderId: 696733078,
+      orderListId: 70317612,
+      clientOrderId: 'wuUvCs2wv6ofyMlWEVmlqZ',
+      transactTime: 1658248106858,
+      price: '0.31350000',
+      origQty: '146.00000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'LIMIT_MAKER',
+      side: 'SELL'
+    }
+  ]
+}
+[Object: null prototype] {
+  symbol: 'IOTXUSDT',
+  orderId: 605324623,
+  orderListId: -1,
+  clientOrderId: 'BUY',
+  transactTime: 1658248968362,
+  price: '0.00000000',
+  origQty: '1259.00000000',
+  executedQty: '1259.00000000',
+  cummulativeQuoteQty: '45.19810000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'BUY',
+  fills: [
+    [Object: null prototype] {
+      price: '0.03590000',
+      qty: '1259.00000000',
+      commission: '1.25900000',
+      commissionAsset: 'IOTX',
+      tradeId: 54583273
+    }
+  ]
+}
+[Object: null prototype] {
+  orderListId: 70319537,
+  contingencyType: 'OCO',
+  listStatusType: 'EXEC_STARTED',
+  listOrderStatus: 'EXECUTING',
+  listClientOrderId: 'cvhkCc6IO2wNkl7vTE730v',
+  transactionTime: 1658248973211,
+  symbol: 'IOTXUSDT',
+  orders: [
+    [Object: null prototype] {
+      symbol: 'IOTXUSDT',
+      orderId: 605324848,
+      clientOrderId: 'kGz3TUxIPHBEkXrjOo0bHv'
+    },
+    [Object: null prototype] {
+      symbol: 'IOTXUSDT',
+      orderId: 605324849,
+      clientOrderId: 'B5cPbJxFyYC3OZD6RngmA4'
+    }
+  ],
+  orderReports: [
+    [Object: null prototype] {
+      symbol: 'IOTXUSDT',
+      orderId: 605324848,
+      orderListId: 70319537,
+      clientOrderId: 'kGz3TUxIPHBEkXrjOo0bHv',
+      transactTime: 1658248973211,
+      price: '0.03532000',
+      origQty: '1257.00000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'STOP_LOSS_LIMIT',
+      side: 'SELL',
+      stopPrice: '0.03550000'
+    },
+    [Object: null prototype] {
+      symbol: 'IOTXUSDT',
+      orderId: 605324849,
+      orderListId: 70319537,
+      clientOrderId: 'B5cPbJxFyYC3OZD6RngmA4',
+      transactTime: 1658248973211,
+      price: '0.03659000',
+      origQty: '1257.00000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'LIMIT_MAKER',
+      side: 'SELL'
+    }
+  ]
+}
