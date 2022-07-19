@@ -944,8 +944,8 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
     const data = new Date().toLocaleString()
     const currentPrice = grafica.currentPrice
 
-    // blocco il massimo guadagno a +1.5% per non farmi male
-    const maxGuadagnoPerc = 1.5
+    // blocco il massimo guadagno a +2% per non farmi male
+    const maxGuadagnoPerc = 2
 
     // eslint-disable-next-line array-callback-return
     let boolReimpostazioneNextMaxPrice = false
@@ -1109,7 +1109,11 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // perchè 1.5 / 1.5 che è il rapporto peggiore è 1
         // e 2 / 1.5 che è il migliore fa 1.33
         // 2 / 2 che è il valore medio fa 1
-        if (Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) >= 1 && Math.abs(diffAskPerc) / Math.abs(diffBidPerc * 1.5) <= 1.33) {
+
+        console.log('stopTriggerPerc', Math.abs(diffBidPerc), 'stopLossPerc', (Math.abs(diffBidPerc) * 1.5), 'takeProfitPerc', Math.abs(diffAskPerc))
+        console.log('rapporto', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5), 'verificata', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33)
+
+        if (Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33) {
           puntiConvenienza++
         }
 
