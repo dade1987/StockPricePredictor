@@ -7,6 +7,7 @@ const fs = require('fs')
 const util = require('util')
 const path = require('path')
 const logFile = fs.createWriteStream(path.join(__dirname, 'debug.log'), { flags: 'a' })
+const ordersFile = fs.createWriteStream(path.join(__dirname, 'orders.log'), { flags: 'a' })
 
 // TESTATO SENZA MAI AVER SBAGLIATO IL 10 GIUGNO 2022 TUTTO IL GIORNO
 const dotenv = require('dotenv')
@@ -351,6 +352,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           quantity,
           newClientOrderId: 'SELL'
         }).then(response => {
+          ordersFile.write(util.format(response) + '\n')
           console.log(response)
           callback([true, response])
         }).catch((reason) => {
@@ -379,6 +381,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
           stopPrice: stopLossTrigger,
           stopLimitPrice: stopLoss
         }).then(response => {
+          ordersFile.write(util.format(response) + '\n')
           ocoAttemps = 0
           callback([true, response])
         })
@@ -479,7 +482,8 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                             type: 'MARKET',
                             quantity: maxQty,
                             newClientOrderId: 'BUY'
-                          }).then(() => {
+                          }).then((response) => {
+                            ordersFile.write(util.format(response) + '\n')
                             // imposta l'ordine OCO
                             piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, singleClient, function (cb) {
                               if (cb[0] === true) {
@@ -581,7 +585,8 @@ async function autoInvestiLong (arrayPrevisioniFull) {
                           type: 'MARKET',
                           quantity: maxQty,
                           newClientOrderId: 'BUY'
-                        }).then(() => {
+                        }).then((response) => {
+                          ordersFile.write(util.format(response) + '\n')
                           piazzaOrdineOco(arrayPrevisioni.simbolo, maxQty, takeProfit, stopLossTrigger, stopLoss, arrayPrevisioni.baseAssetPrecision, arrayPrevisioni.lotSize, 0, singleClient, function (cb) {
                             if (cb[0] === true) {
                               console.log('ORDINE OCO PIAZZATO', arrayPrevisioni.simbolo)
