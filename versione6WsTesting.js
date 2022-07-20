@@ -90,6 +90,115 @@ String.prototype.countDecimals = function () {
   }
 }
 
+// suona in caso di eccezioni
+let lastDrinTime = 0
+async function playDrin (bypass) {
+  const filePath = path.join(__dirname, 'drin.mp3')
+
+  const ora = new Date().getHours()
+
+  if (bypass === true) {
+    if (soundDisabled === false) {
+      sound.play(filePath)
+    }
+  } else if (ora < 22 && ora >= 9 && new Date().getTime() - lastDrinTime >= 30000) {
+    if (soundDisabled === false) {
+      sound.play(filePath)
+      lastDrinTime = new Date().getTime()
+    }
+  }
+}
+
+// suona in caso di acquisto di assets
+let lastBullTime = 0
+async function playBullSentiment (bypass) {
+  const filePath = path.join(__dirname, 'bull_sentiment.mp3')
+  const ora = new Date().getHours()
+
+  if (bypass === true) {
+    if (soundDisabled === false) {
+      sound.play(filePath)
+    }
+  } else if (ora < 22 && ora >= 9 && new Date().getTime() - lastBullTime >= 30000) {
+    if (soundDisabled === false) {
+      sound.play(filePath)
+      lastBullTime = new Date().getTime()
+    }
+  }
+}
+
+function openWebSocket (symbol, listClientOrderId, quantity, singleClient) {
+  // apre un websocket sul simbolo, per chiudere subito a mercato
+  // in caso di inversione dell'SMA4 di chiusura e solo se il prezzo supera l'ask di apertura
+
+  singleClient.candles({ symbol, interval: '1m', limit: 5 }).then((candles) => {
+    const prezzoApertura = candles[candles.length - 1].close
+    // qui calcola l'sma sulle candele precedenti
+    const period = 4
+    let sma = SMA.calculate({
+      period,
+      values: candles.map((v) => Number(v.close))
+    })
+
+    const ws = singleClient.ws.candles(symbol, '1m', candle => {
+      singleClient.openOrders({ symbol }).then(openOrders => {
+        if (openOrders.length === 0) {
+          // chiude. deve andare solo se ci sono OCO aperti in quel simbolo
+          ws()
+        } else {
+          const prezzoAttuale = candle.close
+          if (candle.closeTime === candles[candles.length - 1].closeTime) {
+            // sostituisco la candela precedente perchè è sempre di quel minuto, e poi ricalcolo l'sma
+            candles[candles.length - 1] = candle
+          } else {
+            // aggiungo la candela e ricalcolo l'sma
+            candles.push(candle)
+          }
+          sma = SMA.calculate({
+            period,
+            values: candles.map((v) => Number(v.close))
+          })
+
+          // se l'sma4 è sotto l'sma4 precedente quindi segna una possibile inversione di tendenza,
+          // e il prezzo è maggiore di quello a cui ho aperto, chiudo la posizione
+          console.log('Apertura', prezzoApertura, 'Attuale', prezzoAttuale, 'Sma Ultima', sma[sma.length - 1], 'Sma Penultima', sma[sma.length - 2], 'Sma Discendente?', sma[sma.length - 1] < sma[sma.length - 2])
+
+          if (sma[sma.length - 1] < sma[sma.length - 2] && prezzoAttuale > prezzoApertura) {
+            // cancello ordine OCO e vendo a mercato
+            client.cancelOrderOco({
+              symbol,
+              listClientOrderId
+            }).then((response) => {
+              console.log(response)
+              singleClient.order({
+                symbol,
+                side: 'SELL',
+                type: 'MARKET',
+                quantity,
+                newClientOrderId: 'SELL'
+              }).then(response2 => {
+                ordersFile.write(util.format(response2) + '\n')
+                console.log(response)
+
+                ws()
+              }).catch((exception2) => {
+                logFile.write(util.format(exception2) + '\n')
+                console.log('Exception', exception2, 'This', this)
+              })
+            }).catch((exception) => {
+              logFile.write(util.format(exception) + '\n')
+              console.log('Exception', exception, 'This', this)
+            })
+          }
+        }
+      })
+    })
+  }).catch((exceptionCandles) => {
+    logFile.write(util.format(exceptionCandles) + '\n')
+    console.log('Exception', exceptionCandles, 'This', this)
+  })
+}
+
 // eslint-disable-next-line no-unused-vars
 // serve per prendere il prezzo con meno ordini impostati
 // vicino ai prezzi passati come parametro nell'order book
@@ -285,43 +394,6 @@ function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, tickSizeDecimals,
   })
 }
 
-// suona in caso di eccezioni
-let lastDrinTime = 0
-async function playDrin (bypass) {
-  const filePath = path.join(__dirname, 'drin.mp3')
-
-  const ora = new Date().getHours()
-
-  if (bypass === true) {
-    if (soundDisabled === false) {
-      sound.play(filePath)
-    }
-  } else if (ora < 22 && ora >= 9 && new Date().getTime() - lastDrinTime >= 30000) {
-    if (soundDisabled === false) {
-      sound.play(filePath)
-      lastDrinTime = new Date().getTime()
-    }
-  }
-}
-
-// suona in caso di acquisto di assets
-let lastBullTime = 0
-async function playBullSentiment (bypass) {
-  const filePath = path.join(__dirname, 'bull_sentiment.mp3')
-  const ora = new Date().getHours()
-
-  if (bypass === true) {
-    if (soundDisabled === false) {
-      sound.play(filePath)
-    }
-  } else if (ora < 22 && ora >= 9 && new Date().getTime() - lastBullTime >= 30000) {
-    if (soundDisabled === false) {
-      sound.play(filePath)
-      lastBullTime = new Date().getTime()
-    }
-  }
-}
-
 function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLoss, baseAssetPrecision, lotSize, ocoAttemps, singleClient, callback) {
   // per piazzare l'ordine OCO (One Cancel Other) di chiusura
 
@@ -378,6 +450,7 @@ function piazzaOrdineOco (simbolo, quantity, takeProfit, stopLossTrigger, stopLo
         }).then(response => {
           ordersFile.write(util.format(response) + '\n')
           ocoAttemps = 0
+          openWebSocket(response.symbol, response.listClientOrderId, quantity, singleClient)
           callback([true, response])
         })
           .catch((reason) => {
@@ -942,8 +1015,9 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
     const data = new Date().toLocaleString()
     const currentPrice = grafica.currentPrice
 
-    // blocco il massimo guadagno a +2% per non farmi male
-    const maxGuadagnoPerc = 2
+    // blocco il massimo guadagno a +5% tanto c'è il trailing stop manuale
+    // e non è una percentuale irrealistica
+    const maxGuadagnoPerc = 5
 
     // eslint-disable-next-line array-callback-return
     let boolReimpostazioneNextMaxPrice = false
@@ -1108,10 +1182,14 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // e 2 / 1.5 che è il migliore fa 1.33
         // 2 / 2 che è il valore medio fa 1
 
-        console.log('stopTriggerPerc', Math.abs(diffBidPerc), 'stopLossPerc', (Math.abs(diffBidPerc) * 1.5), 'takeProfitPerc', Math.abs(diffAskPerc))
-        console.log('rapporto', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5), 'verificata', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33)
+        // console.log('stopTriggerPerc', Math.abs(diffBidPerc), 'stopLossPerc', (Math.abs(diffBidPerc) * 1.5), 'takeProfitPerc', Math.abs(diffAskPerc))
+        // console.log('rapporto', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5), 'verificata', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33)
 
-        if (Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33) {
+        // siccome abbiamo il trail stop manuale, a sto punto basta solo che il rapporto sia > 1 per acquistare
+        // aggiustiamo il rapporto a 1.5 così è più promettente. Vuol dire avere una probabilità del 50% in più
+        // che arrivi più alto rispetto a quello che potrebbe perdere
+        // così il filtro è stato abbassato di parecchio
+        if (Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1.5 /* && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33 */) {
           puntiConvenienza++
         }
 
@@ -1210,8 +1288,44 @@ let nextMinuteDate = 0
 
 playBullSentiment(true)
 
+// era mod 2
 const modalita = 2
-if (modalita === 6) {
+if (modalita === 7) {
+  client.candles({ symbol: 'BTCUSDT', interval: '1m', limit: 5 }).then((candles) => {
+    // console.log('Candele iniziali', candles)
+    const prezzoApertura = candles[candles.length - 1].close
+    // qui calcola l'sma sulle candele precedenti
+    const period = 4
+    let sma = SMA.calculate({
+      period,
+      values: candles.map((v) => Number(v.close))
+    })
+    const ws = client.ws.candles('BTCUSDT', '1m', candle => {
+      // console.log('Candela', candle)
+      const prezzoAttuale = candle.close
+      if (candle.closeTime === candles[candles.length - 1].closeTime) {
+        // sostituisco la candela precedente perchè è sempre di quel minuto, e poi ricalcolo l'sma
+        candles[candles.length - 1] = candle
+      } else {
+      // aggiungo la candela e ricalcolo l'sma
+        candles.push(candle)
+      }
+      sma = SMA.calculate({
+        period,
+        values: candles.map((v) => Number(v.close))
+      })
+
+      // se l'sma4 è sotto l'sma4 precedente quindi segna una possibile inversione di tendenza,
+      // e il prezzo è maggiore di quello a cui ho aperto, chiudo la posizione
+      console.log('Apertura', prezzoApertura, 'Attuale', prezzoAttuale, 'Sma Ultima', sma[sma.length - 1], 'Sma Penultima', sma[sma.length - 2], 'Sma Discendente?', sma[sma.length - 1] < sma[sma.length - 2])
+
+      ws()
+    })
+    /* setTimeout(function () {
+      ws()
+    }, 10000) */
+  })
+} else if (modalita === 6) {
   client.exchangeInfo().then((e) => { console.log(e) }).catch(r => console.log(r))
 } else if (modalita === 5) {
   logFile.write(util.format('test1') + '\n')
