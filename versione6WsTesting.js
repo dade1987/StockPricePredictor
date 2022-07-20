@@ -259,8 +259,8 @@ function analisiOrderBook (symbol, currentPrice, maxPrice, minPrice, callback) {
 function analisiGraficaGiornalieraMassimiMinimiVicini (symbol, tickSizeDecimals, callback) {
   // prende le candele delle 24 ore precedenti,
   // dato che sono intervalli di 30 minuti
-  // dato che operiamo in intraday non serve un periodo oltre a questo
-  client.candles({ symbol, interval: '30m', limit: 48 }).then((candles30Min) => {
+  // facciamo un'analisi grafica su un periodo di 1 SETTIMANA, perchè spesso le resistenze durano parecchi giorni
+  client.candles({ symbol, interval: '30m', limit: 48 * 7 }).then((candles30Min) => {
     const massimiVicini = []
     const minimiVicini = []
     const doppiTocchiMassimi = []
