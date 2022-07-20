@@ -1186,10 +1186,10 @@ function analisiGraficoOrderbook (simbolo, singleClient, tickSizeDecimals, callb
         // console.log('rapporto', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5), 'verificata', Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1 && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33)
 
         // siccome abbiamo il trail stop manuale, a sto punto basta solo che il rapporto sia > 1 per acquistare
-        // aggiustiamo il rapporto a 1.5 così è più promettente. Vuol dire avere una probabilità del 50% in più
+        // aggiustiamo il rapporto a 1.33 così è più promettente. Vuol dire avere una probabilità del 33% in più
         // che arrivi più alto rispetto a quello che potrebbe perdere
         // così il filtro è stato abbassato di parecchio
-        if (Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1.5 /* && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33 */) {
+        if (Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) >= 1.33 /* && Math.abs(diffAskPerc) / (Math.abs(diffBidPerc) * 1.5) <= 1.33 */) {
           puntiConvenienza++
         }
 
