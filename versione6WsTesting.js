@@ -134,7 +134,7 @@ function openWebSocket (symbol, listClientOrderId, quantity, singleClient) {
   singleClient.candles({ symbol, interval: '1m', limit: 5 }).then((candles) => {
     const prezzoApertura = candles[candles.length - 1].close
     // qui calcola l'sma sulle candele precedenti
-    const period = 4
+    const period = 3
     let sma = SMA.calculate({
       period,
       values: candles.map((v) => Number(v.close))

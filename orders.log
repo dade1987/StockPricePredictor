@@ -544,3 +544,112 @@
     }
   ]
 }
+[Object: null prototype] {
+  symbol: 'LDOUSDT',
+  orderId: 11179203,
+  orderListId: -1,
+  clientOrderId: 'BUY',
+  transactTime: 1658319384185,
+  price: '0.00000000',
+  origQty: '22.94000000',
+  executedQty: '22.94000000',
+  cummulativeQuoteQty: '42.50782000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'BUY',
+  fills: [
+    [Object: null prototype] {
+      price: '1.85300000',
+      qty: '5.70000000',
+      commission: '0.00570000',
+      commissionAsset: 'LDO',
+      tradeId: 1854830
+    },
+    [Object: null prototype] {
+      price: '1.85300000',
+      qty: '17.24000000',
+      commission: '0.01724000',
+      commissionAsset: 'LDO',
+      tradeId: 1854831
+    }
+  ]
+}
+[Object: null prototype] {
+  orderListId: 70396797,
+  contingencyType: 'OCO',
+  listStatusType: 'EXEC_STARTED',
+  listOrderStatus: 'EXECUTING',
+  listClientOrderId: '6QFqylJZFUBY5Ybi8DjvXR',
+  transactionTime: 1658319390471,
+  symbol: 'LDOUSDT',
+  orders: [
+    [Object: null prototype] {
+      symbol: 'LDOUSDT',
+      orderId: 11179364,
+      clientOrderId: 'w3S1lnz3xCAuvPY9p7eXM5'
+    },
+    [Object: null prototype] {
+      symbol: 'LDOUSDT',
+      orderId: 11179365,
+      clientOrderId: '3oNqr2LsqhfoVobd8ANFQ3'
+    }
+  ],
+  orderReports: [
+    [Object: null prototype] {
+      symbol: 'LDOUSDT',
+      orderId: 11179364,
+      orderListId: 70396797,
+      clientOrderId: 'w3S1lnz3xCAuvPY9p7eXM5',
+      transactTime: 1658319390471,
+      price: '1.81700000',
+      origQty: '22.90000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'STOP_LOSS_LIMIT',
+      side: 'SELL',
+      stopPrice: '1.82600000'
+    },
+    [Object: null prototype] {
+      symbol: 'LDOUSDT',
+      orderId: 11179365,
+      orderListId: 70396797,
+      clientOrderId: '3oNqr2LsqhfoVobd8ANFQ3',
+      transactTime: 1658319390471,
+      price: '1.93100000',
+      origQty: '22.90000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'LIMIT_MAKER',
+      side: 'SELL'
+    }
+  ]
+}
+[Object: null prototype] {
+  symbol: 'LDOUSDT',
+  orderId: 11192902,
+  orderListId: -1,
+  clientOrderId: 'SELL',
+  transactTime: 1658319792894,
+  price: '0.00000000',
+  origQty: '22.90000000',
+  executedQty: '22.90000000',
+  cummulativeQuoteQty: '43.00620000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'SELL',
+  fills: [
+    [Object: null prototype] {
+      price: '1.87800000',
+      qty: '22.90000000',
+      commission: '0.04300620',
+      commissionAsset: 'USDT',
+      tradeId: 1858207
+    }
+  ]
+}
