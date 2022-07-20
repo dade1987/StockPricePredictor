@@ -533,7 +533,7 @@ async function autoInvestiLongOrderbook (arrayPrevisioniFull) {
                   const stopLoss = roundByDecimals(analisiGraficoBook.bestBid / 100 * 99.5, tickSizeDecimals)
 
                   // filtro di liquidità in 24 ore, per non investire su mercati fermi o comunque poco scambiati
-                  if (symbolPrice.quoteVolume > 4000000) {
+                  if (symbolPrice.quoteVolume > 3000000) {
                     console.log('TEST LIQUIDITA SUPERATO', 'SIMBOLO', arrayPrevisioni.simbolo, 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit)
 
                     // filtro di minima quantità di USDT da investire impostato a 25 USDT
@@ -635,7 +635,7 @@ async function autoInvestiLong (arrayPrevisioniFull) {
 
                   console.log(arrayPrevisioni.simbolo, 'QuoteVolume', symbolPrice.quoteVolume)
 
-                  const condition = symbolPrice.quoteVolume > 4500000 && (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) * 0.6) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.2)
+                  const condition = symbolPrice.quoteVolume > 3000000 && (takeProfit - symbolPrice.askPrice) >= ((symbolPrice.bidPrice - stopLossTrigger) * 0.6) && (takeProfit - symbolPrice.askPrice) <= ((symbolPrice.bidPrice - stopLossTrigger) * 1.2)
 
                   console.log('VALUTAZIONE ORDINE 2', 'SL', stopLoss, 'SL Trigger', stopLossTrigger, 'TP', takeProfit, 'DIFF TP', (takeProfit - symbolPrice.askPrice), 'DIFF SL', (symbolPrice.bidPrice - stopLossTrigger), 'DIFF SL/2', ((symbolPrice.bidPrice - stopLossTrigger) / 2), 'DIFF SL*1.5', ((symbolPrice.bidPrice - stopLossTrigger) * 1.5), 'CONDITION', condition)
 
