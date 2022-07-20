@@ -653,3 +653,159 @@
     }
   ]
 }
+[Object: null prototype] {
+  symbol: 'ASTRUSDT',
+  orderId: 53205718,
+  orderListId: -1,
+  clientOrderId: 'BUY',
+  transactTime: 1658332950944,
+  price: '0.00000000',
+  origQty: '851.80000000',
+  executedQty: '851.80000000',
+  cummulativeQuoteQty: '42.84554000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'BUY',
+  fills: [
+    [Object: null prototype] {
+      price: '0.05030000',
+      qty: '851.80000000',
+      commission: '0.85180000',
+      commissionAsset: 'ASTR',
+      tradeId: 6878052
+    }
+  ]
+}
+[Object: null prototype] {
+  orderListId: 70417931,
+  contingencyType: 'OCO',
+  listStatusType: 'EXEC_STARTED',
+  listOrderStatus: 'EXECUTING',
+  listClientOrderId: 'VNvJBBfxHF7GfdJgJs3Gqp',
+  transactionTime: 1658332951841,
+  symbol: 'ASTRUSDT',
+  orders: [
+    [Object: null prototype] {
+      symbol: 'ASTRUSDT',
+      orderId: 53205748,
+      clientOrderId: '3kumBIsd5fXub6f1mKGz3y'
+    },
+    [Object: null prototype] {
+      symbol: 'ASTRUSDT',
+      orderId: 53205749,
+      clientOrderId: 'yPNcg6WCrkcrmfj6O0zvjF'
+    }
+  ],
+  orderReports: [
+    [Object: null prototype] {
+      symbol: 'ASTRUSDT',
+      orderId: 53205748,
+      orderListId: 70417931,
+      clientOrderId: '3kumBIsd5fXub6f1mKGz3y',
+      transactTime: 1658332951841,
+      price: '0.04950000',
+      origQty: '850.90000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'STOP_LOSS_LIMIT',
+      side: 'SELL',
+      stopPrice: '0.04970000'
+    },
+    [Object: null prototype] {
+      symbol: 'ASTRUSDT',
+      orderId: 53205749,
+      orderListId: 70417931,
+      clientOrderId: 'yPNcg6WCrkcrmfj6O0zvjF',
+      transactTime: 1658332951841,
+      price: '0.05280000',
+      origQty: '850.90000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'LIMIT_MAKER',
+      side: 'SELL'
+    }
+  ]
+}
+[Object: null prototype] {
+  symbol: 'MTLUSDT',
+  orderId: 473150373,
+  orderListId: -1,
+  clientOrderId: 'BUY',
+  transactTime: 1658334400724,
+  price: '0.00000000',
+  origQty: '27.30000000',
+  executedQty: '27.30000000',
+  cummulativeQuoteQty: '42.34230000',
+  status: 'FILLED',
+  timeInForce: 'GTC',
+  type: 'MARKET',
+  side: 'BUY',
+  fills: [
+    [Object: null prototype] {
+      price: '1.55100000',
+      qty: '27.30000000',
+      commission: '0.02730000',
+      commissionAsset: 'MTL',
+      tradeId: 26617126
+    }
+  ]
+}
+[Object: null prototype] {
+  orderListId: 70420044,
+  contingencyType: 'OCO',
+  listStatusType: 'EXEC_STARTED',
+  listOrderStatus: 'EXECUTING',
+  listClientOrderId: 'wd4OYnAunge3vipfIbUZt0',
+  transactionTime: 1658334407290,
+  symbol: 'MTLUSDT',
+  orders: [
+    [Object: null prototype] {
+      symbol: 'MTLUSDT',
+      orderId: 473150739,
+      clientOrderId: 'kEyrlLSMNFLYcDGuN9uMhx'
+    },
+    [Object: null prototype] {
+      symbol: 'MTLUSDT',
+      orderId: 473150740,
+      clientOrderId: 'ubUwZkIsx7utGuJ4hYkCOp'
+    }
+  ],
+  orderReports: [
+    [Object: null prototype] {
+      symbol: 'MTLUSDT',
+      orderId: 473150739,
+      orderListId: 70420044,
+      clientOrderId: 'kEyrlLSMNFLYcDGuN9uMhx',
+      transactTime: 1658334407290,
+      price: '1.52900000',
+      origQty: '27.20000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'STOP_LOSS_LIMIT',
+      side: 'SELL',
+      stopPrice: '1.53700000'
+    },
+    [Object: null prototype] {
+      symbol: 'MTLUSDT',
+      orderId: 473150740,
+      orderListId: 70420044,
+      clientOrderId: 'ubUwZkIsx7utGuJ4hYkCOp',
+      transactTime: 1658334407290,
+      price: '1.62900000',
+      origQty: '27.20000000',
+      executedQty: '0.00000000',
+      cummulativeQuoteQty: '0.00000000',
+      status: 'NEW',
+      timeInForce: 'GTC',
+      type: 'LIMIT_MAKER',
+      side: 'SELL'
+    }
+  ]
+}

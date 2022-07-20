@@ -919,8 +919,15 @@ async function bootstrapModalitaOrderbook () {
   console.log('---------------------------------------------------------------------------')
   const binanceDate = new Date().toLocaleString()
   console.log('DATA', binanceDate)
-  console.log('SINCRONIZZA OROLOGIO DI WINDOWS')
-  console.log('https://answers.microsoft.com/it-it/windows/forum/all/modificare-la-frequenza-di-aggiornamento/56ff20dd-1901-41f4-8799-efe767d96886')
+  console.log('\n')
+  console.log('StockPricePredictor v6.0.1 by Davide Cavallini')
+  console.log('\n')
+  console.log('Linkedin: https://www.linkedin.com/in/davidecavallini/')
+  console.log('---------------------------------------------------------------------------')
+  console.log('\n')
+
+  // console.log('SINCRONIZZA OROLOGIO DI WINDOWS')
+  // console.log('https://answers.microsoft.com/it-it/windows/forum/all/modificare-la-frequenza-di-aggiornamento/56ff20dd-1901-41f4-8799-efe767d96886')
 
   const exchangeName = 'binance'
 
