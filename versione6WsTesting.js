@@ -1389,6 +1389,7 @@ if (modalita === 7) {
   const currentDate = Date.now()
   const waitFistTime = nextMinuteDate - currentDate
 
+  bootstrapModalitaOrderbook()
   setTimeout(function () {
     bootstrapModalitaOrderbook()
     setInterval(function () {
